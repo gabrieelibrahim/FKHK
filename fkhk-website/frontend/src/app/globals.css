@@ -1,0 +1,155 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Brand Colors — Refined */
+  --primary:        #2C5857;
+  --primary-dark:   #1e3e3d;
+  --primary-mid:    #3a6e6d;
+  --primary-light:  #4a8a89;
+  --primary-50:     #f0f7f7;
+  --primary-100:    #d1e8e8;
+
+  /* Background */
+  --bg:             #FCFAF8;
+  --bg-card:        #ffffff;
+  --bg-section:     #F7F2ED;
+  --bg-dark:        #1a2e2e;
+
+  /* Text */
+  --text-primary:   #1a1a1a;
+  --text-secondary: #4a4a4a;
+  --text-muted:     #888888;
+  --text-light:     #ffffff;
+
+  /* Accent */
+  --accent:         #C8A97E;
+  --accent-dark:    #a8854e;
+
+  /* Status */
+  --success:        #2ecc71;
+  --warning:        #f39c12;
+  --danger:         #e74c3c;
+
+  /* Shadows — Refined, softer */
+  --shadow-xs:  0 2px 8px rgba(44, 88, 87, 0.04);
+  --shadow-sm:  0 4px 16px rgba(44, 88, 87, 0.06);
+  --shadow-md:  0 8px 32px rgba(44, 88, 87, 0.08);
+  --shadow-lg:  0 16px 48px rgba(44, 88, 87, 0.10);
+  --shadow-xl:  0 24px 80px rgba(44, 88, 87, 0.12);
+  --shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  /* Border Radius */
+  --radius-xs:  6px;
+  --radius-sm:  10px;
+  --radius-md:  16px;
+  --radius-lg:  24px;
+  --radius-xl:  32px;
+  --radius-full: 9999px;
+
+  /* Transitions — Spring physics feel */
+  --transition-fast:   all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition:        all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow:   all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Typography */
+  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-body:    'Plus Jakarta Sans', system-ui, sans-serif;
+
+  /* Spacing */
+  --section-py: 96px;
+  --container-px: 24px;
+  --max-width: 1240px;
+}
+
+body {
+  color: var(--text-primary);
+  background: var(--bg);
+}
+
+/* ===== Scroll-Reveal Animations ===== */
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Stagger children (legacy — use <StaggerContainer> framer component instead) */
+
+/* Reveal on scroll — use via className="reveal" */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal,
+  .reveal-base {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
