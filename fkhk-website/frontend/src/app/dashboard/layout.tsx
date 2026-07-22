@@ -50,7 +50,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="flex h-screen bg-gray-50">
       <aside className="w-64 bg-white border-r border-gray-200 shrink-0">
         <div className="flex items-center gap-3 px-6 h-16 border-b border-gray-200">
-          <img src="/assets/logo/logo.png" alt="FKHK" className="w-8 h-8" />
+          <img src="/assets/logo/logo fkhk hijau.png" alt="FKHK" className="w-9 h-9 object-contain shrink-0" />
           <span className="font-bold text-gray-900">Dashboard Member</span>
         </div>
 

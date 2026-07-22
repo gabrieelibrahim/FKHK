@@ -1,4 +1,5 @@
 const prisma = require('../lib/prisma');
+const mailer = require('../utils/mailer');
 
 exports.getArticles = async (req, res, next) => {
   try {
@@ -168,6 +169,13 @@ exports.updateArticle = async (req, res, next) => {
       data,
     });
 
+    // send notification if newly published
+    if (status === 'published' && article.status !== 'published') {
+      prisma.newsletterSubscriber.findMany({ where: { unsubscribedAt: null } })
+        .then((subs) => mailer.sendNewArticleNotification(subs, updated))
+        .catch(() => {});
+    }
+
     res.json(updated);
   } catch (err) {
     next(err);
@@ -205,6 +213,11 @@ exports.publishArticle = async (req, res, next) => {
       where: { id: parseInt(id) },
       data: { status: 'published', publishedAt: new Date() },
     });
+
+    // notify subscribers
+    prisma.newsletterSubscriber.findMany({ where: { unsubscribedAt: null } })
+      .then((subs) => mailer.sendNewArticleNotification(subs, updated))
+      .catch(() => {});
 
     res.json(updated);
   } catch (err) {

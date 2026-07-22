@@ -96,7 +96,7 @@ export default function MyArticlesPage() {
           <h1 className="text-2xl font-bold text-gray-900">Artikel Saya</h1>
           <motion.a
             href="/dashboard/submit"
-            className="px-4 py-2 bg-accent text-white rounded-lg text-sm font-medium"
+            className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium"
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.96 }}
           >

@@ -1,4 +1,5 @@
 const prisma = require('../lib/prisma');
+const mailer = require('../utils/mailer');
 
 exports.getEvents = async (req, res, next) => {
   try {
@@ -101,6 +102,11 @@ exports.createEvent = async (req, res, next) => {
     });
 
     res.status(201).json(event);
+
+    // notify subscribers (non-blocking)
+    prisma.newsletterSubscriber.findMany({ where: { unsubscribedAt: null } })
+      .then((subs) => mailer.sendNewEventNotification(subs, event))
+      .catch(() => {});
   } catch (err) {
     next(err);
   }

@@ -34,44 +34,24 @@ export default function Navbar() {
       <div className="container mx-auto px-4 max-w-[1240px]">
         <nav className="flex items-center justify-between h-[68px]">
           {/* Logo & Brand */}
-          <Link href="/" className="flex items-center gap-1.5 no-underline">
-            <div className="relative w-11 h-11 shrink-0">
+          <Link href="/" className="flex items-center no-underline">
+            <div className="relative w-[150px] h-11">
               <img
-                src="/assets/logo/logo-fkhk-putih.png"
+                src="/assets/logo/logo-fkhk-putih-brand.png"
                 alt={scrolled ? "" : "Logo FKHK"}
-                width={44}
-                height={44}
                 className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ${
                   isWhiteNav ? "opacity-0" : "opacity-100"
                 }`}
                 aria-hidden={isWhiteNav}
               />
               <img
-                src="/assets/logo/logo.png"
+                src="/assets/logo/logo-fkhk-hijau-brand.png"
                 alt={isWhiteNav ? "Logo FKHK" : ""}
-                width={44}
-                height={44}
                 className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ${
                   isWhiteNav ? "opacity-100" : "opacity-0"
                 }`}
                 aria-hidden={!isWhiteNav}
               />
-            </div>
-            <div className="flex flex-col leading-[1.15] -mt-0.5">
-              <span
-                className={`text-[25px] font-bold tracking-tight transition-colors duration-300 ${
-                  isWhiteNav ? "text-[#1a2e2e]" : "text-white"
-                }`}
-              >
-                FKHK
-              </span>
-              <span
-                className={`text-[0.6rem] font-medium uppercase tracking-wider transition-colors duration-300 -mt-1 ${
-                  isWhiteNav ? "text-[#1a2e2e]" : "text-white/65"
-                }`}
-              >
-                Forum Kajian Hukum Keluarga
-              </span>
             </div>
           </Link>
 

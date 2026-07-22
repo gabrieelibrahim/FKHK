@@ -32,15 +32,13 @@ export default function Footer() {
           <Reveal variant="fade-up">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <motion.img
-                  src="/assets/logo/logo-fkhk-putih.png"
-                  alt="Logo FKHK"
-                  width={40}
-                  height={40}
-                  whileHover={{ rotate: 10, scale: 1.05 }}
-                  transition={{ type: "spring", stiffness: 200 }}
-                />
-                <span className="text-lg font-bold">FKHK</span>
+                <div className="relative w-[150px] h-11">
+                  <img
+                    src="/assets/logo/logo-fkhk-putih-brand.png"
+                    alt="Logo FKHK"
+                    className="absolute inset-0 w-full h-full object-contain"
+                  />
+                </div>
               </div>
               <p className="text-sm text-white/60 leading-relaxed mb-6">
                 Forum Kajian Hukum Keluarga — wadah mahasiswa untuk berkarya,

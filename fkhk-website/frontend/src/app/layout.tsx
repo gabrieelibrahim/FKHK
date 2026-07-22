@@ -3,20 +3,13 @@ import { AuthProvider } from "../context/AuthContext";
 import NavbarWrapper from "../components/layout/NavbarWrapper";
 import FooterWrapper from "../components/layout/FooterWrapper";
 import PageTransition from "../components/PageTransition";
-import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
+import { Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const bricolageGrotesque = Bricolage_Grotesque({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700", "800"],
   variable: "--font-body",
-});
-
-const playfairDisplay = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-heading",
 });
 
 export const metadata: Metadata = {
@@ -50,7 +43,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body className={`${plusJakartaSans.variable} ${playfairDisplay.variable} font-body bg-[#fcfaf8] text-[#1a1a1a] overflow-x-hidden`}>
+      <body className={`${bricolageGrotesque.variable} font-body bg-[#fcfaf8] text-[#1a1a1a] overflow-x-hidden`}>
         <AuthProvider>
           <NavbarWrapper />
           <main><PageTransition>{children}</PageTransition></main>

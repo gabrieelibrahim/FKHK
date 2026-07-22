@@ -10,11 +10,10 @@ module.exports = {
       colors: {
         primary: "#2C5857",
         "primary-dark": "#1e3e3d",
-        accent: "#C8A97E",
-        "accent-dark": "#a8854e",
+        accent: "#FDBB0B",
+        "accent-dark": "#FFFF00",
       },
       fontFamily: {
-        heading: ["var(--font-heading)", "Georgia", "serif"],
         body: ["var(--font-body)", "system-ui", "sans-serif"],
       },
     },
