@@ -8,7 +8,10 @@ read -sp "Password PostgreSQL (fkhkuser): " DB_PASS
 echo
 
 # 1. Update & install deps
-sudo apt update && sudo apt upgrade -y
+sudo apt update
+sudo apt-mark hold armbian-firmware 2>/dev/null || true
+sudo apt --fix-broken install -y
+sudo apt upgrade -y
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo bash -
 sudo apt install -y nodejs git nginx postgresql postgresql-client
 sudo npm install -g pm2
