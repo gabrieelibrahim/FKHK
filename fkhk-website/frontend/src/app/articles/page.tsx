@@ -1,111 +1,151 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
+import { fetchPublishedArticles } from "@/lib/articles";
+import { getSiteUrl, mediaUrl } from "@/lib/site";
 
-interface Article {
-  id: number;
-  title: string;
-  slug: string;
-  excerpt: string;
-  imageUrl?: string;
-  topic: string;
-  status: string;
-  viewCount: number;
-  publishedAt: string;
-  author: { name: string; affiliation: string };
-}
+export const metadata: Metadata = {
+  title: "Artikel",
+  description:
+    "Kumpulan artikel kajian Hukum Keluarga Islam dari Forum Kajian Hukum Keluarga (FKHK).",
+  alternates: { canonical: `${getSiteUrl()}/articles` },
+  openGraph: {
+    title: "Artikel | FKHK",
+    description:
+      "Kumpulan artikel kajian Hukum Keluarga Islam dari Forum Kajian Hukum Keluarga (FKHK).",
+    url: `${getSiteUrl()}/articles`,
+    locale: "id_ID",
+    type: "website",
+  },
+};
 
-export default function ArticlesPage() {
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [topic, setTopic] = useState("");
-  const [search, setSearch] = useState("");
+type Props = {
+  searchParams: { topic?: string; search?: string; page?: string };
+};
 
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (topic) params.set("topic", topic);
-    if (search) params.set("search", search);
-    params.set("limit", "20");
+const TOPICS = ["Pernikahan", "Hukum Waris", "Perlindungan Anak", "General"];
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articles?${params}`)
-      .then((r) => r.json())
-      .then((d) => setArticles(d.data || []))
-      .finally(() => setLoading(false));
-  }, [topic, search]);
+export default async function ArticlesPage({ searchParams }: Props) {
+  const topic = searchParams.topic || "";
+  const search = searchParams.search || "";
+  const page = Math.max(1, parseInt(searchParams.page || "1", 10) || 1);
+
+  const { data: articles, totalPages } = await fetchPublishedArticles({
+    topic: topic || undefined,
+    search: search || undefined,
+    page,
+    limit: 20,
+  });
 
   return (
     <main className="min-h-screen bg-gray-50 pt-[90px] pb-12">
       <div className="container mx-auto px-4 max-w-6xl">
         <h1 className="text-4xl font-bold tracking-tight text-primary mb-8">Artikel</h1>
 
-        <div className="flex gap-4 mb-8 flex-wrap">
+        <form method="get" className="flex gap-4 mb-8 flex-wrap">
           <input
             type="text"
+            name="search"
+            defaultValue={search}
             placeholder="Cari artikel..."
             className="px-4 py-2 border border-gray-300 rounded-lg flex-1 min-w-[200px]"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
           />
           <select
+            name="topic"
+            defaultValue={topic}
             className="px-4 py-2 border border-gray-300 rounded-lg"
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
           >
             <option value="">Semua Topik</option>
-            <option value="Pernikahan">Pernikahan</option>
-            <option value="Hukum Waris">Hukum Waris</option>
-            <option value="Perlindungan Anak">Perlindungan Anak</option>
-            <option value="General">General</option>
+            {TOPICS.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
           </select>
-        </div>
+          <button
+            type="submit"
+            className="px-5 py-2 rounded-lg bg-primary text-white font-medium hover:opacity-90"
+          >
+            Cari
+          </button>
+        </form>
 
-        {loading ? (
-          <div className="text-center py-12 text-gray-500">Memuat...</div>
-        ) : articles.length === 0 ? (
+        {articles.length === 0 ? (
           <div className="text-center py-12 text-gray-500">Belum ada artikel.</div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {articles.map((a) => (
+            {articles.map((a) => {
+              const image = mediaUrl(a.imageUrl);
+              return (
+                <Link
+                  key={a.id}
+                  href={`/articles/${a.slug}`}
+                  className="block bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition group"
+                >
+                  {image && (
+                    <div className="h-40 overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={image}
+                        alt={a.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                      />
+                    </div>
+                  )}
+                  <div className="p-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-xs font-semibold text-accent uppercase tracking-wider">
+                        {a.topic}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {a.publishedAt
+                          ? new Date(a.publishedAt).toLocaleDateString("id-ID")
+                          : ""}
+                      </span>
+                    </div>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                      {a.title}
+                    </h2>
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-3">{a.excerpt}</p>
+                    <div className="flex items-center justify-between text-xs text-gray-400">
+                      <span>{a.author.name}</span>
+                      <span>{a.viewCount} dilihat</span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex justify-center gap-2 mt-10">
+            {page > 1 && (
               <Link
-                key={a.id}
-                href={`/articles/${a.slug}`}
-                className="block bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition group"
+                href={`/articles?${new URLSearchParams({
+                  ...(search ? { search } : {}),
+                  ...(topic ? { topic } : {}),
+                  page: String(page - 1),
+                }).toString()}`}
+                className="px-4 py-2 border rounded-lg text-sm hover:bg-white"
               >
-                {a.imageUrl && (
-                  <div className="h-40 overflow-hidden">
-                    <img
-                      src={`${process.env.NEXT_PUBLIC_API_URL}${a.imageUrl}`}
-                      alt={a.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                      onError={(e) => { e.currentTarget.style.display = "none"; }}
-                    />
-                  </div>
-                )}
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-xs font-semibold text-accent uppercase tracking-wider">
-                      {a.topic}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {a.publishedAt
-                        ? new Date(a.publishedAt).toLocaleDateString("id-ID")
-                        : ""}
-                    </span>
-                  </div>
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-                    {a.title}
-                  </h2>
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-                    {a.excerpt}
-                  </p>
-                  <div className="flex items-center justify-between text-xs text-gray-400">
-                    <span>{a.author.name}</span>
-                    <span>{a.viewCount} dilihat</span>
-                  </div>
-                </div>
+                Sebelumnya
               </Link>
-            ))}
+            )}
+            <span className="px-4 py-2 text-sm text-gray-500">
+              Halaman {page} / {totalPages}
+            </span>
+            {page < totalPages && (
+              <Link
+                href={`/articles?${new URLSearchParams({
+                  ...(search ? { search } : {}),
+                  ...(topic ? { topic } : {}),
+                  page: String(page + 1),
+                }).toString()}`}
+                className="px-4 py-2 border rounded-lg text-sm hover:bg-white"
+              >
+                Berikutnya
+              </Link>
+            )}
           </div>
         )}
       </div>

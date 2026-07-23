@@ -39,24 +39,72 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 py-16">
-      <Reveal variant="scale-in" className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md mx-4">
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center justify-center w-9 h-9 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 transition no-underline shrink-0" aria-label="Kembali">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+    <div className="relative flex items-center justify-center min-h-screen overflow-hidden bg-[#f4f7f7] py-16">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-24 -right-16 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute -bottom-28 -left-16 h-80 w-80 rounded-full bg-accent/20 blur-3xl" />
+      </div>
+
+      <Reveal variant="scale-in" className="relative w-full max-w-md mx-4">
+        <div className="relative rounded-2xl border border-primary/10 bg-white/95 p-8 shadow-[0_20px_50px_rgba(44,88,87,0.12)] backdrop-blur-sm space-y-6">
+          <Link
+            href="/"
+            className="group absolute top-8 left-8 inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 text-primary border border-primary/15 hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 no-underline shadow-sm"
+            aria-label="Kembali ke beranda"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-5 h-5 transition-transform duration-200 group-hover:-translate-x-0.5"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
             </svg>
           </Link>
-          <h2 className="text-2xl font-bold text-primary">Masuk ke Akun FKHK</h2>
+
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-primary leading-tight">Masuk ke Akun</h2>
+            <p className="text-sm text-gray-500 mt-1">Forum Kajian Hukum Keluarga</p>
+          </div>
+
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl"
+            >
+              {error}
+            </motion.div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              label="Email"
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <Input
+              label="Password"
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <Button
+              type="submit"
+              className="w-full bg-primary hover:bg-primary-dark text-white rounded-xl"
+              disabled={loading}
+            >
+              {loading ? "Memuat..." : "Masuk"}
+            </Button>
+          </form>
         </div>
-        {error && <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="p-3 text-red-700 bg-red-100 border border-red-200 rounded">{error}</motion.div>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input label="Email" id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          <Input label="Password" id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-          <Button type="submit" className="w-full bg-primary hover:bg-gray-800 text-white" disabled={loading}>
-            {loading ? "Memuat..." : "Masuk"}
-          </Button>
-        </form>
       </Reveal>
     </div>
   );

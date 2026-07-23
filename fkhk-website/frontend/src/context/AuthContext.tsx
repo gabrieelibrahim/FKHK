@@ -86,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("fkhk_member");
     setToken(null);
     setMember(null);
-    router.push("/auth/login");
+    router.push("/");
   };
 
   return (

@@ -43,9 +43,9 @@ export default function FeaturesSection() {
       <div className="container mx-auto px-4 max-w-[1240px]">
         <div className="grid md:grid-cols-3 gap-6">
           {features.map((f, i) => (
-            <Reveal key={f.id} variant="fade-up" delay={i * 0.08}>
+            <Reveal key={f.id} variant="fade-up" delay={i * 0.08} className="h-full">
               <motion.div
-                className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100"
+                className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 h-full flex flex-col"
                 whileHover={{ y: -4, boxShadow: "0 16px 32px rgba(44, 88, 87, 0.08)" }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 200, damping: 18 }}
@@ -56,8 +56,8 @@ export default function FeaturesSection() {
                   </svg>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">{f.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed mb-5">{f.desc}</p>
-                <Link href={f.link} className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition no-underline">
+                <p className="text-sm text-gray-600 leading-relaxed mb-5 flex-1">{f.desc}</p>
+                <Link href={f.link} className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition no-underline mt-auto">
                   {f.linkLabel}
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />

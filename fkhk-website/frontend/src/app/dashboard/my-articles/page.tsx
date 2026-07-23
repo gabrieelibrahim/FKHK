@@ -151,15 +151,52 @@ export default function MyArticlesPage() {
                     <Link href={`/articles/${a.slug}`} className="text-sm font-semibold text-gray-900 hover:text-primary block truncate">{a.title}</Link>
                     <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-500">
                       <span>{a.topic}</span>
-                      <span className={`px-1.5 py-0.5 rounded-full text-[0.6rem] font-medium ${a.status === "published" ? "bg-green-100 text-green-700" : a.status === "draft" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-600"}`}>{a.status}</span>
+                      <span
+                        className={`px-1.5 py-0.5 rounded-full text-[0.6rem] font-medium ${
+                          a.status === "published"
+                            ? "bg-green-100 text-green-700"
+                            : a.status === "submitted"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-yellow-100 text-yellow-700"
+                        }`}
+                      >
+                        {a.status === "published"
+                          ? "Dipublish"
+                          : a.status === "submitted"
+                            ? "Menunggu publish"
+                            : a.status === "draft"
+                              ? "Ditolak"
+                              : a.status}
+                      </span>
                     </div>
                   </div>
-                  <button
-                    onClick={() => { setEditModal({ open: true, article: a }); setEditPreview(a.imageUrl || ""); setEditError(""); }}
-                    className="px-2.5 py-1.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition flex-shrink-0"
-                  >
-                    Ganti Foto
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {a.status === "draft" && (
+                      <button
+                        onClick={async () => {
+                          const token = document.cookie.split("; ").find((r) => r.startsWith("fkhk_token="))?.split("=")[1];
+                          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articles/${a.id}/submit`, {
+                            method: "PUT",
+                            headers: { Authorization: `Bearer ${token}` },
+                          });
+                          setRefreshKey((k) => k + 1);
+                        }}
+                        className="px-2.5 py-1.5 text-xs font-medium bg-primary text-white rounded-md hover:bg-primary/90 transition shrink-0"
+                      >
+                        Kirim ulang
+                      </button>
+                    )}
+                    <button
+                      onClick={() => {
+                        setEditModal({ open: true, article: a });
+                        setEditPreview(a.imageUrl || "");
+                        setEditError("");
+                      }}
+                      className="px-2.5 py-1.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition flex-shrink-0"
+                    >
+                      Ganti Foto
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             </Reveal>

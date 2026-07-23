@@ -5,7 +5,10 @@ import Footer from "./Footer";
 
 export default function FooterWrapper() {
   const pathname = usePathname();
-  const hide = pathname.startsWith("/dashboard") || pathname.startsWith("/admin");
+  const hide =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/auth");
   if (hide) return null;
   return <Footer />;
 }

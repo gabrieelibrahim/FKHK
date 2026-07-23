@@ -13,6 +13,7 @@ const bricolageGrotesque = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://fkhk.id"),
   title: {
     default: "FKHK — Forum Kajian Hukum Keluarga",
     template: "%s | FKHK",
@@ -33,6 +34,7 @@ export const metadata: Metadata = {
       "Wadah kajian, penelitian, dan pengembangan keilmuan di bidang Hukum Keluarga Islam.",
     type: "website",
     locale: "id_ID",
+    siteName: "FKHK",
   },
 };
 

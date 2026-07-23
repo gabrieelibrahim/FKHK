@@ -7,13 +7,11 @@ exports.getArticles = async (req, res, next) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const where = {};
 
-    // If ?mine=true, only return articles by the authenticated member
     if (mine === 'true' && req.member) {
       where.authorId = req.member.id;
-      // Member sees all their own articles regardless of status
-    } else if (status && req.member) {
-      where.status = status;
-    } else if (!req.member) {
+    } else if (req.member?.role === 'admin') {
+      if (status) where.status = status;
+    } else {
       where.status = 'published';
     }
 
@@ -76,11 +74,21 @@ exports.getArticleBySlug = async (req, res, next) => {
 
     if (!article) return res.status(404).json({ message: 'Article not found' });
 
-    // Increment view count (async, non-blocking)
-    prisma.article.update({
-      where: { id: article.id },
-      data: { viewCount: { increment: 1 } },
-    }).catch(() => {});
+    // Unpublished: author or admin only
+    if (article.status !== 'published') {
+      const member = req.member;
+      const isAuthor = member && member.id === article.authorId;
+      const isAdmin = member && member.role === 'admin';
+      if (!isAuthor && !isAdmin) {
+        return res.status(404).json({ message: 'Article not found' });
+      }
+    } else {
+      // Increment view count for public published only
+      prisma.article.update({
+        where: { id: article.id },
+        data: { viewCount: { increment: 1 } },
+      }).catch(() => {});
+    }
 
     res.json(article);
   } catch (err) {
@@ -128,7 +136,7 @@ exports.createArticle = async (req, res, next) => {
         topic: topic || 'General',
         tags: tags || [],
         authorId: req.member.id,
-        status: 'draft',
+        status: 'submitted', // langsung antre publish admin
       },
     });
 
@@ -158,23 +166,10 @@ exports.updateArticle = async (req, res, next) => {
     if (tags !== undefined) data.tags = { set: tags };
     if (imageUrl !== undefined) data.imageUrl = imageUrl;
 
-    // Only admin can change status directly
-    if (status && req.member.role === 'admin') {
-      data.status = status;
-      if (status === 'published') data.publishedAt = new Date();
-    }
-
     const updated = await prisma.article.update({
       where: { id: parseInt(id) },
       data,
     });
-
-    // send notification if newly published
-    if (status === 'published' && article.status !== 'published') {
-      prisma.newsletterSubscriber.findMany({ where: { unsubscribedAt: null } })
-        .then((subs) => mailer.sendNewArticleNotification(subs, updated))
-        .catch(() => {});
-    }
 
     res.json(updated);
   } catch (err) {
@@ -199,28 +194,57 @@ exports.deleteArticle = async (req, res, next) => {
   }
 };
 
-exports.publishArticle = async (req, res, next) => {
+exports.submitArticle = async (req, res, next) => {
   try {
     const { id } = req.params;
     const article = await prisma.article.findUnique({ where: { id: parseInt(id) } });
     if (!article) return res.status(404).json({ message: 'Article not found' });
-
-    if (article.authorId !== req.member.id && req.member.role !== 'admin') {
+    if (article.authorId !== req.member.id) {
       return res.status(403).json({ message: 'Not authorized' });
     }
+    if (article.status !== 'draft') {
+      return res.status(400).json({ message: 'Only draft articles can be submitted' });
+    }
+    const updated = await prisma.article.update({
+      where: { id: parseInt(id) },
+      data: { status: 'submitted' },
+    });
+    res.json(updated);
+  } catch (err) { next(err); }
+};
 
+exports.approveArticle = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const article = await prisma.article.findUnique({ where: { id: parseInt(id) } });
+    if (!article) return res.status(404).json({ message: 'Article not found' });
+    if (article.status !== 'submitted') {
+      return res.status(400).json({ message: 'Only submitted articles can be approved' });
+    }
     const updated = await prisma.article.update({
       where: { id: parseInt(id) },
       data: { status: 'published', publishedAt: new Date() },
     });
-
     // notify subscribers
     prisma.newsletterSubscriber.findMany({ where: { unsubscribedAt: null } })
       .then((subs) => mailer.sendNewArticleNotification(subs, updated))
       .catch(() => {});
-
     res.json(updated);
-  } catch (err) {
-    next(err);
-  }
+  } catch (err) { next(err); }
+};
+
+exports.rejectArticle = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const article = await prisma.article.findUnique({ where: { id: parseInt(id) } });
+    if (!article) return res.status(404).json({ message: 'Article not found' });
+    if (article.status !== 'submitted') {
+      return res.status(400).json({ message: 'Only submitted articles can be rejected' });
+    }
+    const updated = await prisma.article.update({
+      where: { id: parseInt(id) },
+      data: { status: 'draft' },
+    });
+    res.json(updated);
+  } catch (err) { next(err); }
 };
