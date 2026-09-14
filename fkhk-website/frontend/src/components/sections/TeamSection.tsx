@@ -5,7 +5,7 @@ import Link from "next/link";
 export default function TeamSection() {
   return (
     <section className="relative overflow-hidden" id="team">
-      <div className="relative h-[500px]">
+      <div className="relative h-[400px] sm:h-[500px]">
         <img
           src="https://files.catbox.moe/vciirb.jpg"
           alt="Tim FKHK bersama"
@@ -19,19 +19,19 @@ export default function TeamSection() {
                 <span className="text-xs font-semibold uppercase tracking-[0.15em] text-white mb-3 block [text-shadow:0_1px_6px_rgba(0,0,0,0.8)]">
                   Bergabung dengan Kami
                 </span>
-                <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight [text-shadow:0_2px_12px_rgba(0,0,0,0.9)]">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight [text-shadow:0_2px_12px_rgba(0,0,0,0.9)]">
                   Bersama Kita Wujudkan<br />
                   <em className="not-italic">Kajian yang Berdampak</em>
                 </h2>
-                <p className="text-white/80 mt-4 leading-relaxed max-w-lg [text-shadow:0_1px_6px_rgba(0,0,0,0.8)]">
+                <p className="text-sm sm:text-base text-white/80 mt-4 leading-relaxed max-w-lg [text-shadow:0_1px_6px_rgba(0,0,0,0.8)]">
                   Jadilah bagian dari komunitas akademik yang aktif, kritis, dan penuh semangat.
                   Daftarkan diri dan mulai perjalananmu bersama FKHK hari ini.
                 </p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3 w-full sm:w-auto">
                 <Link
                   href="/auth/login"
-                  className="px-6 py-3 bg-[#1a2e2e] text-white rounded-xl font-semibold hover:bg-red-700 transition no-underline"
+                  className="w-full sm:w-auto px-6 py-3 bg-[#1a2e2e] text-white rounded-xl font-semibold hover:bg-red-700 transition no-underline text-center"
                 >
                   Masuk
                 </Link>

@@ -40,7 +40,7 @@ export default function ArticlesSlider() {
   };
 
   return (
-    <section className="py-24" id="artikel">
+    <section className="py-16 sm:py-24" id="artikel">
       <div className="container mx-auto px-4 max-w-[1240px]">
         <div className="flex items-end justify-between mb-10">
           <Reveal variant="fade-left">
@@ -66,7 +66,7 @@ export default function ArticlesSlider() {
           <div className="relative">
             <button
               onClick={() => slide(-1)}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-gray-50 transition"
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white shadow-md hidden sm:flex items-center justify-center hover:bg-gray-50 transition"
               aria-label="Sebelumnya"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="#1a2e2e" className="w-5 h-5">
@@ -75,7 +75,7 @@ export default function ArticlesSlider() {
             </button>
             <button
               onClick={() => slide(1)}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-gray-50 transition"
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white shadow-md hidden sm:flex items-center justify-center hover:bg-gray-50 transition"
               aria-label="Selanjutnya"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="#1a2e2e" className="w-5 h-5">
@@ -85,16 +85,16 @@ export default function ArticlesSlider() {
 
             <div
               ref={sliderRef}
-              className="flex gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-4"
+              className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-4"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
               {displayArticles.map((a) => (
                 <Link
                   key={a.id}
                   href={`/articles/${a.slug}`}
-                  className="flex-shrink-0 w-[300px] bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition hover:-translate-y-1 group snap-start no-underline"
+                  className="flex-shrink-0 w-[280px] sm:w-[300px] bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition hover:-translate-y-1 group snap-start no-underline"
                 >
-                  <div className="h-44 bg-gray-100 overflow-hidden">
+                  <div className="h-36 sm:h-44 bg-gray-100 overflow-hidden">
                     {a.imageUrl ? (
                       <img src={`${process.env.NEXT_PUBLIC_API_URL}${a.imageUrl}`} alt={a.title} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
                     ) : (
@@ -105,7 +105,7 @@ export default function ArticlesSlider() {
                       </div>
                     )}
                   </div>
-                  <div className="p-5">
+                  <div className="p-4 sm:p-5">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-[0.65rem] font-semibold uppercase tracking-wider text-accent">{a.topic}</span>
                       <span className="text-xs text-gray-400">
@@ -114,7 +114,7 @@ export default function ArticlesSlider() {
                           : ""}
                       </span>
                     </div>
-                    <h3 className="text-sm font-semibold text-gray-900 mb-2 line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                    <h3 className="text-xs sm:text-sm font-semibold text-gray-900 mb-2 line-clamp-2 leading-snug group-hover:text-primary transition-colors">
                       {a.title}
                     </h3>
                     <p className="text-xs text-gray-500 mb-3 line-clamp-2 leading-relaxed">

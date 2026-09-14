@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import type { MetadataRoute } from "next";
 import { fetchPublishedSlugs } from "@/lib/articles";
 import { getSiteUrl } from "@/lib/site";

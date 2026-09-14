@@ -62,7 +62,7 @@ export default function Reveal({
   once = true,
 }: RevealProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once, margin: "-40px" });
+  const inView = useInView(ref, { once, margin: "0px" });
 
   const { initial, animate } = variantMap[variant];
 

@@ -4,16 +4,16 @@ import Reveal from "../Reveal";
 
 export default function AboutSection() {
   return (
-    <section className="py-24 bg-[#f7f2ed]" id="tentang">
+    <section className="py-16 sm:py-24 bg-[#f7f2ed]" id="tentang">
       <div className="container mx-auto px-4 max-w-[1240px]">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
+        <div className="grid md:grid-cols-2 gap-8 sm:gap-12 items-center">
           <Reveal variant="fade-left">
             <div className="relative">
               <div className="rounded-2xl overflow-hidden shadow-lg">
                 <img
                   src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80"
                   alt="Anggota FKHK berdiskusi"
-                  className="w-full h-[400px] object-cover transition-transform duration-500 hover:scale-105"
+                  className="w-full h-[280px] sm:h-[400px] object-cover transition-transform duration-500 hover:scale-105"
                 />
               </div>
               <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-accent/10 rounded-2xl -z-10" />
@@ -24,11 +24,11 @@ export default function AboutSection() {
             <span className="text-xs font-semibold uppercase tracking-[0.15em] text-accent mb-3 block">
               Tentang Kami
             </span>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mb-6">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mb-6">
               Kami Hadir untuk Mendorong{" "}
               <em className="text-primary not-italic">Perubahan Hukum</em> yang Bermakna
             </h2>
-            <blockquote className="border-l-4 border-accent pl-5 italic text-gray-500 mb-6">
+            <blockquote className="border-l-4 border-accent pl-5 italic text-sm sm:text-base text-gray-500 mb-6">
               &ldquo;Ilmu tanpa amal adalah pohon tanpa buah. FKHK hadir untuk
               menjembatani kajian akademik dengan realitas hukum keluarga
               di masyarakat.&rdquo;

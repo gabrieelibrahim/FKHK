@@ -30,7 +30,7 @@ export default function Hero() {
 
   return (
     <section
-      className="relative min-h-dvh flex items-center justify-center overflow-hidden"
+      className="relative min-h-dvh flex items-center justify-center overflow-hidden pt-20"
       id="beranda"
     >
       {/* Background images */}
@@ -57,21 +57,21 @@ export default function Hero() {
       {/* Content */}
       <div className="relative z-10 w-full px-4 max-w-[1240px] mx-auto">
         <div className="max-w-2xl">
-          <h1 className="animate-fade-up text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter leading-none text-white mb-6" style={{ animationDelay: "0.05s", textShadow: "0 4px 40px rgba(0,0,0,0.6), 0 2px 10px rgba(0,0,0,0.5)" }}>
+          <h1 className="animate-fade-up text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter leading-tight sm:leading-none text-white mb-6" style={{ animationDelay: "0.05s", textShadow: "0 4px 40px rgba(0,0,0,0.6), 0 2px 10px rgba(0,0,0,0.5)" }}>
             Pioneering Research,<br />
             <span className="text-white/90">Inspiring Insight</span>
           </h1>
 
-          <p className="animate-fade-up text-base sm:text-lg text-white/90 max-w-2xl mb-10 leading-relaxed" style={{ animationDelay: "0.05s", textShadow: "0 2px 20px rgba(0,0,0,0.5)" }}>
+          <p className="animate-fade-up text-sm sm:text-lg text-white/90 max-w-2xl mb-10 leading-relaxed" style={{ animationDelay: "0.05s", textShadow: "0 2px 20px rgba(0,0,0,0.5)" }}>
             FKHK adalah forum mahasiswa yang berkomitmen dalam kajian, penelitian,
             dan pengembangan keilmuan di bidang Hukum Keluarga Islam.
             Bersama kami, gagasan bertumbuh menjadi perubahan nyata.
           </p>
 
-          <div className="animate-fade-up flex flex-col sm:flex-row gap-4" style={{ animationDelay: "0.05s" }}>
+          <div className="animate-fade-up flex flex-col sm:flex-row gap-3 w-full sm:w-auto" style={{ animationDelay: "0.05s" }}>
             <a
               href="/articles"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent-dark transition shadow-xl shadow-black/40"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent-dark transition shadow-xl shadow-black/40 w-full sm:w-auto"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
@@ -80,7 +80,7 @@ export default function Hero() {
             </a>
             <a
               href="/#tentang"
-              className="inline-flex items-center gap-2 px-6 py-3 border-2 border-white/30 text-white rounded-xl font-semibold hover:bg-white hover:text-[#1a2e2e] transition shadow-xl shadow-black/40"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 border-2 border-white/30 text-white rounded-xl font-semibold hover:bg-white hover:text-[#1a2e2e] transition shadow-xl shadow-black/40 w-full sm:w-auto"
             >
               Tentang Kami
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
@@ -92,7 +92,7 @@ export default function Hero() {
       </div>
 
       {/* Dots indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+      <div className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
         {HERO_IMAGES.map((_, i) => (
           <button
             key={i}

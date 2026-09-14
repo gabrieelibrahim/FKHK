@@ -66,6 +66,17 @@
 body {
   color: var(--text-primary);
   background: var(--bg);
+  -webkit-tap-highlight-color: transparent;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ===== Mobile Touch / Slider Helpers ===== */
+/* Horizontal slider containers — smooth touch scrolling */
+.flex[class*="overflow-x-auto"],
+[class*="snap-x"] {
+  touch-action: pan-x pan-y;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ===== Scroll-Reveal Animations ===== */

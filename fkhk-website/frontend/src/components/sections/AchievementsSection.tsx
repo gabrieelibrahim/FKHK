@@ -35,7 +35,7 @@ export default function AchievementsSection() {
   }, []);
 
   return (
-    <section className="py-24" id="prestasi">
+    <section className="py-16 sm:py-24" id="prestasi">
       <div className="container mx-auto px-4 max-w-[1240px]">
         <div className="flex items-end justify-between mb-10">
           <Reveal variant="fade-left">
@@ -49,7 +49,7 @@ export default function AchievementsSection() {
           <Reveal variant="fade-right">
             <a
               href="/prestasi"
-              className="hidden sm:inline-flex px-5 py-2.5 border border-gray-300 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition no-underline"
+              className="inline-flex px-5 py-2.5 border border-gray-300 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition no-underline"
             >
               Lihat Semua
             </a>
@@ -61,11 +61,11 @@ export default function AchievementsSection() {
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
-          <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-5" staggerDelay={0.07}>
+          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5" staggerDelay={0.07}>
             {achievements.map((a) => (
               <div
                 key={a.id}
-                className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center hover:shadow-md hover:-translate-y-1 transition-all duration-300"
+                className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 text-center hover:shadow-md hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <span className="text-lg font-bold text-primary">{a.initials}</span>

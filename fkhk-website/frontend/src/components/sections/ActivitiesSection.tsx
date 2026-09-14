@@ -39,7 +39,7 @@ export default function ActivitiesSection() {
   };
 
   return (
-    <section className="py-24 bg-[#f7f2ed]" id="kegiatan">
+    <section className="py-16 sm:py-24 bg-[#f7f2ed]" id="kegiatan">
       <div className="container mx-auto px-4 max-w-[1240px]">
         {/* Header */}
         <div className="flex items-end justify-between mb-10">
@@ -60,6 +60,11 @@ export default function ActivitiesSection() {
             </Link>
           </Reveal>
         </div>
+
+        {/* Swipe hint — mobile only */}
+        <p className="sm:hidden text-xs text-gray-500 mb-4 -mt-6">
+          Geser untuk melihat lainnya →
+        </p>
 
         {/* Slider — only show if events exist */}
         {items.length > 0 && (
@@ -85,9 +90,9 @@ export default function ActivitiesSection() {
               <Link
                 key={e.id}
                 href={`/events/${e.slug}`}
-                className="min-w-[280px] sm:min-w-[320px] md:min-w-[340px] max-w-[340px] bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all group/card no-underline flex flex-col snap-start shrink-0 hover:-translate-y-1 duration-300"
+                className="min-w-[260px] sm:min-w-[280px] md:min-w-[340px] max-w-[340px] bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all group/card no-underline flex flex-col snap-start shrink-0 hover:-translate-y-1 duration-300"
               >
-                <div className="h-44 bg-gray-100 relative overflow-hidden shrink-0">
+                <div className="h-36 sm:h-44 bg-gray-100 relative overflow-hidden shrink-0">
                   {e.imageUrl ? (
                     <img src={`${process.env.NEXT_PUBLIC_API_URL}${e.imageUrl}`} alt={e.title} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
                   ) : (
@@ -109,7 +114,7 @@ export default function ActivitiesSection() {
                   </span>
                 </div>
                 {/* Content */}
-                <div className="p-5 flex-1 flex flex-col">
+                <div className="p-4 sm:p-5 flex-1 flex flex-col">
                   <h4 className="text-sm font-semibold text-gray-900 mb-3 leading-snug group-hover/card:text-primary transition-colors flex-1">
                     {e.title}
                   </h4>

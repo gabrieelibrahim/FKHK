@@ -19,9 +19,27 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
+
   const isWhiteNav = scrolled || !isHome;
 
   const closeMobile = () => setMobileOpen(false);
+
+  const navItems = [
+    { href: "/", label: "Beranda" },
+    { href: "/articles", label: "Artikel" },
+    { href: "/events", label: "Kegiatan" },
+    { href: "/tentang", label: "Tentang Kami" },
+    { href: "/prestasi", label: "Prestasi" },
+  ];
 
   return (
     <header
@@ -35,7 +53,7 @@ export default function Navbar() {
         <nav className="flex items-center justify-between h-[68px]">
           {/* Logo & Brand */}
           <Link href="/" className="flex items-center no-underline">
-            <div className="relative w-[150px] h-11">
+            <div className="relative w-[120px] sm:w-[150px] h-11">
               <img
                 src="/assets/logo/logo-fkhk-putih-brand.png"
                 alt={scrolled ? "" : "Logo FKHK"}
@@ -119,7 +137,7 @@ export default function Navbar() {
 
             {/* Hamburger */}
             <button
-              className="lg:hidden flex flex-col gap-[5px] p-2 bg-none border-none cursor-pointer"
+              className="lg:hidden flex flex-col gap-[5px] w-10 h-10 items-center justify-center bg-none border-none cursor-pointer"
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Menu"
             >
@@ -143,29 +161,39 @@ export default function Navbar() {
         </nav>
       </div>
 
+      {/* Mobile Menu Backdrop */}
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 top-[68px] bg-black/40 z-40"
+          onClick={closeMobile}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Mobile Menu */}
       <div
-        className={`lg:hidden fixed top-[68px] left-0 w-full bg-white shadow-lg transition-all duration-300 overflow-hidden ${
-          mobileOpen ? "max-h-[500px]" : "max-h-0"
+        className={`lg:hidden fixed top-[68px] left-0 w-full bg-white shadow-lg transition-all duration-300 overflow-hidden z-50 ${
+          mobileOpen ? "max-h-[600px]" : "max-h-0"
         }`}
       >
         <div className="flex flex-col p-6 gap-3">
-          {[
-            { href: "/", label: "Beranda" },
-            { href: "/articles", label: "Artikel" },
-            { href: "/events", label: "Kegiatan" },
-            { href: "/tentang", label: "Tentang Kami" },
-            { href: "/prestasi", label: "Prestasi" },
-          ].map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              onClick={closeMobile}
-              className="px-4 py-2.5 rounded-lg text-gray-700 font-medium hover:bg-gray-100 no-underline"
-            >
-              {item.label}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                onClick={closeMobile}
+                className={`px-4 py-3 rounded-lg font-medium no-underline transition-colors ${
+                  active
+                    ? "bg-primary/10 text-primary"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
           <hr className="border-gray-200 my-2" />
           {isAuthenticated ? (
             <>
@@ -173,7 +201,9 @@ export default function Navbar() {
                 <Link
                   href="/dashboard"
                   onClick={closeMobile}
-                  className="px-4 py-2.5 rounded-lg text-[#1a2e2e] font-medium hover:bg-gray-100 no-underline"
+                  className={`px-4 py-3 rounded-lg font-medium no-underline ${
+                    pathname === "/dashboard" ? "bg-primary/10 text-primary" : "text-[#1a2e2e] hover:bg-gray-100"
+                  }`}
                 >
                   Dashboard
                 </Link>
@@ -182,14 +212,16 @@ export default function Navbar() {
                 <Link
                   href="/admin"
                   onClick={closeMobile}
-                  className="px-4 py-2.5 rounded-lg text-[#1a2e2e] font-medium hover:bg-gray-100 no-underline"
+                  className={`px-4 py-3 rounded-lg font-medium no-underline ${
+                    pathname === "/admin" ? "bg-primary/10 text-primary" : "text-[#1a2e2e] hover:bg-gray-100"
+                  }`}
                 >
                   Admin Panel
                 </Link>
               )}
               <button
                 onClick={() => { logout(); closeMobile(); }}
-                className="w-full px-4 py-2.5 rounded-lg text-[#c0392b] font-medium hover:bg-red-50 text-left"
+                className="w-full px-4 py-3 rounded-lg text-[#c0392b] font-medium hover:bg-red-50 text-left"
               >
                 Keluar
               </button>
@@ -198,7 +230,7 @@ export default function Navbar() {
             <Link
               href="/auth/login"
               onClick={closeMobile}
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium text-center no-underline"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium text-center no-underline"
             >
               Masuk
             </Link>

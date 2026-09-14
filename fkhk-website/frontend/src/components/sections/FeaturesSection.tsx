@@ -39,13 +39,13 @@ const features = [
 
 export default function FeaturesSection() {
   return (
-    <section className="py-24" id="features">
+    <section className="py-16 sm:py-24" id="features">
       <div className="container mx-auto px-4 max-w-[1240px]">
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-4 sm:gap-6">
           {features.map((f, i) => (
             <Reveal key={f.id} variant="fade-up" delay={i * 0.08} className="h-full">
               <motion.div
-                className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 h-full flex flex-col"
+                className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100 h-full flex flex-col"
                 whileHover={{ y: -4, boxShadow: "0 16px 32px rgba(44, 88, 87, 0.08)" }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 200, damping: 18 }}
@@ -55,7 +55,7 @@ export default function FeaturesSection() {
                     {f.icon}
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">{f.title}</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">{f.title}</h3>
                 <p className="text-sm text-gray-600 leading-relaxed mb-5 flex-1">{f.desc}</p>
                 <Link href={f.link} className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition no-underline mt-auto">
                   {f.linkLabel}
