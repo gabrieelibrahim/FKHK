@@ -14,18 +14,50 @@ export default function AdminAchievementsPage() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState({ name: "", title: "", year: "" });
   const [formError, setFormError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
 
+  const getToken = () =>
+    document.cookie.split("; ").find((r) => r.startsWith("fkhk_token="))?.split("=")[1];
+
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/achievements`)
       .then((r) => r.json())
-      .then((res) => setAchievements(res.data))
+      .then((res) => setAchievements(res.data || []))
       .finally(() => setLoading(false));
   }, []);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const openCreate = () => {
+    setEditingId(null);
+    setForm({ name: "", title: "", year: "" });
+    setFormError("");
+    setShowModal(true);
+  };
+
+  const openEdit = (a: Achievement) => {
+    setEditingId(a.id);
+    setForm({ name: a.name, title: a.title, year: a.year });
+    setFormError("");
+    setShowModal(true);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Hapus prestasi ini?")) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/achievements/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      if (!res.ok) throw new Error("Gagal menghapus prestasi");
+      setAchievements((prev) => prev.filter((a) => a.id !== id));
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
     if (!form.name || !form.title || !form.year) {
@@ -34,20 +66,30 @@ export default function AdminAchievementsPage() {
     }
     setFormLoading(true);
     try {
-      const token = document.cookie.split("; ").find((r) => r.startsWith("fkhk_token="))?.split("=")[1];
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/achievements`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      const url = editingId
+        ? `${process.env.NEXT_PUBLIC_API_URL}/api/achievements/${editingId}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/api/achievements`;
+      const method = editingId ? "PUT" : "POST";
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify(form),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Gagal menambah prestasi");
+      if (!res.ok) throw new Error(data.message || "Gagal menyimpan prestasi");
+      if (editingId) {
+        setAchievements((prev) => prev.map((a) => (a.id === editingId ? data : a)));
+      } else {
+        setAchievements((prev) => [...prev, data]);
+      }
       setShowModal(false);
       setForm({ name: "", title: "", year: "" });
-      setAchievements((prev) => [...prev, data]);
+      setEditingId(null);
     } catch (err: any) {
       setFormError(err.message);
-    } finally { setFormLoading(false); }
+    } finally {
+      setFormLoading(false);
+    }
   };
 
   if (loading) {
@@ -59,45 +101,88 @@ export default function AdminAchievementsPage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Prestasi Anggota</h1>
-        <button onClick={() => setShowModal(true)} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-opacity-90 transition">Tambah Prestasi</button>
+    <div className="space-y-5 sm:space-y-6 lg:space-y-0">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:mb-6 lg:flex-row lg:gap-0">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">Prestasi Anggota</h1>
+          <p className="mt-1 text-sm text-gray-500 lg:hidden">Catat pencapaian anggota FKHK</p>
+        </div>
+        <button
+          type="button"
+          onClick={openCreate}
+          className="min-h-11 w-full rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-opacity-90 sm:w-auto lg:min-h-0 lg:w-auto lg:rounded-lg"
+        >
+          Tambah Prestasi
+        </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Anggota</th>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Prestasi</th>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Tahun</th>
-            </tr>
-          </thead>
-          <tbody>
-            {achievements.map((a) => (
-              <tr key={a.id} className="border-b border-gray-100 hover:bg-gray-50 transition">
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">{a.initials}</div>
-                    <span className="text-sm font-medium text-gray-900">{a.name}</span>
+      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm lg:rounded-xl lg:border-gray-200">
+        {achievements.length === 0 ? (
+          <div className="px-4 py-16 text-center text-gray-500">Belum ada prestasi.</div>
+        ) : (
+          <>
+            <div className="hidden overflow-x-auto lg:block">
+              <table className="w-full min-w-[640px]">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Anggota</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Prestasi</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Tahun</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {achievements.map((a) => (
+                    <tr key={a.id} className="border-b border-gray-100 transition hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{a.initials}</div>
+                          <span className="text-sm font-medium text-gray-900">{a.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{a.title}</td>
+                      <td className="px-4 py-3 text-sm text-gray-500">{a.year}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2">
+                          <button onClick={() => openEdit(a)} className="rounded-lg px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50">Edit</button>
+                          <button onClick={() => handleDelete(a.id)} className="rounded-lg px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50">Hapus</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="grid gap-3 p-3 lg:hidden sm:p-4">
+              {achievements.map((a) => (
+                <article key={a.id} className="rounded-xl border border-gray-100 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{a.initials}</div>
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-sm font-semibold text-gray-900">{a.name}</h2>
+                      <p className="mt-1 text-sm leading-5 text-gray-700">{a.title}</p>
+                      <p className="mt-2 text-xs font-medium text-gray-500">Tahun {a.year}</p>
+                      <div className="mt-3 flex gap-2">
+                        <button onClick={() => openEdit(a)} className="rounded-lg px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50">Edit</button>
+                        <button onClick={() => handleDelete(a.id)} className="rounded-lg px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50">Hapus</button>
+                      </div>
+                    </div>
                   </div>
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-700">{a.title}</td>
-                <td className="px-4 py-3 text-sm text-gray-500">{a.year}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </article>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Modal Tambah Prestasi */}
+      {/* Modal Tambah/Edit Prestasi */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowModal(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Tambah Prestasi</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">{editingId ? "Edit Prestasi" : "Tambah Prestasi"}</h2>
             {formError && <div className="p-3 mb-4 text-red-700 bg-red-100 border border-red-200 rounded-lg text-sm">{formError}</div>}
-            <form onSubmit={handleCreate} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nama Anggota</label>
                 <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" required />

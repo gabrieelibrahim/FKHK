@@ -116,6 +116,61 @@ exports.getMemberById = async (req, res, next) => {
   }
 };
 
+exports.updateMemberByAdmin = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { name, email, affiliation, phone, role } = req.body;
+
+    if (!name || !email) {
+      return res.status(400).json({ message: 'Nama dan email wajib diisi' });
+    }
+
+    const existing = await prisma.member.findUnique({ where: { email } });
+    if (existing && existing.id !== parseInt(id)) {
+      return res.status(409).json({ message: 'Email sudah digunakan' });
+    }
+
+    const updatedMember = await prisma.member.update({
+      where: { id: parseInt(id) },
+      data: {
+        name,
+        email,
+        affiliation: affiliation || null,
+        phone: phone || null,
+        role: role || 'member',
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        affiliation: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    res.status(200).json({ message: 'Member updated successfully', member: updatedMember });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.deleteMember = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const member = await prisma.member.findUnique({ where: { id: parseInt(id) } });
+    if (!member) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
+    await prisma.member.delete({ where: { id: parseInt(id) } });
+    res.status(200).json({ message: 'Member deleted successfully' });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.updateMemberProfile = async (req, res, next) => {
   try {
     const { id } = req.params;
