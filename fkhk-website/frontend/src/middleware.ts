@@ -10,7 +10,17 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (token && authRoutes.includes(pathname)) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    try {
+      const { payload } = await jose.jwtVerify(
+        token,
+        new TextEncoder().encode(process.env.JWT_SECRET as string)
+      );
+      return NextResponse.redirect(
+        new URL(payload.role === "admin" ? "/admin" : "/dashboard", request.url)
+      );
+    } catch {
+      // Allow the login page to handle an invalid or expired token.
+    }
   }
 
   if (protectedRoutes.includes(pathname)) {

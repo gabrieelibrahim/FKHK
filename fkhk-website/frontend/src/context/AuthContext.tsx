@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
 import * as jose from "jose";
 
 interface Member {
@@ -30,7 +29,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const storedToken = Cookies.get("fkhk_token");
+    // Helper to get cookie value
+    const getCookie = (name: string) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop()?.split(';').shift();
+      return null;
+    };
+
+    const storedToken = getCookie("fkhk_token");
     const storedMember = localStorage.getItem("fkhk_member");
 
     if (storedToken) {
@@ -71,18 +78,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleLogin = (newToken: string, newMember: Member) => {
-    Cookies.set("fkhk_token", newToken, {
-      expires: 7,
-      secure: process.env.NODE_ENV === "production",
-    });
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 7);
+    document.cookie = `fkhk_token=${newToken}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
     localStorage.setItem("fkhk_member", JSON.stringify(newMember));
     setToken(newToken);
     setMember(newMember);
-    router.push(newMember.role === "admin" ? "/admin" : "/dashboard");
+    window.location.href = newMember.role === "admin" ? "/admin" : "/dashboard";
   };
 
   const handleLogout = () => {
-    Cookies.remove("fkhk_token");
+    document.cookie = "fkhk_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     localStorage.removeItem("fkhk_member");
     setToken(null);
     setMember(null);

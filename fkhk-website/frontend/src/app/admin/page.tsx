@@ -47,31 +47,33 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Dashboard</h1>
-      <p className="text-sm text-gray-500 mb-6">Selamat datang di panel administrasi FKHK.</p>
+    <div className="space-y-6 sm:space-y-8 lg:space-y-0">
+      <div>
+        <h1 className="text-xl font-bold text-gray-900 sm:text-2xl lg:mb-1">Dashboard</h1>
+        <p className="mt-1 text-sm text-gray-500 lg:mt-0 lg:mb-6">Selamat datang di panel administrasi FKHK.</p>
+      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:mb-8">
         {statCards.map((s) => (
           <Link
             key={s.key}
             href={s.href}
-            className="block bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition no-underline"
+            className="block min-w-0 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm no-underline transition hover:shadow-md sm:p-5 lg:rounded-xl lg:p-5"
           >
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-gray-500">{s.label}</span>
+              <span className="min-w-0 pr-2 text-xs font-medium leading-5 text-gray-500 sm:text-sm lg:pr-0 lg:leading-normal">{s.label}</span>
               <div className={`w-8 h-8 rounded-lg ${s.color} bg-opacity-10 flex items-center justify-center`}>
                 <div className={`w-3 h-3 rounded-full ${s.color}`} />
               </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{stats[s.key]}</p>
+            <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{stats[s.key]}</p>
           </Link>
         ))}
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Akses Cepat</h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6 lg:rounded-xl lg:p-6">
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">Akses Cepat</h2>
+        <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
           {[
             { href: "/admin/articles", label: "Kelola Artikel", desc: "Review & publikasi", color: "bg-emerald-100", iconColor: "#059669" },
             { href: "/admin/events", label: "Kelola Kegiatan", desc: "Buat & kelola event", color: "bg-amber-100", iconColor: "#d97706" },
@@ -80,7 +82,7 @@ export default function AdminDashboard() {
             <Link
               key={q.href}
               href={q.href}
-              className="flex items-center gap-3 p-4 rounded-lg border border-gray-100 hover:border-gray-300 hover:bg-gray-50 transition no-underline"
+              className="flex min-h-16 items-center gap-3 rounded-xl border border-gray-100 p-3 no-underline transition hover:border-gray-300 hover:bg-gray-50 sm:p-4 lg:min-h-0 lg:rounded-lg lg:p-4"
             >
               <div className={`w-10 h-10 rounded-lg ${q.color} flex items-center justify-center`}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke={q.iconColor} className="w-5 h-5">

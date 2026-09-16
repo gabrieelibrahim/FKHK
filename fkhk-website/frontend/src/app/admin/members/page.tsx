@@ -144,7 +144,7 @@ export default function AdminMembersPage() {
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Afiliasi</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Role</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Bergabung</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Aksi</th>
+                    <th className="px-4 py-3 text-right font-medium text-gray-600">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -164,10 +164,10 @@ export default function AdminMembersPage() {
                         <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${m.role === "admin" ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-600"}`}>{m.role}</span>
                       </td>
                       <td className="px-4 py-3 text-gray-500">{new Date(m.createdAt).toLocaleDateString("id-ID")}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-2">
-                          <button onClick={() => openEdit(m)} className="rounded-lg px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50">Edit</button>
-                          <button onClick={() => handleDelete(m.id)} className="rounded-lg px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50">Hapus</button>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex justify-end gap-1">
+                          <button onClick={() => openEdit(m)} className="min-h-9 rounded-lg bg-blue-50 px-3 py-2 text-xs font-medium text-blue-600 transition hover:bg-blue-100 lg:min-h-0 lg:rounded-md lg:px-2.5 lg:py-1">Edit</button>
+                          <button onClick={() => handleDelete(m.id)} className="min-h-9 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-100 lg:min-h-0 lg:rounded-md lg:px-2.5 lg:py-1">Hapus</button>
                         </div>
                       </td>
                     </tr>
@@ -201,9 +201,9 @@ export default function AdminMembersPage() {
                       <dd className="mt-1 font-medium text-gray-700">{new Date(m.createdAt).toLocaleDateString("id-ID")}</dd>
                     </div>
                   </dl>
-                  <div className="mt-3 flex gap-2">
-                    <button onClick={() => openEdit(m)} className="rounded-lg px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50">Edit</button>
-                    <button onClick={() => handleDelete(m.id)} className="rounded-lg px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50">Hapus</button>
+                  <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:justify-end">
+                    <button onClick={() => openEdit(m)} className="min-h-10 rounded-lg bg-blue-50 px-3 py-2 text-xs font-medium text-blue-600 transition hover:bg-blue-100">Edit</button>
+                    <button onClick={() => handleDelete(m.id)} className="min-h-10 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-100">Hapus</button>
                   </div>
                 </article>
               ))}

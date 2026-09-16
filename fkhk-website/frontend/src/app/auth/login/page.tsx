@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import Input from "@/components/common/Input";
-import Button from "@/components/common/Button";
 import Reveal from "@/components/Reveal";
 
 export default function LoginPage() {
@@ -14,8 +13,15 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, member } = useAuth();
   const router = useRouter();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (member) {
+      router.push(member.role === "admin" ? "/admin" : "/dashboard");
+    }
+  }, [member, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +36,6 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Login failed");
       login(data.token, data.member);
-      router.push(data.member?.role === "admin" ? "/admin" : "/dashboard");
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.");
     } finally {
@@ -96,13 +101,13 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <Button
+            <button
               type="submit"
-              className="w-full bg-primary hover:bg-primary-dark text-white rounded-xl"
+              className="w-full bg-primary hover:bg-primary-dark text-white rounded-xl px-4 py-2 font-medium transition-colors duration-200"
               disabled={loading}
             >
               {loading ? "Memuat..." : "Masuk"}
-            </Button>
+            </button>
           </form>
         </div>
       </Reveal>

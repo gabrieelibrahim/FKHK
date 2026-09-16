@@ -128,7 +128,7 @@ export default function AdminAchievementsPage() {
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Anggota</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Prestasi</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Tahun</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Aksi</th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -142,10 +142,10 @@ export default function AdminAchievementsPage() {
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700">{a.title}</td>
                       <td className="px-4 py-3 text-sm text-gray-500">{a.year}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-2">
-                          <button onClick={() => openEdit(a)} className="rounded-lg px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50">Edit</button>
-                          <button onClick={() => handleDelete(a.id)} className="rounded-lg px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50">Hapus</button>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex justify-end gap-1">
+                          <button onClick={() => openEdit(a)} className="min-h-9 rounded-lg bg-blue-50 px-3 py-2 text-xs font-medium text-blue-600 transition hover:bg-blue-100 lg:min-h-0 lg:rounded-md lg:px-2.5 lg:py-1">Edit</button>
+                          <button onClick={() => handleDelete(a.id)} className="min-h-9 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-100 lg:min-h-0 lg:rounded-md lg:px-2.5 lg:py-1">Hapus</button>
                         </div>
                       </td>
                     </tr>
@@ -163,9 +163,9 @@ export default function AdminAchievementsPage() {
                       <h2 className="text-sm font-semibold text-gray-900">{a.name}</h2>
                       <p className="mt-1 text-sm leading-5 text-gray-700">{a.title}</p>
                       <p className="mt-2 text-xs font-medium text-gray-500">Tahun {a.year}</p>
-                      <div className="mt-3 flex gap-2">
-                        <button onClick={() => openEdit(a)} className="rounded-lg px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50">Edit</button>
-                        <button onClick={() => handleDelete(a.id)} className="rounded-lg px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50">Hapus</button>
+                      <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:justify-end">
+                        <button onClick={() => openEdit(a)} className="min-h-10 rounded-lg bg-blue-50 px-3 py-2 text-xs font-medium text-blue-600 transition hover:bg-blue-100">Edit</button>
+                        <button onClick={() => handleDelete(a.id)} className="min-h-10 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-100">Hapus</button>
                       </div>
                     </div>
                   </div>
