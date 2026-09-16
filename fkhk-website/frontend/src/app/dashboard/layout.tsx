@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 
 const navItems = [
@@ -26,6 +27,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { isAuthenticated, loading: authLoading, member, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -35,6 +37,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       router.push("/admin");
     }
   }, [authLoading, isAuthenticated, member, router]);
+
+  // Close sidebar on route change
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
 
   if (authLoading) {
     return (
@@ -47,14 +54,33 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!isAuthenticated || !member || member.role === "admin") return null;
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <aside className="w-64 bg-white border-r border-gray-200 shrink-0">
-        <div className="flex items-center gap-3 px-6 h-16 border-b border-gray-200">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
+      {/* Mobile overlay */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 shrink-0 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        }`}
+      >
+        <div className="flex items-center gap-3 px-6 h-16 border-b border-gray-200 shrink-0">
           <img src="/assets/logo/logo fkhk hijau.png" alt="FKHK" className="w-9 h-9 object-contain shrink-0" />
           <span className="font-bold text-gray-900">Dashboard Member</span>
         </div>
 
-        <nav className="p-4 space-y-6 overflow-y-auto h-[calc(100vh-4rem)]">
+        <nav className="p-4 space-y-6 overflow-y-auto flex-1">
           {navItems.map((section) => (
             <div key={section.section}>
               <p className="px-3 text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">{section.section}</p>
@@ -64,7 +90,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition no-underline mb-1 ${
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition no-underline mb-1 min-h-11 ${
                       isActive ? "bg-primary text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                     }`}
                   >
@@ -81,8 +107,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-end px-4 lg:px-6">
-          <div className="flex items-center gap-3 ml-auto">
+        {/* Mobile header */}
+        <header className="h-14 lg:h-16 bg-white border-b border-gray-200 flex items-center justify-between px-3 lg:px-6 shrink-0">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="lg:hidden p-2 -ml-1 text-gray-600 hover:bg-gray-100 rounded-lg transition"
+            aria-label="Buka menu"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          </button>
+
+          <div className="flex items-center gap-2 lg:gap-3 ml-auto">
             <div className="hidden sm:flex items-center gap-2 text-sm text-gray-600">
               <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold">
                 {member?.name?.charAt(0) || "M"}
@@ -91,6 +128,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <p className="font-medium text-gray-900 text-sm">{member?.name}</p>
                 <p className="text-xs text-gray-500 capitalize">{member?.role}</p>
               </div>
+            </div>
+            {/* Mobile avatar */}
+            <div className="sm:hidden w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold shrink-0">
+              {member?.name?.charAt(0) || "M"}
             </div>
             <button
               onClick={logout}

@@ -150,8 +150,8 @@ export default function SubmitArticlePage() {
   return (
     <div className="max-w-3xl mx-auto">
       <Reveal variant="fade-up">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Tulis Artikel</h1>
+        <div className="mb-5 lg:mb-6">
+          <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Tulis Artikel</h1>
           <p className="text-sm text-gray-500 mt-1">Isi form di bawah, lalu kirim untuk ditinjau.</p>
         </div>
       </Reveal>

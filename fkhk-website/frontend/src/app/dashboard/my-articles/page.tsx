@@ -92,11 +92,11 @@ export default function MyArticlesPage() {
   return (
     <div>
       <Reveal variant="fade-up">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Artikel Saya</h1>
+        <div className="flex items-center justify-between gap-3 mb-5 lg:mb-6">
+          <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Artikel Saya</h1>
           <motion.a
             href="/dashboard/submit"
-            className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium"
+            className="px-3 sm:px-4 py-2 bg-primary text-white rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap"
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.96 }}
           >
@@ -129,48 +129,50 @@ export default function MyArticlesPage() {
           {articles.map((a, i) => (
             <Reveal key={a.id} variant="fade-up" delay={i * 0.05}>
               <motion.div whileHover={{ x: 3 }} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-4 flex items-center gap-4">
-                  {/* thumbnail preview */}
-                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                    {a.imageUrl ? (
-                      <img
-                        src={`${process.env.NEXT_PUBLIC_API_URL}${a.imageUrl}`}
-                        alt=""
-                        className="w-full h-full object-cover"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; (e.target as HTMLImageElement).parentElement!.innerHTML = `<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' strokeWidth={1} stroke='currentColor' class='w-6 h-6 text-gray-300'><path strokeLinecap='round' strokeLinejoin='round' d='M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z'/></svg>`; }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-300">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-6 h-6">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <Link href={`/articles/${a.slug}`} className="text-sm font-semibold text-gray-900 hover:text-primary block truncate">{a.title}</Link>
-                    <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-500">
-                      <span>{a.topic}</span>
-                      <span
-                        className={`px-1.5 py-0.5 rounded-full text-[0.6rem] font-medium ${
-                          a.status === "published"
-                            ? "bg-green-100 text-green-700"
+                <div className="p-4">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    {/* thumbnail preview */}
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                      {a.imageUrl ? (
+                        <img
+                          src={`${process.env.NEXT_PUBLIC_API_URL}${a.imageUrl}`}
+                          alt=""
+                          className="w-full h-full object-cover"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; (e.target as HTMLImageElement).parentElement!.innerHTML = `<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' strokeWidth={1} stroke='currentColor' class='w-6 h-6 text-gray-300'><path strokeLinecap='round' strokeLinejoin='round' d='M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z'/></svg>`; }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-300">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <Link href={`/articles/${a.slug}`} className="text-sm font-semibold text-gray-900 hover:text-primary block truncate">{a.title}</Link>
+                      <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-500">
+                        <span>{a.topic}</span>
+                        <span
+                          className={`px-1.5 py-0.5 rounded-full text-[0.6rem] font-medium ${
+                            a.status === "published"
+                              ? "bg-green-100 text-green-700"
+                              : a.status === "submitted"
+                                ? "bg-blue-100 text-blue-700"
+                                : "bg-yellow-100 text-yellow-700"
+                          }`}
+                        >
+                          {a.status === "published"
+                            ? "Dipublish"
                             : a.status === "submitted"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-yellow-100 text-yellow-700"
-                        }`}
-                      >
-                        {a.status === "published"
-                          ? "Dipublish"
-                          : a.status === "submitted"
-                            ? "Menunggu publish"
-                            : a.status === "draft"
-                              ? "Ditolak"
-                              : a.status}
-                      </span>
+                              ? "Menunggu publish"
+                              : a.status === "draft"
+                                ? "Ditolak"
+                                : a.status}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="mt-3 flex items-center gap-2 sm:justify-end">
                     {a.status === "draft" && (
                       <button
                         onClick={async () => {
@@ -181,7 +183,7 @@ export default function MyArticlesPage() {
                           });
                           setRefreshKey((k) => k + 1);
                         }}
-                        className="px-2.5 py-1.5 text-xs font-medium bg-primary text-white rounded-md hover:bg-primary/90 transition shrink-0"
+                        className="flex-1 sm:flex-none min-h-9 px-3 py-1.5 text-xs font-medium bg-primary text-white rounded-md hover:bg-primary/90 transition shrink-0"
                       >
                         Kirim ulang
                       </button>
@@ -192,7 +194,7 @@ export default function MyArticlesPage() {
                         setEditPreview(a.imageUrl || "");
                         setEditError("");
                       }}
-                      className="px-2.5 py-1.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition flex-shrink-0"
+                      className="flex-1 sm:flex-none min-h-9 px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition flex-shrink-0"
                     >
                       Ganti Foto
                     </button>

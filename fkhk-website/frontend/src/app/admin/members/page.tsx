@@ -25,7 +25,7 @@ export default function AdminMembersPage() {
 
   const fetchMembers = () => {
     setLoading(true);
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/members`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/members?limit=999`)
       .then((r) => r.json())
       .then((d) => setMembers(d.data || []))
       .finally(() => setLoading(false));
