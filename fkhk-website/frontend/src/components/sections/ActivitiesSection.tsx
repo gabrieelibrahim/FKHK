@@ -90,7 +90,7 @@ export default function ActivitiesSection() {
               <Link
                 key={e.id}
                 href={`/events/${e.slug}`}
-                className="w-[calc(100vw-32px)] max-w-[340px] h-[390px] bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all group/card no-underline flex flex-col snap-start shrink-0 hover:-translate-y-1 duration-300"
+                className="w-[calc(100vw-32px)] max-w-[340px] h-[320px] bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all group/card no-underline flex flex-col snap-start shrink-0 hover:-translate-y-1 duration-300"
               >
                 <div className="h-36 sm:h-44 bg-gray-100 relative overflow-hidden shrink-0">
                   {e.imageUrl ? (
