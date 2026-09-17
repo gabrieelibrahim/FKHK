@@ -90,7 +90,7 @@ export default function ActivitiesSection() {
               <Link
                 key={e.id}
                 href={`/events/${e.slug}`}
-                className="min-w-[260px] sm:min-w-[280px] md:min-w-[340px] max-w-[340px] bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all group/card no-underline flex flex-col snap-start shrink-0 hover:-translate-y-1 duration-300"
+                className="w-[calc(100vw-32px)] max-w-[340px] h-[390px] bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all group/card no-underline flex flex-col snap-start shrink-0 hover:-translate-y-1 duration-300"
               >
                 <div className="h-36 sm:h-44 bg-gray-100 relative overflow-hidden shrink-0">
                   {e.imageUrl ? (
@@ -102,7 +102,7 @@ export default function ActivitiesSection() {
                       </svg>
                     </div>
                   )}
-                  <span className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-[0.65rem] font-bold uppercase tracking-wider border ${
+                  <span className={`absolute top-3 left-3 min-w-[82px] text-center px-2.5 py-1 rounded-full text-[0.65rem] font-bold uppercase tracking-wider border ${
                     e.status === "upcoming"
                       ? "text-accent border-accent bg-accent/10"
                       : "text-success border-success bg-[#f0faf4]"
@@ -115,7 +115,7 @@ export default function ActivitiesSection() {
                 </div>
                 {/* Content */}
                 <div className="p-4 sm:p-5 flex-1 flex flex-col">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-3 leading-snug group-hover/card:text-primary transition-colors flex-1">
+                  <h4 className="min-h-[2.5rem] text-sm font-semibold text-gray-900 mb-3 leading-snug group-hover/card:text-primary transition-colors flex-1">
                     {e.title}
                   </h4>
                   {e.location && (

@@ -73,7 +73,7 @@ export default function EventsPage() {
               <Link
                 key={e.id}
                 href={`/events/${e.slug}`}
-                className="block bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition overflow-hidden"
+                className="flex h-full flex-col overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition hover:shadow-md"
               >
                 {e.imageUrl && (
                   <img
@@ -83,13 +83,13 @@ export default function EventsPage() {
                     onError={(e) => { e.currentTarget.style.display = "none"; }}
                   />
                 )}
-                <div className="p-6">
+                <div className="flex flex-1 flex-col p-6">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-xs font-semibold text-accent uppercase tracking-wider">
                       {STATUS_MAP[e.status] || e.status}
                     </span>
                   </div>
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                  <h2 className="mb-2 line-clamp-2 min-h-[3.5rem] text-lg font-semibold text-gray-900">
                     {e.title}
                   </h2>
                   <p className="text-sm text-gray-600 mb-3 line-clamp-2">

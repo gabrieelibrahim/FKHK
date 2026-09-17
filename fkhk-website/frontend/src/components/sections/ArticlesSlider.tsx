@@ -92,7 +92,7 @@ export default function ArticlesSlider() {
                 <Link
                   key={a.id}
                   href={`/articles/${a.slug}`}
-                  className="flex-shrink-0 w-[280px] sm:w-[300px] bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition hover:-translate-y-1 group snap-start no-underline"
+                  className="flex h-full flex-shrink-0 flex-col w-[280px] sm:w-[300px] bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition hover:-translate-y-1 group snap-start no-underline"
                 >
                   <div className="h-36 sm:h-44 bg-gray-100 overflow-hidden">
                     {a.imageUrl ? (
@@ -105,7 +105,7 @@ export default function ArticlesSlider() {
                       </div>
                     )}
                   </div>
-                  <div className="p-4 sm:p-5">
+                  <div className="flex flex-1 flex-col p-4 sm:p-5">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-[0.65rem] font-semibold uppercase tracking-wider text-accent">{a.topic}</span>
                       <span className="text-xs text-gray-400">
@@ -114,7 +114,7 @@ export default function ArticlesSlider() {
                           : ""}
                       </span>
                     </div>
-                    <h3 className="text-xs sm:text-sm font-semibold text-gray-900 mb-2 line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                    <h3 className="min-h-[2.5rem] text-xs sm:text-sm font-semibold text-gray-900 mb-2 line-clamp-2 leading-snug group-hover:text-primary transition-colors">
                       {a.title}
                     </h3>
                     <p className="text-xs text-gray-500 mb-3 line-clamp-2 leading-relaxed">

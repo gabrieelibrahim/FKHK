@@ -79,7 +79,7 @@ export default async function ArticlesPage({ searchParams }: Props) {
                 <Link
                   key={a.id}
                   href={`/articles/${a.slug}`}
-                  className="block bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition group"
+                  className="flex h-full flex-col overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition hover:shadow-md group"
                 >
                   {image && (
                     <div className="h-40 overflow-hidden">
@@ -91,7 +91,7 @@ export default async function ArticlesPage({ searchParams }: Props) {
                       />
                     </div>
                   )}
-                  <div className="p-6">
+                  <div className="flex flex-1 flex-col p-6">
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-xs font-semibold text-accent uppercase tracking-wider">
                         {a.topic}
@@ -102,7 +102,7 @@ export default async function ArticlesPage({ searchParams }: Props) {
                           : ""}
                       </span>
                     </div>
-                    <h2 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                    <h2 className="mb-2 line-clamp-2 min-h-[3.5rem] text-lg font-semibold text-gray-900">
                       {a.title}
                     </h2>
                     <p className="text-sm text-gray-600 mb-4 line-clamp-3">{a.excerpt}</p>
