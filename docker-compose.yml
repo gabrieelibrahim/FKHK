@@ -1,0 +1,61 @@
+services:
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fkhkdb
+      POSTGRES_USER: fkhk
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fkhk_secret_2026}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fkhk -d fkhkdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fkhk-net
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 5000
+      DATABASE_URL: "postgresql://fkhk:${DB_PASSWORD:-fkhk_secret_2026}@db:5432/fkhkdb?schema=public"
+      JWT_SECRET: "${JWT_SECRET:-fkhk_jwt_super_secret_2026}"
+      BCRYPT_SALT_ROUNDS: 10
+      NODE_ENV: production
+    volumes:
+      - uploads:/app/uploads
+    ports:
+      - "127.0.0.1:5000:5000"
+    networks:
+      - fkhk-net
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      API_URL: "http://backend:5000"
+      JWT_SECRET: "${JWT_SECRET:-fkhk_jwt_super_secret_2026}"
+      NEXT_PUBLIC_API_URL: ""
+      NEXT_PUBLIC_SITE_URL: "http://localhost:3000"
+    ports:
+      - "127.0.0.1:3002:3000"
+    networks:
+      - fkhk-net
+
+volumes:
+  postgres-data:
+  uploads:
+
+networks:
+  fkhk-net:
+    driver: bridge
