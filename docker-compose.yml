@@ -1,3 +1,5 @@
+name: fkhk
+
 services:
   db:
     image: postgres:15-alpine
@@ -54,7 +56,11 @@ services:
 
 volumes:
   postgres-data:
+    name: fkhk_postgres-data
+    external: true
   uploads:
+    name: fkhk_uploads
+    external: true
 
 networks:
   fkhk-net:
