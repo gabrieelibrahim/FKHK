@@ -19,6 +19,7 @@ export type ArticleListItem = {
   tags?: string[];
   status: string;
   viewCount: number;
+  readingMinutes?: number;
   publishedAt: string | null;
   createdAt?: string;
   author: ArticleAuthor;
@@ -68,6 +69,25 @@ export async function fetchArticleBySlug(slug: string): Promise<Article | null> 
 
   if (!res.ok) return null;
   return res.json();
+}
+
+export async function fetchRelatedArticles(
+  slug: string,
+  topic?: string
+): Promise<ArticleListItem[]> {
+  const qs = new URLSearchParams();
+  qs.set("page", "1");
+  qs.set("limit", "6");
+  if (topic) qs.set("topic", topic);
+
+  const res = await fetch(`${getApiUrl()}/api/articles?${qs}`, {
+    next: { revalidate: 300 },
+  });
+  if (!res.ok) return [];
+
+  const json: ArticlesResponse = await res.json();
+  // Exclude current article, ambil max 3
+  return (json.data || []).filter((a) => a.slug !== slug).slice(0, 3);
 }
 
 export async function fetchPublishedSlugs(limit = 1000): Promise<

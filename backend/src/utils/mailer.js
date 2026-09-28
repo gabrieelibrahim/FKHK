@@ -12,6 +12,41 @@ const transporter = nodemailer.createTransport({
 
 const FROM = process.env.MAIL_FROM || "FKHK <noreply@fkhk.com>";
 
+exports.sendPasswordResetEmail = async (email, name, token) => {
+  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+  const resetUrl = `${frontendUrl}/auth/reset-password?token=${token}`;
+  const minutes = 60;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,sans-serif">
+  <table style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;margin-top:24px">
+    <tr><td style="background:#2C5857;padding:32px 24px;text-align:center">
+      <h1 style="color:#fff;margin:0;font-size:22px">Reset Password</h1>
+    </td></tr>
+    <tr><td style="padding:32px 24px">
+      <p style="color:#666;line-height:1.6;margin:0 0 8px">Halo ${name || ""},</p>
+      <p style="color:#666;line-height:1.6;margin:0 0 20px">Kami menerima permintaan reset password untuk akunmu. Klik tombol di bawah untuk mengatur password baru:</p>
+      <a href="${resetUrl}" style="display:inline-block;padding:12px 24px;background:#2C5857;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">Reset Password</a>
+      <p style="color:#999;font-size:12px;margin:20px 0 0">Tautan ini berlaku ${minutes} menit. Jika kamu tidak meminta reset password, abaikan email ini.</p>
+    </td></tr>
+    <tr><td style="padding:16px 24px 24px;text-align:center;color:#999;font-size:12px">
+      <p style="margin:0">© ${new Date().getFullYear()} FKHK — Forum Kajian Hukum Keluarga</p>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  await transporter.sendMail({
+    from: FROM,
+    to: email,
+    subject: "🔑 Reset Password FKHK",
+    html,
+  });
+};
+
 exports.sendNewArticleNotification = async (subscribers, article) => {
   if (!subscribers.length) return;
 

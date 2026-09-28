@@ -7,7 +7,7 @@ export default function TeamSection() {
     <section className="relative overflow-hidden" id="team">
       <div className="relative h-[400px] sm:h-[500px]">
         <img
-          src="https://files.catbox.moe/vciirb.jpg"
+          src="/assets/images/team-fkhk.jpg"
           alt="Tim FKHK bersama"
           className="w-full h-full object-cover object-center"
         />

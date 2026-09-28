@@ -10,6 +10,7 @@ interface Achievement {
   title: string;
   year: string;
   initials: string;
+  photo?: string | null;
 }
 
 export default function AchievementsSection() {
@@ -67,8 +68,12 @@ export default function AchievementsSection() {
                 key={a.id}
                 className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 text-center hover:shadow-md hover:-translate-y-1 transition-all duration-300"
               >
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <span className="text-lg font-bold text-primary">{a.initials}</span>
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4 overflow-hidden">
+                  {a.photo ? (
+                    <img src={`${process.env.NEXT_PUBLIC_API_URL}${a.photo}`} alt={a.name} className="w-16 h-16 rounded-full object-cover" />
+                  ) : (
+                    <span className="text-lg font-bold text-primary">{a.initials}</span>
+                  )}
                 </div>
                 <p className="text-sm font-semibold text-gray-900 mb-1">{a.name}</p>
                 <h4 className="text-xs text-gray-600 mb-2 leading-relaxed">{a.title}</h4>

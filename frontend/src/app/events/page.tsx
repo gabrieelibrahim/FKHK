@@ -28,17 +28,33 @@ export default function EventsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("upcoming");
+  const [search, setSearch] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const params = new URLSearchParams();
     if (filter) params.set("status", filter);
-    params.set("limit", "20");
+    if (submittedSearch) params.set("search", submittedSearch);
+    params.set("limit", "12");
+    params.set("page", String(page));
 
+    setLoading(true);
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events?${params}`)
       .then((r) => r.json())
-      .then((d) => setEvents(d.data || []))
+      .then((d) => {
+        setEvents(d.data || []);
+        setTotalPages(d.totalPages || 1);
+      })
       .finally(() => setLoading(false));
-  }, [filter]);
+  }, [filter, submittedSearch, page]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPage(1);
+    setSubmittedSearch(search.trim());
+  };
 
   return (
     <main className="min-h-screen bg-gray-50 pt-[80px] pb-12">
@@ -47,20 +63,37 @@ export default function EventsPage() {
           Kegiatan
         </h1>
 
-        <div className="flex gap-2 mb-8">
-          {["upcoming", "completed", "cancelled"].map((f) => (
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <div className="flex gap-2 flex-wrap">
+            {["upcoming", "completed", "cancelled"].map((f) => (
+              <button
+                key={f}
+                onClick={() => { setFilter(f); setPage(1); }}
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
+                  filter === f
+                    ? "bg-primary text-white"
+                    : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                }`}
+              >
+                {STATUS_MAP[f]}
+              </button>
+            ))}
+          </div>
+          <form onSubmit={handleSearch} className="flex gap-2 sm:ml-auto">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari kegiatan..."
+              className="px-4 py-2 border border-gray-300 rounded-xl text-sm flex-1 sm:w-56"
+            />
             <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
-                filter === f
-                  ? "bg-primary text-white"
-                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
-              }`}
+              type="submit"
+              className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:opacity-90"
             >
-              {STATUS_MAP[f]}
+              Cari
             </button>
-          ))}
+          </form>
         </div>
 
         {loading ? (
@@ -122,6 +155,30 @@ export default function EventsPage() {
                 </div>
               </Link>
             ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-10">
+            {page > 1 && (
+              <button
+                onClick={() => setPage((p) => p - 1)}
+                className="px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white hover:bg-gray-50"
+              >
+                Sebelumnya
+              </button>
+            )}
+            <span className="px-4 py-2 text-sm text-gray-500">
+              Halaman {page} / {totalPages}
+            </span>
+            {page < totalPages && (
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                className="px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white hover:bg-gray-50"
+              >
+                Berikutnya
+              </button>
+            )}
           </div>
         )}
       </div>

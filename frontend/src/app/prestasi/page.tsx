@@ -9,6 +9,7 @@ interface Achievement {
   title: string;
   year: string;
   initials: string;
+  photo?: string | null;
 }
 
 const fallbackData: Achievement[] = [
@@ -91,9 +92,13 @@ export default function PrestasiPage() {
                   className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all flex flex-col"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <span className="text-base font-bold text-primary">{a.initials}</span>
-                    </div>
+                    {a.photo ? (
+                      <img src={`${process.env.NEXT_PUBLIC_API_URL}${a.photo}`} alt={a.name} className="w-12 h-12 rounded-full object-cover shrink-0 border-2 border-primary/10" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <span className="text-base font-bold text-primary">{a.initials}</span>
+                      </div>
+                    )}
                     <div className="min-w-0">
                       <p className="font-semibold text-gray-900 text-sm">{a.name}</p>
                       <h3 className="text-gray-600 text-sm mt-1 leading-relaxed">{a.title}</h3>

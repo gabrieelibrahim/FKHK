@@ -11,7 +11,7 @@ module.exports = {
         primary: "#2C5857",
         "primary-dark": "#1e3e3d",
         accent: "#FDBB0B",
-        "accent-dark": "#FFFF00",
+        "accent-dark": "#D99B00",
       },
       fontFamily: {
         body: ["var(--font-body)", "system-ui", "sans-serif"],

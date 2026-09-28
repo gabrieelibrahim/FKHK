@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { fetchArticleBySlug } from "@/lib/articles";
+import { fetchArticleBySlug, fetchRelatedArticles } from "@/lib/articles";
 import { getSiteUrl, mediaUrl } from "@/lib/site";
+import { readingTime } from "@/lib/readingTime";
+import CommentSection from "@/components/CommentSection";
 
 type Props = { params: { slug: string } };
 
@@ -46,6 +48,8 @@ export default async function ArticleDetailPage({ params }: Props) {
 
   const siteUrl = getSiteUrl();
   const image = mediaUrl(article.imageUrl);
+  const minutes = readingTime(article.content || "");
+  const related = await fetchRelatedArticles(article.slug, article.topic);
   const jsonLd = article.status === "published" ?
     {
       "@context": "https://schema.org",
@@ -122,6 +126,8 @@ export default async function ArticleDetailPage({ params }: Props) {
                       })
                     : ""}
                 </span>
+                <span className="text-xs text-gray-400">•</span>
+                <span className="text-xs text-gray-400">{minutes} menit baca</span>
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-6">{article.title}</h1>
 
@@ -166,6 +172,54 @@ export default async function ArticleDetailPage({ params }: Props) {
 
               <div className="text-sm text-gray-400 mt-4">{article.viewCount} dilihat</div>
             </article>
+
+            {/* Komentar + Share */}
+            <CommentSection
+              articleId={article.id}
+              shareUrl={`${siteUrl}/articles/${article.slug}`}
+              articleTitle={article.title}
+            />
+
+            {/* Artikel Terkait */}
+            {related.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-lg font-bold text-gray-900 mb-4">Baca Juga</h2>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  {related.map((ra) => {
+                    const rImg = mediaUrl(ra.imageUrl);
+                    return (
+                      <Link
+                        key={ra.id}
+                        href={`/articles/${ra.slug}`}
+                        className="flex flex-col overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition hover:shadow-md group"
+                      >
+                        {rImg && (
+                          <div className="h-28 overflow-hidden">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={rImg}
+                              alt={ra.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                            />
+                          </div>
+                        )}
+                        <div className="flex flex-1 flex-col p-4">
+                          <span className="text-[10px] font-semibold text-accent uppercase tracking-wider mb-1">
+                            {ra.topic}
+                          </span>
+                          <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">
+                            {ra.title}
+                          </h3>
+                          <span className="text-xs text-gray-400 mt-auto pt-2">
+                            {ra.author?.name}
+                          </span>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

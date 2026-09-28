@@ -3,8 +3,8 @@ const router = express.Router();
 const memberController = require('../controllers/memberController');
 const { protect, authorize } = require('../middleware/auth');
 
-router.get('/', memberController.getMembers);
-router.get('/:id', memberController.getMemberById);
+router.get('/', protect, authorize('admin'), memberController.getMembers);
+router.get('/:id', protect, authorize('admin'), memberController.getMemberById);
 router.put('/:id', protect, memberController.updateMemberProfile);
 router.put('/:id/admin', protect, authorize('admin'), memberController.updateMemberByAdmin);
 router.post('/', protect, authorize('admin'), memberController.createMember);

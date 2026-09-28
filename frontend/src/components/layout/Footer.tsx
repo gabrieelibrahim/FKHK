@@ -106,8 +106,8 @@ export default function Footer() {
           <div className="mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/40">
             <p>&copy; 2026 FKHK — Forum Kajian Hukum Keluarga. All rights reserved.</p>
             <div className="flex gap-4">
-              <Link href="#" className="hover:text-white/60 transition">Privasi</Link>
-              <Link href="#" className="hover:text-white/60 transition">Ketentuan</Link>
+              <Link href="/privasi" className="hover:text-white/60 transition">Privasi</Link>
+              <Link href="/ketentuan" className="hover:text-white/60 transition">Ketentuan</Link>
             </div>
           </div>
         </Reveal>

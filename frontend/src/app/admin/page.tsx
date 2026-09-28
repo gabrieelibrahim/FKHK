@@ -22,8 +22,12 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const getToken = () =>
+      document.cookie.split("; ").find((r) => r.startsWith("fkhk_token="))?.split("=")[1];
     Promise.all([
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/members`).then((r) => r.json()),
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/members`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      }).then((r) => r.json()),
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articles?limit=1`).then((r) => r.json()),
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events?limit=1`).then((r) => r.json()),
     ])

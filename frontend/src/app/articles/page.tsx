@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { fetchPublishedArticles } from "@/lib/articles";
+import { readingTime } from "@/lib/readingTime";
 import { getSiteUrl, mediaUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -108,7 +109,11 @@ export default async function ArticlesPage({ searchParams }: Props) {
                     <p className="text-sm text-gray-600 mb-4 line-clamp-3">{a.excerpt}</p>
                     <div className="flex items-center justify-between text-xs text-gray-400">
                       <span>{a.author.name}</span>
-                      <span>{a.viewCount} dilihat</span>
+                      <span className="flex items-center gap-1">
+                        {a.readingMinutes ? <span>{a.readingMinutes} mnt baca</span> : null}
+                        <span>•</span>
+                        <span>{a.viewCount} dilihat</span>
+                      </span>
                     </div>
                   </div>
                 </Link>

@@ -33,6 +33,7 @@ exports.getArticles = async (req, res, next) => {
         title: true,
         slug: true,
         excerpt: true,
+        content: true,
         imageUrl: true,
         topic: true,
         tags: true,
@@ -49,8 +50,14 @@ exports.getArticles = async (req, res, next) => {
 
     const total = await prisma.article.count({ where });
 
+    // Tambah readingMinutes (200 kata/menit), buang content dari response
+    const withReadingTime = articles.map(({ content, ...rest }) => ({
+      ...rest,
+      readingMinutes: Math.max(1, Math.ceil((content || '').trim().split(/\s+/).filter(Boolean).length / 200)),
+    }));
+
     res.json({
-      data: articles,
+      data: withReadingTime,
       total,
       page: parseInt(page),
       limit: parseInt(limit),

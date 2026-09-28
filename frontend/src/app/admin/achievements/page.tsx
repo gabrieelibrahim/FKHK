@@ -8,6 +8,7 @@ interface Achievement {
   title: string;
   year: string;
   initials: string;
+  photo?: string | null;
 }
 
 export default function AdminAchievementsPage() {
@@ -15,9 +16,10 @@ export default function AdminAchievementsPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState({ name: "", title: "", year: "" });
+  const [form, setForm] = useState({ name: "", title: "", year: "", photo: "" as string | null });
   const [formError, setFormError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const getToken = () =>
     document.cookie.split("; ").find((r) => r.startsWith("fkhk_token="))?.split("=")[1];
@@ -31,16 +33,36 @@ export default function AdminAchievementsPage() {
 
   const openCreate = () => {
     setEditingId(null);
-    setForm({ name: "", title: "", year: "" });
+    setForm({ name: "", title: "", year: "", photo: null });
     setFormError("");
     setShowModal(true);
   };
 
   const openEdit = (a: Achievement) => {
     setEditingId(a.id);
-    setForm({ name: a.name, title: a.title, year: a.year });
+    setForm({ name: a.name, title: a.title, year: a.year, photo: a.photo ?? null });
     setFormError("");
     setShowModal(true);
+  };
+
+  const handlePhotoUpload = async (file: File) => {
+    setUploadingPhoto(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${getToken()}` },
+        body: fd,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Gagal upload foto");
+      setForm((prev) => ({ ...prev, photo: data.url }));
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setUploadingPhoto(false);
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -83,7 +105,7 @@ export default function AdminAchievementsPage() {
         setAchievements((prev) => [...prev, data]);
       }
       setShowModal(false);
-      setForm({ name: "", title: "", year: "" });
+      setForm({ name: "", title: "", year: "", photo: null });
       setEditingId(null);
     } catch (err: any) {
       setFormError(err.message);
@@ -136,7 +158,11 @@ export default function AdminAchievementsPage() {
                     <tr key={a.id} className="border-b border-gray-100 transition hover:bg-gray-50">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{a.initials}</div>
+                          {a.photo ? (
+                            <img src={`${process.env.NEXT_PUBLIC_API_URL}${a.photo}`} alt={a.name} className="h-8 w-8 shrink-0 rounded-full object-cover" />
+                          ) : (
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{a.initials}</div>
+                          )}
                           <span className="text-sm font-medium text-gray-900">{a.name}</span>
                         </div>
                       </td>
@@ -158,7 +184,11 @@ export default function AdminAchievementsPage() {
               {achievements.map((a) => (
                 <article key={a.id} className="rounded-xl border border-gray-100 p-4">
                   <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{a.initials}</div>
+                    {a.photo ? (
+                      <img src={`${process.env.NEXT_PUBLIC_API_URL}${a.photo}`} alt={a.name} className="h-10 w-10 shrink-0 rounded-full object-cover" />
+                    ) : (
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{a.initials}</div>
+                    )}
                     <div className="min-w-0 flex-1">
                       <h2 className="text-sm font-semibold text-gray-900">{a.name}</h2>
                       <p className="mt-1 text-sm leading-5 text-gray-700">{a.title}</p>
@@ -194,6 +224,25 @@ export default function AdminAchievementsPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Tahun</label>
                 <input type="text" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" required placeholder="2026" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Foto Anggota (opsional)</label>
+                <div className="flex items-center gap-3">
+                  {form.photo ? (
+                    <img src={`${process.env.NEXT_PUBLIC_API_URL}${form.photo}`} alt="Preview" className="h-12 w-12 shrink-0 rounded-full object-cover border border-gray-200" />
+                  ) : (
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-400">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <input type="file" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f); }} className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20" disabled={uploadingPhoto} />
+                    {uploadingPhoto && <p className="mt-1 text-xs text-gray-500">Mengunggah...</p>}
+                    {form.photo && !uploadingPhoto && (
+                      <button type="button" onClick={() => setForm({ ...form, photo: null })} className="mt-1 text-xs text-red-500 hover:text-red-600">Hapus foto</button>
+                    )}
+                  </div>
+                </div>
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Batal</button>

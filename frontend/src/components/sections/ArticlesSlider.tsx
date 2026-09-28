@@ -85,14 +85,14 @@ export default function ArticlesSlider() {
 
             <div
               ref={sliderRef}
-              className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-4"
+              className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-4 items-stretch"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
               {displayArticles.map((a) => (
                 <Link
                   key={a.id}
                   href={`/articles/${a.slug}`}
-                  className="flex h-full flex-shrink-0 flex-col w-[280px] sm:w-[300px] bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition hover:-translate-y-1 group snap-start no-underline"
+                  className="flex flex-shrink-0 flex-col w-[280px] sm:w-[300px] bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition hover:-translate-y-1 group snap-start no-underline"
                 >
                   <div className="h-36 sm:h-44 bg-gray-100 overflow-hidden">
                     {a.imageUrl ? (
@@ -117,7 +117,7 @@ export default function ArticlesSlider() {
                     <h3 className="min-h-[2.5rem] text-xs sm:text-sm font-semibold text-gray-900 mb-2 line-clamp-2 leading-snug group-hover:text-primary transition-colors">
                       {a.title}
                     </h3>
-                    <p className="text-xs text-gray-500 mb-3 line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-gray-500 mb-3 line-clamp-2 leading-relaxed flex-1">
                       {a.excerpt}
                     </p>
                     <div className="flex items-center gap-2">

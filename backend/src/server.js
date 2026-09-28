@@ -17,15 +17,46 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
   crossOriginOpenerPolicy: { policy: "unsafe-none" },
 }));
-app.use(cors());
+const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || 'https://fkhk-test.vantaracloud.web.id')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      // izinkan request tanpa origin (curl, server-to-server, same-origin)
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+      return callback(new Error(`Origin tidak diizinkan oleh CORS: ${origin}`));
+    },
+  })
+);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Limiter ketat untuk endpoint sensitif: login, forgot, reset, newsletter
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 50,
-  message: { message: 'Too many attempts, please try again later.' },
+  max: 5,
+  message: { message: 'Terlalu banyak percobaan. Coba lagi dalam 15 menit.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Limiter ketat khusus login (brute-force password)
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { message: 'Terlalu banyak percobaan login. Coba lagi dalam 15 menit.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const newsletterLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { message: 'Terlalu banyak permintaan. Coba lagi dalam 15 menit.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -41,16 +72,23 @@ const apiLimiter = rateLimit({
 const authRoutes = require('./routes/auth');
 const memberRoutes = require('./routes/members');
 const articleRoutes = require('./routes/articles');
+const commentRoutes = require('./routes/comments');
 const eventRoutes = require('./routes/events');
 const newsletterRoutes = require('./routes/newsletter');
 const achievementRoutes = require('./routes/achievements');
 const uploadRoutes = require('./routes/upload');
 
 app.use('/api', apiLimiter);
-app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/auth', authLimiter);
+app.use('/api/auth/login', loginLimiter);
+app.use('/api/auth/forgot-password', authLimiter);
+app.use('/api/auth/reset-password', authLimiter);
+app.use('/api/auth', authRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/articles', articleRoutes);
+app.use('/api/comments', commentRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/newsletter/subscribe', newsletterLimiter);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/upload', uploadRoutes);

@@ -63,7 +63,7 @@ export default function ActivitiesSection() {
 
         {/* Swipe hint — mobile only */}
         <p className="sm:hidden text-xs text-gray-500 mb-4 -mt-6">
-          Geser untuk melihat lainnya →
+          Geser untuk melihat lainnya
         </p>
 
         {/* Slider — only show if events exist */}

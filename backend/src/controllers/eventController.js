@@ -3,11 +3,18 @@ const mailer = require('../utils/mailer');
 
 exports.getEvents = async (req, res, next) => {
   try {
-    const { page = 1, limit = 10, status } = req.query;
+    const { page = 1, limit = 10, status, search } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const where = {};
 
     if (status) where.status = status;
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { location: { contains: search, mode: 'insensitive' } },
+      ];
+    }
 
     const events = await prisma.event.findMany({
       where,
