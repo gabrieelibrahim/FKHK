@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth, isAdminRole } from "@/context/AuthContext";
 import Button from "@/components/common/Button";
 import Input from "@/components/common/Input";
 import Reveal from "@/components/Reveal";
@@ -24,7 +24,7 @@ export default function CreateEventPage() {
   const [submitting, setSubmitting] = useState(false);
 
   if (authLoading) return null;
-  if (!isAuthenticated || member?.role !== "admin") { router.push("/events"); return null; }
+  if (!isAuthenticated || !isAdminRole(member?.role)) { router.push("/events"); return null; }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

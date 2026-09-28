@@ -118,7 +118,7 @@ export default function AdminCommentsPage() {
       ) : comments.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-12 h-12 mx-auto mb-3 text-gray-300">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.796-.332 48.654 48.654 0 008.36-.501c1.584-.233 2.707-1.627 2.707-3.227V5.74a3.125 3.125 0 00-3.085-3.122 48.237 48.237 0 00-9.963-.085A3.125 3.125 0 002.25 5.74v7.018z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM8 9h8m-8 4h5" />
           </svg>
           <p className="text-gray-500">Tidak ada komentar.</p>
         </div>

@@ -1,14 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 export default function TeamSection() {
   return (
     <section className="relative overflow-hidden" id="team">
       <div className="relative h-[400px] sm:h-[500px]">
-        <img
-          src="/assets/images/team-fkhk.jpg"
+        <Image
+          src="/assets/images/team-fkhk.webp"
           alt="Tim FKHK bersama"
+          fill
+          priority={false}
+          sizes="100vw"
           className="w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#fcfaf8] via-transparent to-[#1a2e2e]" />
@@ -23,17 +27,25 @@ export default function TeamSection() {
                   Bersama Kita Wujudkan<br />
                   <em className="not-italic">Kajian yang Berdampak</em>
                 </h2>
-                <p className="text-sm sm:text-base text-white/80 mt-4 leading-relaxed max-w-lg [text-shadow:0_1px_6px_rgba(0,0,0,0.8)]">
-                  Jadilah bagian dari komunitas akademik yang aktif, kritis, dan penuh semangat.
-                  Daftarkan diri dan mulai perjalananmu bersama FKHK hari ini.
+                <p className="text-sm sm:text-base text-white/80 mt-3 leading-relaxed [text-shadow:0_1px_4px_rgba(0,0,0,0.8)]">
+                  FKHK membuka ruang seluas-luasnya bagi mahasiswa yang ingin
+                  berkembang dalam kajian hukum, kepenulisan, dan advokasi
+                  masyarakat.
                 </p>
               </div>
-              <div className="flex gap-3 w-full sm:w-auto">
+
+              <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/auth/login"
-                  className="w-full sm:w-auto px-6 py-3 bg-[#1a2e2e] text-white rounded-xl font-semibold hover:bg-red-700 transition no-underline text-center"
+                  href="/auth/register"
+                  className="px-6 py-3 bg-[#2C5857] text-white font-medium rounded-full text-sm hover:bg-[#1a2e2e] transition-colors shadow-lg"
                 >
-                  Masuk
+                  Daftar Anggota
+                </Link>
+                <Link
+                  href="/tentang"
+                  className="px-6 py-3 bg-white/20 backdrop-blur-sm text-white font-medium rounded-full text-sm hover:bg-white/30 transition-colors border border-white/30"
+                >
+                  Pelajari Lebih Lanjut
                 </Link>
               </div>
             </div>

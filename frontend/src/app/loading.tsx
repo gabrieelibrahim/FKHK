@@ -8,12 +8,11 @@ export default function Loading() {
         <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#2C5857] animate-spin" />
         <div className="absolute inset-0 flex items-center justify-center">
           <Image
-            src="/assets/logo/logo fkhk hijau.png"
+            src="/assets/logo/logo-fkhk-hijau.webp"
             alt="FKHK"
             width={44}
             height={44}
             className="h-11 w-11 rounded-full object-contain"
-            unoptimized
           />
         </div>
       </div>

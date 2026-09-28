@@ -16,8 +16,8 @@ router.delete('/:id', protect, articleController.deleteArticle);
 // Submit for review (member)
 router.put('/:id/submit', protect, articleController.submitArticle);
 
-// Admin: approve / reject
-router.put('/:id/publish', protect, authorize('admin'), articleController.approveArticle);
-router.put('/:id/reject', protect, authorize('admin'), articleController.rejectArticle);
+// Admin: approve / reject (superadmin & admin_kaset)
+router.put('/:id/publish', protect, authorize('superadmin', 'admin_kaset'), articleController.approveArticle);
+router.put('/:id/reject', protect, authorize('superadmin', 'admin_kaset'), articleController.rejectArticle);
 
 module.exports = router;

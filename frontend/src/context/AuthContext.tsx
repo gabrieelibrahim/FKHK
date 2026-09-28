@@ -4,6 +4,9 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useRouter } from "next/navigation";
 import * as jose from "jose";
 
+export const ADMIN_ROLES = ["admin", "superadmin", "admin_kaset", "admin_psdm"];
+export const isAdminRole = (role?: unknown) => typeof role === "string" && ADMIN_ROLES.includes(role);
+
 interface Member {
   id: number;
   email: string;
@@ -29,7 +32,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Helper to get cookie value
     const getCookie = (name: string) => {
       const value = `; ${document.cookie}`;
       const parts = value.split(`; ${name}=`);
@@ -56,7 +58,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         } catch { handleLogout(); }
       } else {
-        // Token exists but no localStorage — fetch from API
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           headers: { Authorization: `Bearer ${storedToken}` },
         })
@@ -84,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("fkhk_member", JSON.stringify(newMember));
     setToken(newToken);
     setMember(newMember);
-    window.location.href = newMember.role === "admin" ? "/admin" : "/dashboard";
+    window.location.href = isAdminRole(newMember.role) ? "/admin" : "/dashboard";
   };
 
   const handleLogout = () => {

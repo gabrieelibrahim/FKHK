@@ -1,6 +1,10 @@
 const prisma = require('../lib/prisma');
 const mailer = require('../utils/mailer');
 
+const ADMIN_ROLES = ['superadmin', 'admin_kaset', 'admin_psdm', 'admin'];
+const isAnyAdmin = (role) => ADMIN_ROLES.includes(role);
+const canManageArticles = (role) => ['superadmin', 'admin_kaset'].includes(role);
+
 exports.getArticles = async (req, res, next) => {
   try {
     const { page = 1, limit = 10, topic, search, status, mine } = req.query;
@@ -9,7 +13,7 @@ exports.getArticles = async (req, res, next) => {
 
     if (mine === 'true' && req.member) {
       where.authorId = req.member.id;
-    } else if (req.member?.role === 'admin') {
+    } else if (isAnyAdmin(req.member?.role)) {
       if (status) where.status = status;
     } else {
       where.status = 'published';
@@ -85,7 +89,7 @@ exports.getArticleBySlug = async (req, res, next) => {
     if (article.status !== 'published') {
       const member = req.member;
       const isAuthor = member && member.id === article.authorId;
-      const isAdmin = member && member.role === 'admin';
+      const isAdmin = member && isAnyAdmin(member.role);
       if (!isAuthor && !isAdmin) {
         return res.status(404).json({ message: 'Article not found' });
       }
@@ -159,8 +163,8 @@ exports.updateArticle = async (req, res, next) => {
     const article = await prisma.article.findUnique({ where: { id: parseInt(id) } });
     if (!article) return res.status(404).json({ message: 'Article not found' });
 
-    // Only author or admin can update
-    if (article.authorId !== req.member.id && req.member.role !== 'admin') {
+    // Only author or admin with article permission can update
+    if (article.authorId !== req.member.id && !canManageArticles(req.member.role)) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
@@ -190,7 +194,7 @@ exports.deleteArticle = async (req, res, next) => {
     const article = await prisma.article.findUnique({ where: { id: parseInt(id) } });
     if (!article) return res.status(404).json({ message: 'Article not found' });
 
-    if (article.authorId !== req.member.id && req.member.role !== 'admin') {
+    if (article.authorId !== req.member.id && !canManageArticles(req.member.role)) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 

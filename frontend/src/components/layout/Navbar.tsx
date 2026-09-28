@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth, isAdminRole } from "@/context/AuthContext";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -54,19 +55,25 @@ export default function Navbar() {
           {/* Logo & Brand */}
           <Link href="/" className="flex items-center no-underline">
             <div className="relative w-[120px] sm:w-[150px] h-11">
-              <img
-                src="/assets/logo/logo-fkhk-putih-brand.png"
+              <Image
+                src="/assets/logo/logo-fkhk-putih-brand.webp"
                 alt={scrolled ? "" : "Logo FKHK"}
-                className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ${
-                  isWhiteNav ? "opacity-0" : "opacity-100"
+                fill
+                priority
+                sizes="(max-width: 640px) 120px, 150px"
+                className={`object-contain transition-opacity duration-300 ${
+                  isWhiteNav ? "opacity-0 pointer-events-none" : "opacity-100"
                 }`}
                 aria-hidden={isWhiteNav}
               />
-              <img
-                src="/assets/logo/logo-fkhk-hijau-brand.png"
+              <Image
+                src="/assets/logo/logo-fkhk-hijau-brand.webp"
                 alt={isWhiteNav ? "Logo FKHK" : ""}
-                className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ${
-                  isWhiteNav ? "opacity-100" : "opacity-0"
+                fill
+                priority
+                sizes="(max-width: 640px) 120px, 150px"
+                className={`object-contain transition-opacity duration-300 ${
+                  isWhiteNav ? "opacity-100" : "opacity-0 pointer-events-none"
                 }`}
                 aria-hidden={!isWhiteNav}
               />
@@ -102,14 +109,14 @@ export default function Navbar() {
             {isAuthenticated ? (
               <>
                 <Link
-                  href={member?.role === "admin" ? "/admin" : "/dashboard"}
+                  href={isAdminRole(member?.role) ? "/admin" : "/dashboard"}
                   className={`hidden lg:inline-flex px-3 py-2 rounded-lg text-sm font-medium no-underline transition ${
                     isWhiteNav
                       ? "text-gray-700 hover:text-primary hover:bg-primary/10"
                       : "text-white/80 hover:text-white hover:bg-white/15"
                   }`}
                 >
-                  {member?.role === "admin" ? "Admin" : "Dashboard"}
+                  {isAdminRole(member?.role) ? "Admin" : "Dashboard"}
                 </Link>
                 <button
                   onClick={logout}
@@ -197,7 +204,7 @@ export default function Navbar() {
           <hr className="border-gray-200 my-2" />
           {isAuthenticated ? (
             <>
-              {member?.role !== "admin" && (
+              {!isAdminRole(member?.role) && (
                 <Link
                   href="/dashboard"
                   onClick={closeMobile}
@@ -208,7 +215,7 @@ export default function Navbar() {
                   Dashboard
                 </Link>
               )}
-              {member?.role === "admin" && (
+              {isAdminRole(member?.role) && (
                 <Link
                   href="/admin"
                   onClick={closeMobile}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import NewsletterSignup from "../NewsletterSignup";
 import Reveal from "../Reveal";
@@ -33,10 +34,12 @@ export default function Footer() {
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <div className="relative w-[150px] h-11">
-                  <img
-                    src="/assets/logo/logo-fkhk-putih-brand.png"
+                  <Image
+                    src="/assets/logo/logo-fkhk-putih-brand.webp"
                     alt="Logo FKHK"
-                    className="absolute inset-0 w-full h-full object-contain"
+                    fill
+                    sizes="150px"
+                    className="object-contain"
                   />
                 </div>
               </div>

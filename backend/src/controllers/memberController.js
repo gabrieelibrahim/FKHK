@@ -176,7 +176,7 @@ exports.updateMemberProfile = async (req, res, next) => {
     const { id } = req.params;
     const { name, phone, affiliation, bio, avatarUrl, interests } = req.body;
 
-    if (req.member.id !== parseInt(id) && req.member.role !== 'admin') {
+    if (req.member.id !== parseInt(id) && req.member.role !== 'superadmin') {
       return res.status(403).json({ message: 'Not authorized to update this profile' });
     }
 

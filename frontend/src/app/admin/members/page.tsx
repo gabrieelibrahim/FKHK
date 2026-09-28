@@ -163,7 +163,7 @@ export default function AdminMembersPage() {
                       <td className="px-4 py-3 text-gray-600">{m.email}</td>
                       <td className="px-4 py-3 text-gray-600">{m.affiliation || "-"}</td>
                       <td className="px-4 py-3">
-                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${m.role === "admin" ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-600"}`}>{m.role}</span>
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${m.role.includes("admin") ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-600"}`}>{m.role}</span>
                       </td>
                       <td className="px-4 py-3 text-gray-500">{new Date(m.createdAt).toLocaleDateString("id-ID")}</td>
                       <td className="px-4 py-3 text-right">
@@ -191,7 +191,7 @@ export default function AdminMembersPage() {
                         <p className="mt-1 truncate text-xs text-gray-500">{m.email}</p>
                       </div>
                     </div>
-                    <span className={`shrink-0 rounded-full px-2 py-1 text-[11px] font-medium ${m.role === "admin" ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-600"}`}>{m.role}</span>
+                    <span className={`shrink-0 rounded-full px-2 py-1 text-[11px] font-medium ${m.role.includes("admin") ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-600"}`}>{m.role}</span>
                   </div>
                   <dl className="mt-4 grid grid-cols-2 gap-3 text-xs">
                     <div>
@@ -275,7 +275,10 @@ export default function AdminMembersPage() {
                   >
                     <option value="member">Member</option>
                     <option value="moderator">Moderator</option>
-                    <option value="admin">Admin</option>
+                    <option value="admin">Admin (BPH/Advokasi)</option>
+                    <option value="admin_kaset">Admin KASET</option>
+                    <option value="admin_psdm">Admin PSDM</option>
+                    <option value="superadmin">Superadmin</option>
                   </select>
                 </div>
               )}

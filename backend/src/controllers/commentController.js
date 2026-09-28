@@ -1,5 +1,7 @@
 const prisma = require('../lib/prisma');
 
+const ADMIN_ROLES = ['superadmin', 'admin_kaset', 'admin_psdm', 'admin'];
+
 // GET /api/comments/article/:articleId — public (approved) + own pending if logged in
 exports.getArticleComments = async (req, res, next) => {
   try {
@@ -117,7 +119,7 @@ exports.deleteComment = async (req, res, next) => {
     const comment = await prisma.comment.findUnique({ where: { id } });
     if (!comment) return res.status(404).json({ message: 'Comment not found' });
 
-    if (comment.memberId !== req.member.id && req.member.role !== 'admin') {
+    if (comment.memberId !== req.member.id && !ADMIN_ROLES.includes(req.member.role)) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 

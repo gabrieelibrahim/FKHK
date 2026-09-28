@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth, isAdminRole } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -17,7 +17,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (member) {
-      router.push(member.role === "admin" ? "/admin" : "/dashboard");
+      router.push(isAdminRole(member.role) ? "/admin" : "/dashboard");
     }
   }, [member, router]);
 

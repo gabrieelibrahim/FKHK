@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
+import Image from "next/image";
+import { useAuth, isAdminRole } from "@/context/AuthContext";
 
 const navItems = [
   {
@@ -32,7 +33,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (authLoading) return;
     if (!isAuthenticated) {
       router.push("/auth/login");
-    } else if (member?.role === "admin") {
+    } else if (isAdminRole(member?.role)) {
       router.push("/admin");
     }
   }, [authLoading, isAuthenticated, member, router]);
@@ -57,7 +58,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  if (!isAuthenticated || !member || member.role === "admin") return null;
+  if (!isAuthenticated || !member || isAdminRole(member.role)) return null;
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
@@ -78,7 +79,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }`}
       >
         <div className="flex items-center gap-3 px-6 h-16 border-b border-gray-200 shrink-0">
-          <img src="/assets/logo/logo fkhk hijau.png" alt="FKHK" className="w-9 h-9 object-contain shrink-0" />
+          <Image src="/assets/logo/logo-fkhk-hijau.webp" alt="FKHK" width={36} height={36} className="w-9 h-9 object-contain shrink-0" />
           <span className="font-bold text-gray-900">Dashboard Member</span>
         </div>
 

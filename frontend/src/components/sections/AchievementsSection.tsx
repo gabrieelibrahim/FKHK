@@ -22,13 +22,13 @@ export default function AchievementsSection() {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/achievements`, { signal: ctrl.signal })
       .then((r) => r.json())
       .then((res) => {
-        if (res?.data) setAchievements(res.data);
-        else setAchievements([
-          { id: 1, name: "M. Riziq Fauzi", title: "Juara 1 Lomba Esai Hukum Nasional", year: "2026", initials: "MR" },
-          { id: 2, name: "Aulia Eka Salsabila", title: "Publikasi di Jurnal Terakreditasi Sinta 3", year: "2026", initials: "AE" },
-          { id: 3, name: "Najma Ulya I.", title: "Pembicara Seminar Regional Hukum Islam", year: "2025", initials: "NU" },
-          { id: 4, name: "Nabila Febryanti", title: "Juara 2 Debat Hukum Antar Kampus", year: "2025", initials: "NF" },
-        ]);
+        if (res?.data) {
+          // Ambil 3 prestasi terbaru (ID terbesar = terbaru di-insert)
+          const newest = [...res.data]
+            .sort((a, b) => b.id - a.id)
+            .slice(0, 3);
+          setAchievements(newest);
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -62,7 +62,7 @@ export default function AchievementsSection() {
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
-          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5" staggerDelay={0.07}>
+          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5" staggerDelay={0.07}>
             {achievements.map((a) => (
               <div
                 key={a.id}

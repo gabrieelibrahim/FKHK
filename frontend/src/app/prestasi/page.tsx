@@ -12,14 +12,7 @@ interface Achievement {
   photo?: string | null;
 }
 
-const fallbackData: Achievement[] = [
-  { id: 1, name: "M. Riziq Fauzi", title: "Juara 1 Lomba Esai Hukum Nasional", year: "2026", initials: "MR" },
-  { id: 2, name: "Aulia Eka Salsabila", title: "Publikasi di Jurnal Terakreditasi Sinta 3", year: "2026", initials: "AE" },
-  { id: 3, name: "Najma Ulya I.", title: "Pembicara Seminar Regional Hukum Islam", year: "2025", initials: "NU" },
-  { id: 4, name: "Nabila Febryanti", title: "Juara 2 Debat Hukum Antar Kampus", year: "2025", initials: "NF" },
-  { id: 5, name: "Ahmad Fauzi", title: "Peneliti Muda Bidang Hukum Keluarga", year: "2025", initials: "AF" },
-  { id: 6, name: "Ela Nur Hidayati", title: "Best Presenter Konferensi Mahasiswa Nasional", year: "2024", initials: "EN" },
-];
+const fallbackData: Achievement[] = [];
 
 export default function PrestasiPage() {
   const [data, setData] = useState<Achievement[]>([]);
