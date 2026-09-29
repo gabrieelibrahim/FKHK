@@ -60,6 +60,7 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/og-image.jpg",
+        secureUrl: "https://fkhk-uinsuka.web.id/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "FKHK — Forum Kajian Hukum Keluarga",
@@ -113,6 +114,7 @@ export default function RootLayout({
   return (
     <html lang="id">
       <head>
+        <link rel="image_src" href="https://fkhk-uinsuka.web.id/og-image.jpg" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdOrg) }}
