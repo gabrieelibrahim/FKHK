@@ -54,8 +54,6 @@ export default function AdminAchievementsPage() {
   const onSelectFile = async (file: File) => {
     if (!file) return;
 
-    let targetFile: File | Blob = file;
-
     // Deteksi jika format adalah HEIC/HEIF (dari iPhone / Samsung / Google Drive)
     const isHeic =
       file.name.toLowerCase().endsWith(".heic") ||
@@ -66,27 +64,56 @@ export default function AdminAchievementsPage() {
     if (isHeic) {
       try {
         setIsConvertingHeic(true);
-        // Dynamic import heic2any hanya saat dibutuhkan agar bundle awal tetap ringan
+
+        // 1. Coba konversi via backend Sharp (libheif 1.23.5) terlebih dahulu
+        // Server jauh lebih cepat, hemat baterai/RAM HP, dan tidak crash pada file HEIC resolusi tinggi
+        const token = localStorage.getItem("token");
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ""}/api/upload/convert-heic`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token || ""}`,
+          },
+          body: formData,
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.dataUrl) {
+            setCropImageSrc(data.dataUrl);
+            setIsConvertingHeic(false);
+            return;
+          }
+        }
+
+        // 2. Fallback jika offline / request gagal: coba via browser heic2any
         const heic2any = (await import("heic2any")).default;
         const conversionResult = await heic2any({
           blob: file,
           toType: "image/jpeg",
-          quality: 0.8, // kompresi ringan agar proses cepat dan memori HP tidak jebol
+          quality: 0.8,
         });
 
-        targetFile = Array.isArray(conversionResult)
+        const targetBlob = Array.isArray(conversionResult)
           ? conversionResult[0]
           : conversionResult;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (reader.result) setCropImageSrc(reader.result as string);
+        };
+        reader.readAsDataURL(targetBlob);
       } catch (err) {
         console.error("Gagal convert HEIC:", err);
         alert(
           "Gagal memproses file HEIC dari perangkat. Pastikan file terunduh lengkap atau gunakan format JPG/PNG."
         );
-        setIsConvertingHeic(false);
-        return;
       } finally {
         setIsConvertingHeic(false);
       }
+      return;
     }
 
     // Google Drive di Android / iOS sering mengembalikan virtual stream / delayed file.
@@ -99,7 +126,7 @@ export default function AdminAchievementsPage() {
     };
     reader.onerror = () => {
       try {
-        const url = URL.createObjectURL(targetFile);
+        const url = URL.createObjectURL(file);
         setCropImageSrc(url);
       } catch (e) {
         alert("Gagal membaca file. Pastikan file sudah terunduh di perangkat.");
@@ -107,10 +134,10 @@ export default function AdminAchievementsPage() {
     };
 
     try {
-      reader.readAsDataURL(targetFile);
+      reader.readAsDataURL(file);
     } catch (_) {
       try {
-        const url = URL.createObjectURL(targetFile);
+        const url = URL.createObjectURL(file);
         setCropImageSrc(url);
       } catch (err) {
         alert("Gagal memuat file yang dipilih.");

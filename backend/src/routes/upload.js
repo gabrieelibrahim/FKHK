@@ -10,17 +10,17 @@ const { protect } = require("../middleware/auth");
 // In-memory multer storage to enable sharp optimization before saving
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB (mencakup foto HEIC asli iPhone resolusi tinggi)
   fileFilter: (req, file, cb) => {
-    const allowedExts = /jpeg|jpg|png|gif|webp/;
+    const allowedExts = /jpeg|jpg|png|gif|webp|heic|heif/;
     const ext = allowedExts.test(path.extname(file.originalname).toLowerCase());
-    const allowedMimes = /^image\/(jpeg|png|gif|webp)$/;
-    const mime = allowedMimes.test(file.mimetype);
+    const allowedMimes = /^image\/(jpeg|png|gif|webp|heic|heif|heic-sequence|heif-sequence)$/i;
+    const isMimeOk = allowedMimes.test(file.mimetype) || file.mimetype === "application/octet-stream";
 
-    if (ext && mime) {
+    if (ext || isMimeOk) {
       cb(null, true);
     } else {
-      cb(new Error("Hanya file gambar valid (jpeg, jpg, png, gif, webp) yang diizinkan"));
+      cb(new Error("Hanya file gambar valid (jpeg, jpg, png, gif, webp, heic, heif) yang diizinkan"));
     }
   },
 });
@@ -59,6 +59,7 @@ router.post("/", protect, (req, res) => {
       const targetPath = path.join(uploadDir, filename);
 
       // Auto-orient via EXIF, clamp bounds to 1920x1080, convert to high-efficiency WebP
+      // Sharp di node:20-slim memiliki libheif 1.23.5 bawaan yang native mendecode HEIC/HEIF
       await sharp(req.file.buffer)
         .rotate()
         .resize({
@@ -74,6 +75,34 @@ router.post("/", protect, (req, res) => {
     } catch (processErr) {
       console.error("Image processing error:", processErr);
       res.status(500).json({ message: "Gagal memproses gambar: " + processErr.message });
+    }
+  });
+});
+
+// Endpoint konversi HEIC -> JPEG preview (jika browser mobile tidak bisa mendecode HEIC lokal)
+router.post("/convert-heic", protect, (req, res) => {
+  upload.single("file")(req, res, async (err) => {
+    if (err) return res.status(400).json({ message: err.message });
+    if (!req.file) return res.status(400).json({ message: "File tidak ditemukan" });
+
+    try {
+      // Decode HEIC dengan sharp server-side lalu kompres jadi JPEG resolusi sedang (max 1600px) untuk visual crop modal di browser
+      const jpegBuffer = await sharp(req.file.buffer)
+        .rotate()
+        .resize({
+          width: 1600,
+          height: 1600,
+          fit: "inside",
+          withoutEnlargement: true,
+        })
+        .jpeg({ quality: 85 })
+        .toBuffer();
+
+      const base64Data = `data:image/jpeg;base64,${jpegBuffer.toString("base64")}`;
+      res.json({ dataUrl: base64Data });
+    } catch (err) {
+      console.error("HEIC conversion error:", err);
+      res.status(500).json({ message: "Gagal mengonversi file HEIC: " + err.message });
     }
   });
 });
