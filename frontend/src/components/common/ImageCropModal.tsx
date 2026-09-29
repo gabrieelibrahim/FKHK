@@ -18,6 +18,7 @@ export default function ImageCropModal({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [naturalSize, setNaturalSize] = useState({ w: 0, h: 0 });
 
   const imgRef = useRef<HTMLImageElement | null>(null);
   const CROP_SIZE = 260;
@@ -43,25 +44,35 @@ export default function ImageCropModal({
     } catch (_) {}
   };
 
+  const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const target = e.currentTarget;
+    setNaturalSize({ w: target.naturalWidth, h: target.naturalHeight });
+    setImgLoaded(true);
+  };
+
   const generateCroppedBlob = () => {
     if (!imgRef.current) return;
     const img = imgRef.current;
 
-    const naturalW = img.naturalWidth;
-    const naturalH = img.naturalHeight;
+    const naturalW = img.naturalWidth || naturalSize.w;
+    const naturalH = img.naturalHeight || naturalSize.h;
+    if (!naturalW || !naturalH) return;
 
+    // Menghitung ukuran render saat ini
     const baseScale = Math.max(CROP_SIZE / naturalW, CROP_SIZE / naturalH);
     const finalScale = baseScale * zoom;
 
     const renderedW = naturalW * finalScale;
     const renderedH = naturalH * finalScale;
 
+    // Titik pusat gambar relatif terhadap box crop (0,0 adalah pojok kiri atas crop)
     const imgCenterX = CROP_SIZE / 2 + offset.x;
     const imgCenterY = CROP_SIZE / 2 + offset.y;
 
     const imgLeft = imgCenterX - renderedW / 2;
     const imgTop = imgCenterY - renderedH / 2;
 
+    // Area di gambar asli yang dicrop
     const srcX = (0 - imgLeft) / finalScale;
     const srcY = (0 - imgTop) / finalScale;
     const srcW = CROP_SIZE / finalScale;
@@ -86,6 +97,14 @@ export default function ImageCropModal({
     );
   };
 
+  // Base sizing agar image pas saat awal dimuat
+  const baseScale =
+    naturalSize.w && naturalSize.h
+      ? Math.max(CROP_SIZE / naturalSize.w, CROP_SIZE / naturalSize.h)
+      : 1;
+  const displayW = naturalSize.w ? naturalSize.w * baseScale * zoom : CROP_SIZE;
+  const displayH = naturalSize.h ? naturalSize.h * baseScale * zoom : CROP_SIZE;
+
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
       <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-150">
@@ -106,7 +125,7 @@ export default function ImageCropModal({
           </p>
 
           <div
-            className="relative overflow-hidden bg-gray-950 rounded-full cursor-grab active:cursor-grabbing border-4 border-primary/20 shadow-inner flex items-center justify-center"
+            className="relative overflow-hidden bg-gray-900 rounded-full cursor-grab active:cursor-grabbing border-4 border-primary/20 shadow-inner flex items-center justify-center"
             style={{ width: `${CROP_SIZE}px`, height: `${CROP_SIZE}px`, touchAction: "none" }}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
@@ -114,21 +133,27 @@ export default function ImageCropModal({
           >
             <div className="pointer-events-none absolute inset-0 rounded-full border border-white/40 z-10" />
 
+            {/* Gambar Target */}
             <img
               ref={imgRef}
               src={imageSrc}
               alt="Crop Target"
               draggable={false}
-              onLoad={() => setImgLoaded(true)}
+              onLoad={onImageLoad}
               style={{
-                transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
+                position: "absolute",
+                width: naturalSize.w ? `${displayW}px` : "auto",
+                height: naturalSize.h ? `${displayH}px` : "auto",
+                left: "50%",
+                top: "50%",
+                transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px))`,
                 transition: isDragging ? "none" : "transform 0.05s ease-out",
                 maxWidth: "none",
                 maxHeight: "none",
                 pointerEvents: "none",
-                opacity: imgLoaded ? 1 : 0,
+                opacity: imgLoaded ? 1 : 0.8,
               }}
-              className="object-contain select-none"
+              className="select-none"
             />
           </div>
 
