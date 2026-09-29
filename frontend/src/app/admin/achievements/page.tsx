@@ -50,11 +50,16 @@ export default function AdminAchievementsPage() {
   };
 
   const onSelectFile = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      setCropImageSrc(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    try {
+      const url = URL.createObjectURL(file);
+      setCropImageSrc(url);
+    } catch (_) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setCropImageSrc(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const uploadCroppedBlob = async (blob: Blob) => {

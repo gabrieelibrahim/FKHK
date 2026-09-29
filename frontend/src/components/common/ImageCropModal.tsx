@@ -24,20 +24,50 @@ export default function ImageCropModal({
   const imageElementRef = useRef<HTMLImageElement | null>(null);
   const CROP_SIZE = 260;
 
-  // Muat image lewat Image object standar
+  // Muat image: coba tanpa crossOrigin dulu (untuk data:/blob:), fallback jika gagal
   useEffect(() => {
     setImgLoaded(false);
     setImgError(false);
+
+    let active = true;
     const img = new Image();
-    img.crossOrigin = "anonymous";
+
+    // Untuk data: URL atau blob: URL lokal, crossOrigin justru bisa memicu security error pada beberapa engine browser mobile
+    if (imageSrc.startsWith("http://") || imageSrc.startsWith("https://")) {
+      img.crossOrigin = "anonymous";
+    }
+
     img.onload = () => {
+      if (!active) return;
       imageElementRef.current = img;
       setImgLoaded(true);
     };
+
     img.onerror = () => {
-      setImgError(true);
+      if (!active) return;
+      // Jika sebelumnya pakai crossOrigin dan gagal, coba lagi tanpa crossOrigin
+      if (img.crossOrigin) {
+        const retryImg = new Image();
+        retryImg.onload = () => {
+          if (!active) return;
+          imageElementRef.current = retryImg;
+          setImgLoaded(true);
+        };
+        retryImg.onerror = () => {
+          if (!active) return;
+          setImgError(true);
+        };
+        retryImg.src = imageSrc;
+      } else {
+        setImgError(true);
+      }
     };
+
     img.src = imageSrc;
+
+    return () => {
+      active = false;
+    };
   }, [imageSrc]);
 
   // Gambar ke canvas preview setiap kali zoom / offset / imgLoaded berubah
@@ -50,6 +80,7 @@ export default function ImageCropModal({
     const img = imageElementRef.current;
     const naturalW = img.naturalWidth;
     const naturalH = img.naturalHeight;
+    if (!naturalW || !naturalH) return;
 
     // Bersihkan canvas
     ctx.clearRect(0, 0, CROP_SIZE, CROP_SIZE);
@@ -87,7 +118,9 @@ export default function ImageCropModal({
   const handlePointerDown = (e: React.PointerEvent) => {
     setIsDragging(true);
     setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    try {
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    } catch (_) {}
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -125,10 +158,10 @@ export default function ImageCropModal({
     const imgLeft = imgCenterX - renderedW / 2;
     const imgTop = imgCenterY - renderedH / 2;
 
-    const srcX = (0 - imgLeft) / scale;
-    const srcY = (0 - imgTop) / scale;
-    const srcW = CROP_SIZE / scale;
-    const srcH = CROP_SIZE / scale;
+    const srcX = Math.max(0, (0 - imgLeft) / scale);
+    const srcY = Math.max(0, (0 - imgTop) / scale);
+    const srcW = Math.min(naturalW - srcX, CROP_SIZE / scale);
+    const srcH = Math.min(naturalH - srcY, CROP_SIZE / scale);
 
     const TARGET_SIZE = 500;
     const exportCanvas = document.createElement("canvas");
@@ -143,7 +176,18 @@ export default function ImageCropModal({
 
     exportCanvas.toBlob(
       (blob) => {
-        if (blob) onCropComplete(blob);
+        if (blob) {
+          onCropComplete(blob);
+        } else {
+          // Fallback to jpeg jika webp tidak didukung toBlob di browser lama
+          exportCanvas.toBlob(
+            (fallbackBlob) => {
+              if (fallbackBlob) onCropComplete(fallbackBlob);
+            },
+            "image/jpeg",
+            0.9
+          );
+        }
       },
       "image/webp",
       0.9
@@ -185,7 +229,7 @@ export default function ImageCropModal({
 
             {!imgLoaded && !imgError && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-8 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
               </div>
             )}
 
