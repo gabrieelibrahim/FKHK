@@ -49,22 +49,48 @@ export default function AdminAchievementsPage() {
     setShowModal(true);
   };
 
+  const [isConvertingHeic, setIsConvertingHeic] = useState(false);
+
   const onSelectFile = async (file: File) => {
     if (!file) return;
 
-    // Deteksi jika format adalah HEIC/HEIF (sering dari Google Drive / iPhone / Samsung)
-    const isHeic = file.name.toLowerCase().endsWith(".heic") || 
-                   file.name.toLowerCase().endsWith(".heif") ||
-                   file.type === "image/heic" || 
-                   file.type === "image/heif";
+    let targetFile: File | Blob = file;
+
+    // Deteksi jika format adalah HEIC/HEIF (dari iPhone / Samsung / Google Drive)
+    const isHeic =
+      file.name.toLowerCase().endsWith(".heic") ||
+      file.name.toLowerCase().endsWith(".heif") ||
+      file.type === "image/heic" ||
+      file.type === "image/heif";
 
     if (isHeic) {
-      alert("Format foto HEIC dari Google Drive / iOS terdeteksi. Silakan simpan / ekspor foto ke format JPG/PNG terlebih dahulu atau pilih dari Galeri.");
-      return;
+      try {
+        setIsConvertingHeic(true);
+        // Dynamic import heic2any hanya saat dibutuhkan agar bundle awal tetap ringan
+        const heic2any = (await import("heic2any")).default;
+        const conversionResult = await heic2any({
+          blob: file,
+          toType: "image/jpeg",
+          quality: 0.8, // kompresi ringan agar proses cepat dan memori HP tidak jebol
+        });
+
+        targetFile = Array.isArray(conversionResult)
+          ? conversionResult[0]
+          : conversionResult;
+      } catch (err) {
+        console.error("Gagal convert HEIC:", err);
+        alert(
+          "Gagal memproses file HEIC dari perangkat. Pastikan file terunduh lengkap atau gunakan format JPG/PNG."
+        );
+        setIsConvertingHeic(false);
+        return;
+      } finally {
+        setIsConvertingHeic(false);
+      }
     }
 
     // Google Drive di Android / iOS sering mengembalikan virtual stream / delayed file.
-    // Membaca file terlebih dahulu lewat FileReader atau slice memastikan seluruh byte berhasil di-download ke local cache HP.
+    // Membaca file via FileReader memastikan byte ter-cache tuntas ke memori sebelum dirender.
     const reader = new FileReader();
     reader.onload = () => {
       if (reader.result) {
@@ -72,20 +98,19 @@ export default function AdminAchievementsPage() {
       }
     };
     reader.onerror = () => {
-      // Fallback ke ObjectURL jika FileReader gagal
       try {
-        const url = URL.createObjectURL(file);
+        const url = URL.createObjectURL(targetFile);
         setCropImageSrc(url);
       } catch (e) {
-        alert("Gagal membaca file dari Google Drive. Pastikan file sudah terunduh di perangkat.");
+        alert("Gagal membaca file. Pastikan file sudah terunduh di perangkat.");
       }
     };
 
     try {
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(targetFile);
     } catch (_) {
       try {
-        const url = URL.createObjectURL(file);
+        const url = URL.createObjectURL(targetFile);
         setCropImageSrc(url);
       } catch (err) {
         alert("Gagal memuat file yang dipilih.");
