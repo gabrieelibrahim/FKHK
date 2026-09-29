@@ -49,16 +49,47 @@ export default function AdminAchievementsPage() {
     setShowModal(true);
   };
 
-  const onSelectFile = (file: File) => {
-    try {
-      const url = URL.createObjectURL(file);
-      setCropImageSrc(url);
-    } catch (_) {
-      const reader = new FileReader();
-      reader.onload = () => {
+  const onSelectFile = async (file: File) => {
+    if (!file) return;
+
+    // Deteksi jika format adalah HEIC/HEIF (sering dari Google Drive / iPhone / Samsung)
+    const isHeic = file.name.toLowerCase().endsWith(".heic") || 
+                   file.name.toLowerCase().endsWith(".heif") ||
+                   file.type === "image/heic" || 
+                   file.type === "image/heif";
+
+    if (isHeic) {
+      alert("Format foto HEIC dari Google Drive / iOS terdeteksi. Silakan simpan / ekspor foto ke format JPG/PNG terlebih dahulu atau pilih dari Galeri.");
+      return;
+    }
+
+    // Google Drive di Android / iOS sering mengembalikan virtual stream / delayed file.
+    // Membaca file terlebih dahulu lewat FileReader atau slice memastikan seluruh byte berhasil di-download ke local cache HP.
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (reader.result) {
         setCropImageSrc(reader.result as string);
-      };
+      }
+    };
+    reader.onerror = () => {
+      // Fallback ke ObjectURL jika FileReader gagal
+      try {
+        const url = URL.createObjectURL(file);
+        setCropImageSrc(url);
+      } catch (e) {
+        alert("Gagal membaca file dari Google Drive. Pastikan file sudah terunduh di perangkat.");
+      }
+    };
+
+    try {
       reader.readAsDataURL(file);
+    } catch (_) {
+      try {
+        const url = URL.createObjectURL(file);
+        setCropImageSrc(url);
+      } catch (err) {
+        alert("Gagal memuat file yang dipilih.");
+      }
     }
   };
 
@@ -257,7 +288,7 @@ export default function AdminAchievementsPage() {
                   <div className="flex-1">
                     <input
                       type="file"
-                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                      accept="image/*"
                       onChange={(e) => {
                         const f = e.target.files?.[0];
                         if (f) onSelectFile(f);
