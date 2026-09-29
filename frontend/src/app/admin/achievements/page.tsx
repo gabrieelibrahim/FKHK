@@ -46,7 +46,10 @@ export default function AdminAchievementsPage() {
   useEffect(() => {
     fetch("/api/achievements")
       .then((r) => r.json())
-      .then((data) => setAchievements(Array.isArray(data) ? data : []))
+      .then((json) => {
+        const list = Array.isArray(json) ? json : (json && Array.isArray(json.data) ? json.data : []);
+        setAchievements(list);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
