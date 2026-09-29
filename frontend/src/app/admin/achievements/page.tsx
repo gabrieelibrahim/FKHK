@@ -1,62 +1,61 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import ImageCropModal from "@/components/common/ImageCropModal";
 
 interface Achievement {
   id: number;
   name: string;
   title: string;
-  year: string;
-  initials: string;
-  photo?: string | null;
+  event: string | null;
+  year: number;
+  photo: string | null;
 }
+
+
+function getToken() {
+  if (typeof window === "undefined") return "";
+  const cookieToken = document.cookie
+    .split("; ")
+    .find((r) => r.startsWith("fkhk_token="))
+    ?.split("=")[1];
+  return cookieToken || localStorage.getItem("token") || "";
+}
+
+const emptyForm = {
+  name: "",
+  title: "",
+  event: "",
+  year: new Date().getFullYear(),
+  photo: "",
+};
 
 export default function AdminAchievementsPage() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState({ name: "", title: "", year: "", photo: "" as string | null });
+  const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
-
-  // State untuk Crop Modal
+  const [isConvertingHeic, setIsConvertingHeic] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
-
-  const getToken = () =>
-    document.cookie.split("; ").find((r) => r.startsWith("fkhk_token="))?.split("=")[1];
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/achievements`)
+    fetch("/api/achievements")
       .then((r) => r.json())
-      .then((res) => setAchievements(res.data || []))
+      .then((data) => setAchievements(Array.isArray(data) ? data : []))
+      .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
-
-  const openCreate = () => {
-    setEditingId(null);
-    setForm({ name: "", title: "", year: "", photo: null });
-    setFormError("");
-    setShowModal(true);
-  };
-
-  const openEdit = (a: Achievement) => {
-    setEditingId(a.id);
-    setForm({ name: a.name, title: a.title, year: a.year, photo: a.photo ?? null });
-    setFormError("");
-    setShowModal(true);
-  };
-
-  const [isConvertingHeic, setIsConvertingHeic] = useState(false);
 
   const onSelectFile = async (file: File) => {
     if (!file) return;
 
     let targetFile: File | Blob = file;
 
-    // Deteksi jika format adalah HEIC/HEIF (dari iPhone / Samsung / Google Drive)
     const isHeic =
       file.name.toLowerCase().endsWith(".heic") ||
       file.name.toLowerCase().endsWith(".heif") ||
@@ -66,16 +65,13 @@ export default function AdminAchievementsPage() {
     if (isHeic) {
       setIsConvertingHeic(true);
       try {
-        // Kirim ke backend Sharp (libheif + libde265 native server-side)
-        const token = localStorage.getItem("token");
+        const token = getToken();
         const formData = new FormData();
         formData.append("file", file);
 
         const res = await fetch("/api/upload/convert-heic", {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token || ""}`,
-          },
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
           body: formData,
         });
 
@@ -113,8 +109,6 @@ export default function AdminAchievementsPage() {
       }
     }
 
-    // Google Drive di Android / iOS sering mengembalikan virtual stream / delayed file.
-    // Membaca file via FileReader memastikan byte ter-cache tuntas ke memori sebelum dirender.
     const reader = new FileReader();
     reader.onload = () => {
       if (reader.result) {
@@ -149,32 +143,57 @@ export default function AdminAchievementsPage() {
       const file = new File([blob], "achievement-avatar.webp", { type: "image/webp" });
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload`, {
+      const token = getToken();
+      const res = await fetch("/api/upload", {
         method: "POST",
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: fd,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Gagal upload foto");
       setForm((prev) => ({ ...prev, photo: data.url }));
     } catch (err: any) {
-      alert(err.message);
+      alert(`Gagal upload: ${err?.message || err}`);
     } finally {
       setUploadingPhoto(false);
     }
   };
 
+  const openCreateModal = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setFormError("");
+    setShowModal(true);
+  };
+
+  const openEditModal = (a: Achievement) => {
+    setEditingId(a.id);
+    setForm({
+      name: a.name,
+      title: a.title,
+      event: a.event || "",
+      year: a.year,
+      photo: a.photo || "",
+    });
+    setFormError("");
+    setShowModal(true);
+  };
+
   const handleDelete = async (id: number) => {
-    if (!confirm("Hapus prestasi ini?")) return;
+    if (!confirm("Hapus data prestasi ini?")) return;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/achievements/${id}`, {
+      const token = getToken();
+      const res = await fetch(`/api/achievements/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-      if (!res.ok) throw new Error("Gagal menghapus prestasi");
-      setAchievements((prev) => prev.filter((a) => a.id !== id));
-    } catch (err: any) {
-      alert(err.message);
+      if (res.ok) {
+        setAchievements((prev) => prev.filter((a) => a.id !== id));
+      } else {
+        alert("Gagal menghapus prestasi");
+      }
+    } catch {
+      alert("Terjadi kesalahan jaringan");
     }
   };
 
@@ -188,12 +207,16 @@ export default function AdminAchievementsPage() {
     setFormLoading(true);
     try {
       const url = editingId
-        ? `${process.env.NEXT_PUBLIC_API_URL}/api/achievements/${editingId}`
-        : `${process.env.NEXT_PUBLIC_API_URL}/api/achievements`;
+        ? `/api/achievements/${editingId}`
+        : `/api/achievements`;
       const method = editingId ? "PUT" : "POST";
+      const token = getToken();
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify(form),
       });
       const data = await res.json();
@@ -201,11 +224,9 @@ export default function AdminAchievementsPage() {
       if (editingId) {
         setAchievements((prev) => prev.map((a) => (a.id === editingId ? data : a)));
       } else {
-        setAchievements((prev) => [...prev, data]);
+        setAchievements((prev) => [data, ...prev]);
       }
       setShowModal(false);
-      setForm({ name: "", title: "", year: "", photo: null });
-      setEditingId(null);
     } catch (err: any) {
       setFormError(err.message);
     } finally {
@@ -213,65 +234,71 @@ export default function AdminAchievementsPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-5 sm:space-y-6 lg:space-y-0">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:mb-6 lg:flex-row lg:gap-0">
+    <div className="p-6 max-w-5xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">Prestasi Anggota</h1>
-          <p className="mt-1 text-sm text-gray-500 lg:hidden">Catat pencapaian anggota FKHK</p>
+          <h1 className="text-2xl font-bold text-gray-900">Prestasi Mahasiswa</h1>
+          <p className="text-sm text-gray-500 mt-1">Kelola data mahasiswa berprestasi dan apresiasi lomba</p>
         </div>
         <button
-          type="button"
-          onClick={openCreate}
-          className="min-h-11 w-full rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-opacity-90 sm:w-auto lg:min-h-0 lg:w-auto lg:rounded-lg"
+          onClick={openCreateModal}
+          className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition shadow-sm"
         >
-          Tambah Prestasi
+          + Tambah Prestasi
         </button>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm lg:rounded-xl lg:border-gray-200">
-        {achievements.length === 0 ? (
-          <div className="px-4 py-16 text-center text-gray-500">Belum ada prestasi.</div>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {loading ? (
+          <div className="p-8 text-center text-gray-400">Memuat data prestasi...</div>
+        ) : achievements.length === 0 ? (
+          <div className="p-8 text-center text-gray-400">Belum ada data prestasi. Klik &quot;+ Tambah Prestasi&quot; untuk menambahkan.</div>
         ) : (
           <>
-            <div className="hidden overflow-x-auto lg:block">
-              <table className="w-full min-w-[640px]">
-                <thead>
-                  <tr className="border-b border-gray-100 bg-gray-50">
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Anggota</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Prestasi</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Tahun</th>
-                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Aksi</th>
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-sm text-gray-600">
+                <thead className="bg-gray-50/75 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <tr>
+                    <th className="px-6 py-3.5">Mahasiswa</th>
+                    <th className="px-6 py-3.5">Prestasi</th>
+                    <th className="px-6 py-3.5">Ajang / Event</th>
+                    <th className="px-6 py-3.5">Tahun</th>
+                    <th className="px-6 py-3.5 text-right">Aksi</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-gray-100">
                   {achievements.map((a) => (
-                    <tr key={a.id} className="border-b border-gray-100 transition hover:bg-gray-50">
-                      <td className="px-4 py-3">
+                    <tr key={a.id} className="hover:bg-gray-50/50 transition">
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           {a.photo ? (
-                            <img src={`${process.env.NEXT_PUBLIC_API_URL}${a.photo}`} alt={a.name} className="h-8 w-8 shrink-0 rounded-full object-cover" />
+                            <img src={a.photo} alt={a.name} className="h-8 w-8 shrink-0 rounded-full object-cover" />
                           ) : (
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{a.initials}</div>
+                            <div className="h-8 w-8 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                              {a.name.charAt(0)}
+                            </div>
                           )}
-                          <span className="text-sm font-medium text-gray-900">{a.name}</span>
+                          <span className="font-medium text-gray-900">{a.name}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{a.title}</td>
-                      <td className="px-4 py-3 text-sm text-gray-500">{a.year}</td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex justify-end gap-1">
-                          <button onClick={() => openEdit(a)} className="min-h-9 rounded-lg bg-blue-50 px-3 py-2 text-xs font-medium text-blue-600 transition hover:bg-blue-100 lg:min-h-0 lg:rounded-md lg:px-2.5 lg:py-1">Edit</button>
-                          <button onClick={() => handleDelete(a.id)} className="min-h-9 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-100 lg:min-h-0 lg:rounded-md lg:px-2.5 lg:py-1">Hapus</button>
-                        </div>
+                      <td className="px-6 py-4 text-gray-900 font-medium">{a.title}</td>
+                      <td className="px-6 py-4 text-gray-500">{a.event || "-"}</td>
+                      <td className="px-6 py-4 text-gray-500">{a.year}</td>
+                      <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
+                        <button
+                          onClick={() => openEditModal(a)}
+                          className="text-primary hover:text-primary/80 font-medium text-xs px-2.5 py-1.5 rounded bg-primary/5 hover:bg-primary/10 transition"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(a.id)}
+                          className="text-red-500 hover:text-red-700 font-medium text-xs px-2.5 py-1.5 rounded bg-red-50 hover:bg-red-100 transition"
+                        >
+                          Hapus
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -279,90 +306,171 @@ export default function AdminAchievementsPage() {
               </table>
             </div>
 
-            <div className="grid gap-3 p-3 lg:hidden sm:p-4">
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y divide-gray-100">
               {achievements.map((a) => (
-                <article key={a.id} className="rounded-xl border border-gray-100 p-4">
-                  <div className="flex items-start gap-3">
-                    {a.photo ? (
-                      <img src={`${process.env.NEXT_PUBLIC_API_URL}${a.photo}`} alt={a.name} className="h-10 w-10 shrink-0 rounded-full object-cover" />
-                    ) : (
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{a.initials}</div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <h2 className="text-sm font-semibold text-gray-900">{a.name}</h2>
-                      <p className="mt-1 text-sm leading-5 text-gray-700">{a.title}</p>
-                      <p className="mt-2 text-xs font-medium text-gray-500">Tahun {a.year}</p>
-                      <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:justify-end">
-                        <button onClick={() => openEdit(a)} className="min-h-10 rounded-lg bg-blue-50 px-3 py-2 text-xs font-medium text-blue-600 transition hover:bg-blue-100">Edit</button>
-                        <button onClick={() => handleDelete(a.id)} className="min-h-10 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-100">Hapus</button>
-                      </div>
+                <div key={a.id} className="p-4 flex items-start gap-3.5">
+                  {a.photo ? (
+                    <img src={a.photo} alt={a.name} className="h-10 w-10 shrink-0 rounded-full object-cover mt-0.5" />
+                  ) : (
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm mt-0.5">
+                      {a.name.charAt(0)}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 text-sm">{a.name}</p>
+                    <p className="text-xs font-medium text-primary mt-0.5 line-clamp-1">{a.title}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{a.event ? `${a.event} • ${a.year}` : a.year}</p>
+                    <div className="flex items-center gap-2 mt-3">
+                      <button
+                        onClick={() => openEditModal(a)}
+                        className="text-primary hover:text-primary/80 font-medium text-xs px-3 py-1.5 rounded-md bg-primary/5 hover:bg-primary/10 transition"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(a.id)}
+                        className="text-red-500 hover:text-red-700 font-medium text-xs px-3 py-1.5 rounded-md bg-red-50 hover:bg-red-100 transition"
+                      >
+                        Hapus
+                      </button>
                     </div>
                   </div>
-                </article>
+                </div>
               ))}
             </div>
           </>
         )}
       </div>
 
-      {/* Modal Tambah/Edit Prestasi */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowModal(false)}>
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">{editingId ? "Edit Prestasi" : "Tambah Prestasi"}</h2>
-            {formError && <div className="p-3 mb-4 text-red-700 bg-red-100 border border-red-200 rounded-lg text-sm">{formError}</div>}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-4">
+            <h2 className="text-lg font-bold text-gray-900">
+              {editingId ? "Edit Prestasi" : "Tambah Prestasi"}
+            </h2>
+
+            {formError && (
+              <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg">
+                {formError}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Anggota</label>
-                <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Prestasi</label>
-                <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tahun</label>
-                <input type="text" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" required placeholder="2026" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Foto Anggota (opsional)</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Foto Mahasiswa</label>
                 <div className="flex items-center gap-3">
                   {form.photo ? (
-                    <img src={`${process.env.NEXT_PUBLIC_API_URL}${form.photo}`} alt="Preview" className="h-12 w-12 shrink-0 rounded-full object-cover border border-gray-200" />
+                    <img src={form.photo} alt="Preview" className="h-12 w-12 shrink-0 rounded-full object-cover border border-gray-200" />
                   ) : (
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-400">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                    <div className="h-12 w-12 shrink-0 rounded-full bg-gray-100 border border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs font-medium">
+                      No Foto
                     </div>
                   )}
-                  <div className="flex-1">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) onSelectFile(f);
-                        e.target.value = ""; // reset agar bisa pilih file yang sama
-                      }}
-                      className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
-                      disabled={uploadingPhoto}
-                    />
-                    {uploadingPhoto && <p className="mt-1 text-xs text-gray-500">Mengunggah foto...</p>}
-                    {form.photo && !uploadingPhoto && (
-                      <button type="button" onClick={() => setForm({ ...form, photo: null })} className="mt-1 text-xs text-red-500 hover:text-red-600">Hapus foto</button>
-                    )}
-                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) onSelectFile(f);
+                      e.target.value = "";
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingPhoto || isConvertingHeic}
+                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
+                  >
+                    {isConvertingHeic
+                      ? "Memproses HEIC..."
+                      : uploadingPhoto
+                      ? "Mengunggah..."
+                      : form.photo
+                      ? "Ganti Foto"
+                      : "Pilih Foto"}
+                  </button>
+                  {form.photo && !uploadingPhoto && !isConvertingHeic && (
+                    <button
+                      type="button"
+                      onClick={() => setForm((p) => ({ ...p, photo: "" }))}
+                      className="text-xs text-red-500 hover:underline"
+                    >
+                      Hapus
+                    </button>
+                  )}
                 </div>
               </div>
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Batal</button>
-                <button type="submit" disabled={formLoading} className="flex-1 px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-opacity-90 transition disabled:opacity-50">{formLoading ? "Menyimpan..." : "Simpan"}</button>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Nama Mahasiswa *</label>
+                <input
+                  type="text"
+                  required
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="cth. Ghayda Zaneta"
+                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Prestasi / Penghargaan *</label>
+                <input
+                  type="text"
+                  required
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  placeholder="cth. Penulis Terpilih Call for Papers"
+                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Ajang / Penyelenggara (Opsional)</label>
+                <input
+                  type="text"
+                  value={form.event}
+                  onChange={(e) => setForm({ ...form, event: e.target.value })}
+                  placeholder="cth. Pengadilan Agama Sleman"
+                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Tahun *</label>
+                <input
+                  type="number"
+                  required
+                  value={form.year}
+                  onChange={(e) => setForm({ ...form, year: parseInt(e.target.value) || new Date().getFullYear() })}
+                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={formLoading || uploadingPhoto || isConvertingHeic}
+                  className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition disabled:opacity-50"
+                >
+                  {formLoading ? "Menyimpan..." : "Simpan"}
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Modal Crop Foto */}
       {cropImageSrc && (
         <ImageCropModal
           imageSrc={cropImageSrc}
