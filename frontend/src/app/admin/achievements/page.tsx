@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import ImageCropModal from "@/components/common/ImageCropModal";
 
 interface Achievement {
   id: number;
@@ -20,6 +21,9 @@ export default function AdminAchievementsPage() {
   const [formError, setFormError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  // State untuk Crop Modal
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
 
   const getToken = () =>
     document.cookie.split("; ").find((r) => r.startsWith("fkhk_token="))?.split("=")[1];
@@ -45,9 +49,19 @@ export default function AdminAchievementsPage() {
     setShowModal(true);
   };
 
-  const handlePhotoUpload = async (file: File) => {
+  const onSelectFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropImageSrc(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const uploadCroppedBlob = async (blob: Blob) => {
+    setCropImageSrc(null);
     setUploadingPhoto(true);
     try {
+      const file = new File([blob], "achievement-avatar.webp", { type: "image/webp" });
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload`, {
@@ -236,8 +250,18 @@ export default function AdminAchievementsPage() {
                     </div>
                   )}
                   <div className="flex-1">
-                    <input type="file" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f); }} className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20" disabled={uploadingPhoto} />
-                    {uploadingPhoto && <p className="mt-1 text-xs text-gray-500">Mengunggah...</p>}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) onSelectFile(f);
+                        e.target.value = ""; // reset agar bisa pilih file yang sama
+                      }}
+                      className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                      disabled={uploadingPhoto}
+                    />
+                    {uploadingPhoto && <p className="mt-1 text-xs text-gray-500">Mengunggah foto...</p>}
                     {form.photo && !uploadingPhoto && (
                       <button type="button" onClick={() => setForm({ ...form, photo: null })} className="mt-1 text-xs text-red-500 hover:text-red-600">Hapus foto</button>
                     )}
@@ -251,6 +275,15 @@ export default function AdminAchievementsPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Modal Crop Foto */}
+      {cropImageSrc && (
+        <ImageCropModal
+          imageSrc={cropImageSrc}
+          onCropComplete={uploadCroppedBlob}
+          onCancel={() => setCropImageSrc(null)}
+        />
       )}
     </div>
   );
