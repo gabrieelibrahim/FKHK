@@ -143,12 +143,12 @@ export default function EventDetailPage() {
           )}
           <div className="flex items-center gap-3 mb-4">
             <span
-              className={`px-3 py-1 rounded-full text-xs font-semibold ${
+              className={`px-3 py-1 rounded-full text-xs font-medium ${
                 event.status === "upcoming"
-                  ? "bg-blue-100 text-blue-700"
+                  ? "bg-primary/10 text-primary border border-primary/20"
                   : event.status === "completed"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-gray-100 text-gray-600"
+                  ? "bg-gray-100 text-gray-700 border border-gray-200/80"
+                  : "bg-gray-100 text-gray-600 border border-gray-200/60"
               }`}
             >
               {event.status === "upcoming"

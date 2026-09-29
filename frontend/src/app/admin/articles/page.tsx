@@ -29,9 +29,9 @@ function statusLabel(status: string) {
 }
 
 function statusClass(status: string) {
-  if (status === "published") return "bg-green-100 text-green-700";
-  if (status === "submitted") return "bg-blue-100 text-blue-700";
-  return "bg-yellow-100 text-yellow-700";
+  if (status === "published") return "bg-primary/10 text-primary border border-primary/20";
+  if (status === "submitted") return "bg-amber-50 text-amber-800 border border-amber-200/60";
+  return "bg-gray-100 text-gray-700 border border-gray-200/80";
 }
 
 function getToken() {
@@ -144,7 +144,7 @@ export default function AdminArticlesPage() {
         <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm lg:rounded-xl">
+      <div className="overflow-hidden rounded-xl border border-gray-200/80 bg-white shadow-xs">
         {articles.length === 0 ? (
           <div className="px-4 py-16 text-center text-gray-500">Belum ada artikel.</div>
         ) : (
@@ -152,7 +152,7 @@ export default function AdminArticlesPage() {
             <div className="hidden overflow-x-auto lg:block">
               <table className="w-full min-w-[760px] text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100 bg-gray-50">
+                  <tr className="border-b border-gray-100 bg-gray-50/75">
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Judul</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Penulis</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Topik</th>
@@ -160,14 +160,14 @@ export default function AdminArticlesPage() {
                     <th className="px-4 py-3 text-right font-medium text-gray-600">Aksi</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-gray-100">
                   {articles.map((a) => (
-                    <tr key={a.id} className="border-b border-gray-50 transition hover:bg-gray-50">
+                    <tr key={a.id} className="transition hover:bg-gray-50/50">
                       <td className="px-4 py-3">
                         <button
                           type="button"
                           onClick={() => openPreview(a)}
-                          className="text-left font-medium text-gray-900 hover:text-primary"
+                          className="text-left font-medium text-gray-900 hover:text-primary transition-colors"
                         >
                           {a.title}
                         </button>
@@ -175,16 +175,16 @@ export default function AdminArticlesPage() {
                       <td className="px-4 py-3 text-gray-600">{a.author.name}</td>
                       <td className="px-4 py-3 text-gray-600">{a.topic}</td>
                       <td className="px-4 py-3">
-                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusClass(a.status)}`}>
+                        <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${statusClass(a.status)}`}>
                           {statusLabel(a.status)}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <div className="flex justify-end gap-1">
+                        <div className="flex justify-end gap-1.5">
                           <button
                             type="button"
                             onClick={() => openPreview(a)}
-                            className="min-h-9 rounded-lg bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-200 lg:min-h-0 lg:rounded-md lg:px-2.5 lg:py-1"
+                            className="min-h-9 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 hover:text-gray-900 lg:min-h-0 lg:px-2.5 lg:py-1"
                           >
                             Lihat
                           </button>
@@ -192,7 +192,7 @@ export default function AdminArticlesPage() {
                             <button
                               type="button"
                               onClick={() => openPreview(a)}
-                              className="min-h-9 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-600 transition hover:bg-emerald-100 lg:min-h-0 lg:rounded-md lg:px-2.5 lg:py-1"
+                              className="min-h-9 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white shadow-xs transition hover:bg-primary-dark lg:min-h-0 lg:px-2.5 lg:py-1"
                             >
                               Review
                             </button>
@@ -200,7 +200,7 @@ export default function AdminArticlesPage() {
                           <button
                             type="button"
                             onClick={() => handleAction(a.id, "delete")}
-                            className="min-h-9 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-100 lg:min-h-0 lg:rounded-md lg:px-2.5 lg:py-1"
+                            className="min-h-9 rounded-lg border border-red-200/60 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-100 lg:min-h-0 lg:px-2.5 lg:py-1"
                           >
                             Hapus
                           </button>
@@ -214,19 +214,19 @@ export default function AdminArticlesPage() {
 
             <div className="grid gap-3 p-3 lg:hidden sm:p-4">
               {articles.map((a) => (
-                <article key={a.id} className="rounded-xl border border-gray-100 p-4">
+                <article key={a.id} className="rounded-xl border border-gray-200/80 p-4 bg-white shadow-xs">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <button
                         type="button"
                         onClick={() => openPreview(a)}
-                        className="line-clamp-2 min-h-11 text-left text-sm font-semibold leading-5 text-gray-900 hover:text-primary"
+                        className="line-clamp-2 min-h-11 text-left text-sm font-semibold leading-5 text-gray-900 hover:text-primary transition-colors"
                       >
                         {a.title}
                       </button>
                       <p className="mt-1 truncate text-xs text-gray-500">{a.author.name}</p>
                     </div>
-                    <span className={`shrink-0 rounded-full px-2 py-1 text-[11px] font-medium ${statusClass(a.status)}`}>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${statusClass(a.status)}`}>
                       {statusLabel(a.status)}
                     </span>
                   </div>
@@ -235,7 +235,7 @@ export default function AdminArticlesPage() {
                     <button
                       type="button"
                       onClick={() => openPreview(a)}
-                      className="min-h-10 rounded-lg bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-200"
+                      className="min-h-10 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50 hover:text-gray-900"
                     >
                       Lihat artikel
                     </button>
@@ -243,7 +243,7 @@ export default function AdminArticlesPage() {
                       <button
                         type="button"
                         onClick={() => openPreview(a)}
-                        className="min-h-10 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-600 transition hover:bg-emerald-100"
+                        className="min-h-10 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white shadow-xs transition hover:bg-primary-dark"
                       >
                         Review
                       </button>
@@ -251,7 +251,7 @@ export default function AdminArticlesPage() {
                     <button
                       type="button"
                       onClick={() => handleAction(a.id, "delete")}
-                      className="min-h-10 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-100"
+                      className="min-h-10 rounded-lg border border-red-200/60 bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-100"
                     >
                       Hapus
                     </button>
@@ -265,11 +265,11 @@ export default function AdminArticlesPage() {
 
       {(preview || previewLoading) && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4"
           onClick={() => !actionLoading && setPreview(null)}
         >
           <div
-            className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-xl flex flex-col"
+            className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-xl flex flex-col border border-gray-100"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-5 py-4 border-b border-gray-100 flex items-start justify-between gap-3">
@@ -278,9 +278,12 @@ export default function AdminArticlesPage() {
                   {previewLoading ? "Memuat..." : preview?.title}
                 </h2>
                 {preview && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    {preview.author?.name} · {preview.topic} ·{" "}
-                    <span className={statusClass(preview.status) + " px-1.5 py-0.5 rounded-full font-medium"}>
+                  <p className="text-xs text-gray-500 mt-1 flex items-center gap-1.5 flex-wrap">
+                    <span>{preview.author?.name}</span>
+                    <span>·</span>
+                    <span>{preview.topic}</span>
+                    <span>·</span>
+                    <span className={statusClass(preview.status) + " px-2 py-0.5 rounded-full font-medium text-[11px]"}>
                       {statusLabel(preview.status)}
                     </span>
                   </p>
@@ -292,7 +295,7 @@ export default function AdminArticlesPage() {
                 disabled={actionLoading}
                 className="text-gray-400 hover:text-gray-600 text-sm shrink-0"
               >
-                Tutup
+                ✕
               </button>
             </div>
 
@@ -324,14 +327,14 @@ export default function AdminArticlesPage() {
             </div>
 
             {preview && (
-              <div className="px-5 py-4 border-t border-gray-100 flex flex-wrap gap-2 justify-end bg-gray-50">
+              <div className="px-5 py-4 border-t border-gray-100 flex flex-wrap gap-2 justify-end bg-gray-50/75">
                 {preview.status === "submitted" && (
                   <>
                     <button
                       type="button"
                       disabled={actionLoading}
                       onClick={() => handleAction(preview.id, "reject")}
-                      className="px-3 py-2 text-sm font-medium bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition disabled:opacity-50"
+                      className="px-3.5 py-2 text-sm font-medium border border-gray-200 bg-white text-gray-700 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition disabled:opacity-50"
                     >
                       Tolak
                     </button>
@@ -339,23 +342,23 @@ export default function AdminArticlesPage() {
                       type="button"
                       disabled={actionLoading}
                       onClick={() => handleAction(preview.id, "approve")}
-                      className="px-3 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary/90 transition disabled:opacity-50"
+                      className="px-3.5 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark shadow-xs transition disabled:opacity-50"
                     >
                       {actionLoading ? "Memproses..." : "Publish"}
                     </button>
                   </>
                 )}
                 {preview.status === "published" && (
-                  <p className="text-sm text-green-700 self-center mr-auto">Artikel sudah dipublish.</p>
+                  <p className="text-sm text-primary font-medium self-center mr-auto">Artikel sudah dipublish.</p>
                 )}
                 {preview.status === "draft" && (
-                  <p className="text-sm text-yellow-700 self-center mr-auto">Artikel ditolak / draft.</p>
+                  <p className="text-sm text-gray-600 font-medium self-center mr-auto">Artikel ditolak / draft.</p>
                 )}
                 <button
                   type="button"
                   disabled={actionLoading}
                   onClick={() => setPreview(null)}
-                  className="px-3 py-2 text-sm font-medium bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition"
+                  className="px-3.5 py-2 text-sm font-medium bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition"
                 >
                   Tutup
                 </button>

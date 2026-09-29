@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 
 interface EventItem {
   id: number;
@@ -90,13 +89,13 @@ export default function AdminEventsPage() {
         <button
           type="button"
           onClick={() => setShowModal(true)}
-          className="min-h-11 w-full rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-opacity-90 sm:w-auto lg:min-h-0 lg:w-auto lg:rounded-lg"
+          className="min-h-11 w-full rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white shadow-xs transition hover:bg-primary-dark sm:w-auto lg:min-h-0 lg:w-auto lg:rounded-lg"
         >
           + Buat Kegiatan
         </button>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm lg:rounded-xl">
+      <div className="overflow-hidden rounded-xl border border-gray-200/80 bg-white shadow-xs">
         {events.length === 0 ? (
           <div className="px-4 py-16 text-center text-gray-500">Belum ada kegiatan.</div>
         ) : (
@@ -104,7 +103,7 @@ export default function AdminEventsPage() {
             <div className="hidden overflow-x-auto lg:block">
               <table className="w-full min-w-[720px] text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100 bg-gray-50">
+                  <tr className="border-b border-gray-100 bg-gray-50/75">
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Judul</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Tanggal</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Peserta</th>
@@ -112,21 +111,21 @@ export default function AdminEventsPage() {
                     <th className="px-4 py-3 text-right font-medium text-gray-600">Aksi</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-gray-100">
                   {events.map((e) => (
-                    <tr key={e.id} className="border-b border-gray-50 transition hover:bg-gray-50">
+                    <tr key={e.id} className="transition hover:bg-gray-50/50">
                       <td className="max-w-[360px] px-4 py-3 font-medium text-gray-900">{e.title}</td>
                       <td className="px-4 py-3 text-gray-600">{new Date(e.dateTime).toLocaleDateString("id-ID")}</td>
                       <td className="px-4 py-3 text-gray-600">{e.capacity ? `${e._count.registrations}/${e.capacity}` : `${e._count.registrations}`}</td>
                       <td className="px-4 py-3">
-                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${e.status === "upcoming" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}`}>
-                          {e.status}
+                        <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${e.status === "upcoming" ? "bg-primary/10 text-primary border border-primary/20" : "bg-gray-100 text-gray-700 border border-gray-200/80"}`}>
+                          {e.status === "upcoming" ? "Akan Datang" : e.status}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <div className="flex justify-end gap-1">
-                          <Link href={`/events/${e.slug}`} className="min-h-9 rounded-lg bg-gray-50 px-3 py-2 text-xs font-medium text-gray-600 transition hover:bg-gray-100">Detail</Link>
-                          <button type="button" onClick={() => handleDelete(e.id)} className="min-h-9 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-100">Hapus</button>
+                        <div className="flex justify-end gap-1.5">
+                          <Link href={`/events/${e.slug}`} className="min-h-9 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 hover:text-gray-900 lg:min-h-0 lg:px-2.5 lg:py-1">Detail</Link>
+                          <button type="button" onClick={() => handleDelete(e.id)} className="min-h-9 rounded-lg border border-red-200/60 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-100 lg:min-h-0 lg:px-2.5 lg:py-1">Hapus</button>
                         </div>
                       </td>
                     </tr>
@@ -137,11 +136,11 @@ export default function AdminEventsPage() {
 
             <div className="grid gap-3 p-3 lg:hidden sm:p-4">
               {events.map((e) => (
-                <article key={e.id} className="rounded-xl border border-gray-100 p-4">
+                <article key={e.id} className="rounded-xl border border-gray-200/80 p-4 bg-white shadow-xs">
                   <div className="flex items-start justify-between gap-3">
                     <h2 className="min-w-0 text-sm font-semibold leading-5 text-gray-900">{e.title}</h2>
-                    <span className={`shrink-0 rounded-full px-2 py-1 text-[11px] font-medium ${e.status === "upcoming" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}`}>
-                      {e.status}
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${e.status === "upcoming" ? "bg-primary/10 text-primary border border-primary/20" : "bg-gray-100 text-gray-700 border border-gray-200/80"}`}>
+                      {e.status === "upcoming" ? "Akan Datang" : e.status}
                     </span>
                   </div>
                   <dl className="mt-3 grid grid-cols-2 gap-3 text-xs">
@@ -155,8 +154,8 @@ export default function AdminEventsPage() {
                     </div>
                   </dl>
                   <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:justify-end">
-                    <Link href={`/events/${e.slug}`} className="flex min-h-10 items-center justify-center rounded-lg bg-gray-50 px-3 py-2 text-xs font-medium text-gray-600 transition hover:bg-gray-100">Detail</Link>
-                    <button type="button" onClick={() => handleDelete(e.id)} className="min-h-10 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-100">Hapus</button>
+                    <Link href={`/events/${e.slug}`} className="flex min-h-10 items-center justify-center rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50 hover:text-gray-900">Detail</Link>
+                    <button type="button" onClick={() => handleDelete(e.id)} className="min-h-10 rounded-lg border border-red-200/60 bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-100">Hapus</button>
                   </div>
                 </article>
               ))}
@@ -167,35 +166,35 @@ export default function AdminEventsPage() {
 
       {/* Modal Buat Kegiatan */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowModal(false)}>
-          <div className="bg-white rounded-2xl p-6 w-full max-w-lg mx-4 shadow-xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs" onClick={() => setShowModal(false)}>
+          <div className="bg-white rounded-xl p-6 w-full max-w-lg mx-4 shadow-xl max-h-[90vh] overflow-y-auto border border-gray-100" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-gray-900 mb-4">Buat Kegiatan Baru</h2>
-            {formError && <div className="p-3 mb-4 text-red-700 bg-red-100 border border-red-200 rounded-lg text-sm">{formError}</div>}
+            {formError && <div className="p-3 mb-4 text-red-700 bg-red-50 border border-red-200 rounded-lg text-sm">{formError}</div>}
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Judul Kegiatan</label>
-                <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" required />
+                <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
-                <textarea rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                <textarea rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal & Waktu</label>
-                <input type="datetime-local" value={form.dateTime} onChange={(e) => setForm({ ...form, dateTime: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" required />
+                <input type="datetime-local" value={form.dateTime} onChange={(e) => setForm({ ...form, dateTime: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Lokasi (opsional)</label>
-                <input type="text" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                <input type="text" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">URL Online (opsional)</label>
-                <input type="url" value={form.onlineUrl} onChange={(e) => setForm({ ...form, onlineUrl: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                <input type="url" value={form.onlineUrl} onChange={(e) => setForm({ ...form, onlineUrl: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Foto Thumbnail (opsional)</label>
                 <div className="flex items-center gap-4">
-                  <button type="button" onClick={() => document.getElementById("event-img-input")?.click()} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">
+                  <button type="button" onClick={() => document.getElementById("event-img-input")?.click()} className="px-3.5 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition">
                     {uploading ? "Mengupload..." : "Pilih Foto"}
                   </button>
                   <input id="event-img-input" type="file" accept="image/*" className="hidden" onChange={async (e) => {
@@ -214,19 +213,19 @@ export default function AdminEventsPage() {
                     } catch (err: any) { setFormError(err.message); }
                     finally { setUploading(false); }
                   }} />
-                  {form.imageUrl && <span className="text-xs text-green-600">✓ Foto terupload</span>}
+                  {form.imageUrl && <span className="text-xs text-primary font-medium">✓ Foto terupload</span>}
                 </div>
                 {form.imageUrl && (
-                  <img src={`${process.env.NEXT_PUBLIC_API_URL}${form.imageUrl}`} alt="preview" className="mt-2 h-20 w-auto rounded-lg border object-cover" />
+                  <img src={`${process.env.NEXT_PUBLIC_API_URL}${form.imageUrl}`} alt="preview" className="mt-2 h-20 w-auto rounded-lg border border-gray-200 object-cover" />
                 )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Kapasitas (opsional)</label>
-                <input type="number" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                <input type="number" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Batal</button>
-                <button type="submit" disabled={formLoading} className="flex-1 px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-opacity-90 transition disabled:opacity-50">{formLoading ? "Membuat..." : "Simpan"}</button>
+                <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Batal</button>
+                <button type="submit" disabled={formLoading} className="flex-1 px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary-dark transition disabled:opacity-50">{formLoading ? "Membuat..." : "Simpan"}</button>
               </div>
             </form>
           </div>

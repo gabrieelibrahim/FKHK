@@ -93,22 +93,23 @@ export default function MyArticlesPage() {
     <div>
       <Reveal variant="fade-up">
         <div className="flex items-center justify-between gap-3 mb-5 lg:mb-6">
-          <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Artikel Saya</h1>
-          <motion.a
+          <div>
+            <h1 className="text-xl lg:text-2xl font-bold text-gray-900 tracking-tight">Artikel Saya</h1>
+            <p className="mt-1 text-sm text-gray-500">Kelola artikel dan pantau status publikasi</p>
+          </div>
+          <Link
             href="/dashboard/submit"
-            className="px-3 sm:px-4 py-2 bg-primary text-white rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.96 }}
+            className="px-3.5 sm:px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap shadow-xs transition"
           >
             + Tulis Artikel
-          </motion.a>
+          </Link>
         </div>
       </Reveal>
 
       {loading ? (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-xl p-6 border border-gray-100">
+            <div key={i} className="bg-white rounded-xl p-5 border border-gray-100 shadow-xs">
               <div className="skeleton h-5 w-3/4 mb-2" />
               <div className="skeleton h-4 w-1/3" />
             </div>
@@ -116,23 +117,23 @@ export default function MyArticlesPage() {
         </div>
       ) : articles.length === 0 ? (
         <Reveal>
-          <div className="text-center py-16">
+          <div className="text-center py-16 bg-white rounded-xl border border-gray-200/80 shadow-xs">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-16 h-16 mx-auto mb-4 text-gray-300">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
             </svg>
-            <p className="text-gray-500 mb-4">Belum ada artikel.</p>
-            <Link href="/dashboard/submit" className="text-primary hover:underline">Tulis artikel pertama</Link>
+            <p className="text-gray-500 mb-4 text-sm">Belum ada artikel yang kamu kirim.</p>
+            <Link href="/dashboard/submit" className="text-sm font-medium text-primary hover:underline">Tulis artikel pertama</Link>
           </div>
         </Reveal>
       ) : (
         <div className="space-y-3">
           {articles.map((a, i) => (
-            <Reveal key={a.id} variant="fade-up" delay={i * 0.05}>
-              <motion.div whileHover={{ x: 3 }} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-4">
-                  <div className="flex items-start gap-3 sm:gap-4">
+            <Reveal key={a.id} variant="fade-up" delay={i * 0.04}>
+              <div className="bg-white rounded-xl shadow-xs border border-gray-200/80 overflow-hidden hover:border-gray-300 transition">
+                <div className="p-4 sm:p-5">
+                  <div className="flex items-start gap-3.5 sm:gap-4">
                     {/* thumbnail preview */}
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200/60">
                       {a.imageUrl ? (
                         <img
                           src={`${process.env.NEXT_PUBLIC_API_URL}${a.imageUrl}`}
@@ -149,16 +150,19 @@ export default function MyArticlesPage() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <Link href={`/articles/${a.slug}`} className="text-sm font-semibold text-gray-900 hover:text-primary block truncate">{a.title}</Link>
-                      <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-500">
+                      <Link href={`/articles/${a.slug}`} className="text-sm font-semibold text-gray-900 hover:text-primary transition-colors block truncate">{a.title}</Link>
+                      <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
                         <span>{a.topic}</span>
+                        <span>·</span>
                         <span
-                          className={`px-1.5 py-0.5 rounded-full text-[0.6rem] font-medium ${
+                          className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-medium ${
                             a.status === "published"
-                              ? "bg-green-100 text-green-700"
+                              ? "bg-primary/10 text-primary border border-primary/20"
                               : a.status === "submitted"
-                                ? "bg-blue-100 text-blue-700"
-                                : "bg-yellow-100 text-yellow-700"
+                                ? "bg-amber-50 text-amber-800 border border-amber-200/60"
+                                : a.status === "draft"
+                                  ? "bg-gray-100 text-gray-700 border border-gray-200/80"
+                                  : "bg-gray-100 text-gray-600 border border-gray-200"
                           }`}
                         >
                           {a.status === "published"
@@ -172,7 +176,7 @@ export default function MyArticlesPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="mt-3 flex items-center gap-2 sm:justify-end">
+                  <div className="mt-3.5 flex items-center gap-2 sm:justify-end">
                     {a.status === "draft" && (
                       <button
                         onClick={async () => {
@@ -183,7 +187,7 @@ export default function MyArticlesPage() {
                           });
                           setRefreshKey((k) => k + 1);
                         }}
-                        className="flex-1 sm:flex-none min-h-9 px-3 py-1.5 text-xs font-medium bg-primary text-white rounded-md hover:bg-primary/90 transition shrink-0"
+                        className="flex-1 sm:flex-none min-h-9 px-3.5 py-1.5 text-xs font-semibold bg-primary text-white rounded-lg hover:bg-primary-dark transition shadow-xs shrink-0"
                       >
                         Kirim ulang
                       </button>
@@ -194,13 +198,13 @@ export default function MyArticlesPage() {
                         setEditPreview(a.imageUrl || "");
                         setEditError("");
                       }}
-                      className="flex-1 sm:flex-none min-h-9 px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition flex-shrink-0"
+                      className="flex-1 sm:flex-none min-h-9 px-3.5 py-1.5 text-xs font-medium border border-gray-200 bg-white text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition flex-shrink-0"
                     >
                       Ganti Foto
                     </button>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             </Reveal>
           ))}
         </div>
@@ -208,15 +212,15 @@ export default function MyArticlesPage() {
 
       {/* Edit Thumbnail Modal */}
       {editModal.open && editModal.article && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setEditModal({ open: false, article: null })}>
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Ganti Thumbnail</h3>
-            <p className="text-sm text-gray-500 mb-4 truncate">{editModal.article.title}</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs" onClick={() => setEditModal({ open: false, article: null })}>
+          <div className="bg-white rounded-xl p-6 w-full max-w-sm mx-4 shadow-xl border border-gray-100" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-gray-900 mb-1">Ganti Thumbnail</h3>
+            <p className="text-xs text-gray-500 mb-4 truncate">{editModal.article.title}</p>
 
             {editError && <p className="text-sm text-red-600 mb-3">{editError}</p>}
 
             {/* preview */}
-            <div className="h-32 bg-gray-100 rounded-lg overflow-hidden mb-4 flex items-center justify-center">
+            <div className="h-32 bg-gray-50 rounded-lg overflow-hidden mb-4 flex items-center justify-center border border-gray-200/80">
               {editPreview ? (
                 <img
                   src={`${process.env.NEXT_PUBLIC_API_URL}${editPreview}`}
@@ -236,14 +240,14 @@ export default function MyArticlesPage() {
               type="button"
               onClick={() => editFileRef.current?.click()}
               disabled={editUploading}
-              className="w-full py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition disabled:opacity-50"
+              className="w-full py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary-dark transition shadow-xs disabled:opacity-50"
             >
               {editUploading ? "Mengupload..." : "Pilih & Upload Foto"}
             </button>
 
             <button
               onClick={() => setEditModal({ open: false, article: null })}
-              className="w-full mt-2 py-2 text-sm text-gray-500 hover:text-gray-700 transition"
+              className="w-full mt-2 py-2 text-sm text-gray-600 hover:text-gray-900 transition"
             >
               Batal
             </button>
