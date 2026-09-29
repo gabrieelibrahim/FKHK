@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useRouter } from "next/navigation";
 import * as jose from "jose";
 
-export const ADMIN_ROLES = ["admin", "superadmin", "admin_kaset", "admin_psdm"];
+export const ADMIN_ROLES = ["admin", "superadmin", "admin_kaset", "admin_psdm", "admin_bph"];
 export const isAdminRole = (role?: unknown) => typeof role === "string" && ADMIN_ROLES.includes(role);
 
 interface Member {

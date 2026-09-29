@@ -1,6 +1,6 @@
 const prisma = require('../lib/prisma');
 
-const ADMIN_ROLES = ['superadmin', 'admin_kaset', 'admin_psdm', 'admin'];
+const ADMIN_ROLES = ['superadmin', 'admin_kaset', 'admin_psdm', 'admin_bph', 'admin'];
 
 // GET /api/comments/article/:articleId — public (approved) + own pending if logged in
 exports.getArticleComments = async (req, res, next) => {

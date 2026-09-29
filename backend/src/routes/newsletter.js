@@ -3,7 +3,7 @@ const router = express.Router();
 const newsletterController = require('../controllers/newsletterController');
 const { protect, authorize } = require('../middleware/auth');
 
-const ADMIN_ROLES = ['superadmin', 'admin_kaset', 'admin_psdm', 'admin'];
+const ADMIN_ROLES = ['superadmin', 'admin_kaset', 'admin_psdm', 'admin_bph', 'admin'];
 
 router.post('/subscribe', newsletterController.subscribe);
 router.post('/unsubscribe', newsletterController.unsubscribe);

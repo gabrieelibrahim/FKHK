@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import * as jose from "jose";
 
-const ADMIN_ROLES = ["admin", "superadmin", "admin_kaset", "admin_psdm"];
+const ADMIN_ROLES = ["admin", "superadmin", "admin_kaset", "admin_psdm", "admin_bph"];
 const isAdminRole = (role?: unknown) => typeof role === "string" && ADMIN_ROLES.includes(role);
 
 const protectedRoutes = ["/dashboard", "/admin", "/profile", "/events/create", "/dashboard/submit", "/dashboard/my-articles"];

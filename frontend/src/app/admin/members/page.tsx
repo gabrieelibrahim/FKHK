@@ -279,7 +279,8 @@ export default function AdminMembersPage() {
                   >
                     <option value="member">Member</option>
                     <option value="moderator">Moderator</option>
-                    <option value="admin">Admin (BPH/Advokasi)</option>
+                    <option value="admin">Admin (Advokasi)</option>
+                    <option value="admin_bph">Admin BPH</option>
                     <option value="admin_kaset">Admin KASET</option>
                     <option value="admin_psdm">Admin PSDM</option>
                     <option value="superadmin">Superadmin</option>

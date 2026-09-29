@@ -3,7 +3,7 @@ const router = express.Router();
 const commentController = require('../controllers/commentController');
 const { protect, optionalProtect, authorize } = require('../middleware/auth');
 
-const ADMIN_ROLES = ['superadmin', 'admin_kaset', 'admin_psdm', 'admin'];
+const ADMIN_ROLES = ['superadmin', 'admin_kaset', 'admin_psdm', 'admin_bph', 'admin'];
 
 // Public — approved comments (+ own if logged in)
 router.get('/article/:articleId', optionalProtect, commentController.getArticleComments);

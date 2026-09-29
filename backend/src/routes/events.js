@@ -3,7 +3,7 @@ const router = express.Router();
 const eventController = require('../controllers/eventController');
 const { protect, authorize } = require('../middleware/auth');
 
-const ADMIN_ROLES = ['superadmin', 'admin_kaset', 'admin_psdm', 'admin'];
+const ADMIN_ROLES = ['superadmin', 'admin_kaset', 'admin_psdm', 'admin_bph', 'admin'];
 
 // Public
 router.get('/', eventController.getEvents);

@@ -1,7 +1,7 @@
 const prisma = require('../lib/prisma');
 const mailer = require('../utils/mailer');
 
-const ADMIN_ROLES = ['superadmin', 'admin_kaset', 'admin_psdm', 'admin'];
+const ADMIN_ROLES = ['superadmin', 'admin_kaset', 'admin_psdm', 'admin_bph', 'admin'];
 const isAnyAdmin = (role) => ADMIN_ROLES.includes(role);
 const canManageArticles = (role) => ['superadmin', 'admin_kaset'].includes(role);
 
