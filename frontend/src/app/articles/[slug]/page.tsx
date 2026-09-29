@@ -16,13 +16,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = article.title;
   const description = article.excerpt || article.content.slice(0, 160);
-  const url = `${getSiteUrl()}/articles/${article.slug}`;
-  const image = mediaUrl(article.imageUrl);
+  const siteUrl = getSiteUrl();
+  const url = `${siteUrl}/articles/${article.slug}`;
+  const image = mediaUrl(article.imageUrl) || `${siteUrl}/og-image.jpg`;
 
   return {
     title,
     description,
+    keywords: [article.topic, ...(article.tags || []), "FKHK", "Hukum Keluarga Islam", "Artikel Hukum"],
     alternates: { canonical: url },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
+    },
     openGraph: {
       type: "article",
       title,
@@ -31,13 +44,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       locale: "id_ID",
       publishedTime: article.publishedAt || undefined,
       authors: article.author?.name ? [article.author.name] : undefined,
-      images: image ? [{ url: image, alt: title }] : undefined,
+      images: [{ url: image, alt: title }],
     },
     twitter: {
-      card: image ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title,
       description,
-      images: image ? [image] : undefined,
+      images: [image],
     },
   };
 }
@@ -50,27 +63,65 @@ export default async function ArticleDetailPage({ params }: Props) {
   const image = mediaUrl(article.imageUrl);
   const minutes = readingTime(article.content || "");
   const related = await fetchRelatedArticles(article.slug, article.topic);
-  const jsonLd = article.status === "published" ?
-    {
-      "@context": "https://schema.org",
-      "@type": "Article",
-      headline: article.title,
-      description: article.excerpt || undefined,
-      image: image ? [image] : undefined,
-      datePublished: article.publishedAt || undefined,
-      dateModified: article.publishedAt || article.createdAt || undefined,
-      author: {
-        "@type": "Person",
-        name: article.author?.name || "FKHK",
-      },
-      publisher: {
-        "@type": "Organization",
-        name: "Forum Kajian Hukum Keluarga",
-        url: siteUrl,
-      },
-      mainEntityOfPage: `${siteUrl}/articles/${article.slug}`,
-    } :
-    null;
+
+  const jsonLd =
+    article.status === "published"
+      ? {
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                {
+                  "@type": "ListItem",
+                  position: 1,
+                  name: "Beranda",
+                  item: siteUrl,
+                },
+                {
+                  "@type": "ListItem",
+                  position: 2,
+                  name: "Artikel",
+                  item: `${siteUrl}/articles`,
+                },
+                {
+                  "@type": "ListItem",
+                  position: 3,
+                  name: article.title,
+                  item: `${siteUrl}/articles/${article.slug}`,
+                },
+              ],
+            },
+            {
+              "@type": "Article",
+              "@id": `${siteUrl}/articles/${article.slug}#article`,
+              isPartOf: {
+                "@type": "WebPage",
+                "@id": `${siteUrl}/articles/${article.slug}`,
+              },
+              headline: article.title,
+              description: article.excerpt || article.content.slice(0, 160),
+              image: image ? [image] : [`${siteUrl}/og-image.jpg`],
+              datePublished: article.publishedAt || undefined,
+              dateModified: article.publishedAt || article.createdAt || undefined,
+              author: {
+                "@type": "Person",
+                name: article.author?.name || "FKHK",
+              },
+              publisher: {
+                "@type": "Organization",
+                name: "Forum Kajian Hukum Keluarga",
+                url: siteUrl,
+                logo: {
+                  "@type": "ImageObject",
+                  url: `${siteUrl}/og-image.jpg`,
+                },
+              },
+              mainEntityOfPage: `${siteUrl}/articles/${article.slug}`,
+            },
+          ],
+        }
+      : null;
 
   return (
     <main className="min-h-screen bg-gray-50 pt-[90px] pb-12">
@@ -83,7 +134,7 @@ export default async function ArticleDetailPage({ params }: Props) {
 
       <div className="container mx-auto px-4 max-w-[1100px]">
         <div className="relative mx-auto max-w-3xl">
-          {/* Back button — absolute left of centered card */}
+          {/* Back button */}
           <Link
             href="/articles"
             className="absolute -left-14 top-0 flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-500 hover:text-primary hover:border-primary/30 hover:bg-primary/5 transition-all shadow-sm"
