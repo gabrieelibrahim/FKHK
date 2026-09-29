@@ -14,7 +14,7 @@ export default function AboutSection() {
               <div className="relative rounded-2xl overflow-hidden shadow-lg h-[280px] sm:h-[400px]">
                 <Image
                   src="/assets/images/about-fkhk.webp"
-                  alt="Anggota FKHK berdiskusi di UIN Sunan Kalijaga"
+                  alt="Anggota FKHK berdiskusi"
                   fill
                   sizes="(max-width: 768px) 100vw, 600px"
                   className="object-cover transition-transform duration-500 hover:scale-105"
@@ -28,42 +28,34 @@ export default function AboutSection() {
             <span className="text-xs font-semibold uppercase tracking-[0.15em] text-accent mb-3 block">
               Latar Belakang
             </span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mb-6">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mb-5 leading-tight">
               Wadah Pengembangan{" "}
               <em className="text-primary not-italic">Hukum Keluarga Islam</em>
             </h2>
-            <blockquote className="border-l-4 border-accent pl-5 italic text-sm sm:text-base text-gray-500 mb-6">
-              &ldquo;Keluarga adalah tempat pertama cinta diajarkan. Melalui kajian
-              hukum keluarga, kita berusaha memastikan bahwa cinta, keadilan, dan
-              tanggung jawab dapat berjalan beriringan.&rdquo;
+            <blockquote className="border-l-4 border-accent pl-4 italic text-sm sm:text-base text-gray-600 mb-5">
+              &ldquo;Memastikan cinta, keadilan, dan tanggung jawab berjalan beriringan melalui penguatan keilmuan dan kemaslahatan keluarga.&rdquo;
             </blockquote>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              Perkembangan kehidupan sosial masyarakat yang semakin kompleks
-              memunculkan berbagai permasalahan dalam ranah hukum keluarga, seperti
-              perceraian, sengketa hak asuh anak, pembagian warisan, serta persoalan
-              lain yang memerlukan penyelesaian sesuai hukum positif dan nilai-nilai
-              Islam. Forum Kajian Hukum Keluarga (FKHK) hadir sebagai wadah bagi
-              mahasiswa untuk meningkatkan kemampuan analisis, konsultasi, dan
-              mediasi, sekaligus mendukung pelaksanaan Tridharma Perguruan Tinggi.
+            <p className="text-gray-600 leading-relaxed mb-6 text-sm sm:text-base">
+              Forum Kajian Hukum Keluarga (FKHK) hadir sebagai ruang kolaboratif mahasiswa untuk mengkaji isu-isu kontemporer hukum keluarga, mengasah kecakapan advokasi dan mediasi, serta mendorong riset aplikatif yang solutif bagi masyarakat.
             </p>
-            <ul className="space-y-3 mb-8">
+            <ul className="space-y-2.5 mb-7">
               {[
                 "Kajian mendalam isu Hukum Keluarga Islam kontemporer",
-                "Publikasi karya tulis anggota ke ranah publik",
-                "Program kegiatan reguler: seminar, diskusi, workshop",
-                "Jejaring mahasiswa lintas angkatan dan lintas kampus",
+                "Publikasi karya ilmiah dan opini hukum berkala",
+                "Program reguler: seminar, diskusi publik, dan workshop mediasi",
+                "Jejaring akademik dan praktisi hukum nasional",
               ].map((item) => (
-                <li key={item} className="flex items-start gap-3 text-sm text-gray-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="#2C5857" className="w-5 h-5 shrink-0 mt-0.5">
+                <li key={item} className="flex items-start gap-2.5 text-sm text-gray-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="#2C5857" className="w-4 h-4 shrink-0 mt-0.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                   </svg>
-                  {item}
+                  <span>{item}</span>
                 </li>
               ))}
             </ul>
             <a
               href="#visi-misi"
-              className="inline-flex items-center px-6 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition no-underline"
+              className="inline-flex items-center px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary-dark transition no-underline"
             >
               Visi & Misi FKHK
             </a>
@@ -113,7 +105,7 @@ export default function AboutSection() {
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-3 text-sm text-gray-600">
                     <span className="text-accent font-bold text-xs mt-1 shrink-0">{i + 1}.</span>
-                    {item}
+                    <span>{item}</span>
                   </li>
                 ))}
               </ul>

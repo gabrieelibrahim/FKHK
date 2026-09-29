@@ -4,7 +4,7 @@ import { getSiteUrl } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Syarat & Ketentuan",
   description:
-    "Syarat dan ketentuan penggunaan situs Forum Kajian Hukum Keluarga (FKHK) UIN Sunan Kalijaga.",
+    "Syarat dan ketentuan penggunaan situs Forum Kajian Hukum Keluarga (FKHK).",
   alternates: { canonical: `${getSiteUrl()}/ketentuan` },
 };
 

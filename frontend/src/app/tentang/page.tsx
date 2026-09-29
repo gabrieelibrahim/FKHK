@@ -1,24 +1,31 @@
 "use client";
 
-import Link from "next/link";
-import { motion } from "framer-motion";
-import Reveal from "@/components/Reveal";
+import { useEffect, useState } from "react";
 
-/* ===== Data dari Booklet FKHK 2026 ===== */
+interface Officer {
+  id: number;
+  name: string;
+  position: string;
+  category: string;
+  order: number;
+  photo: string | null;
+  initials: string | null;
+}
 
-const strukturBPH = [
-  { nama: "Dr. Mansur, S.Ag., M.Ag., CM.", jabatan: "Pembina", initials: "DM" },
-  { nama: "Tulus Mardiansyah", jabatan: "Ketua", initials: "TM" },
-  { nama: "Hilma Elmumtaziya Adila", jabatan: "Wakil Ketua", initials: "HA" },
-  { nama: "Najma Ulya Izzatunnisa'", jabatan: "Sekretaris", initials: "NI" },
-  { nama: "Wanodya Pangarswari Husnussairi", jabatan: "Bendahara", initials: "WP" },
+const fallbackBPH: Officer[] = [
+  { id: 1, name: "Dr. Mansur, S.Ag., M.Ag., CM.", position: "Pembina", category: "bph", order: 1, photo: null, initials: "DM" },
+  { id: 2, name: "Tulus Mardiansyah", position: "Ketua", category: "bph", order: 2, photo: null, initials: "TM" },
+  { id: 3, name: "Hilma Elmumtaziya Adila", position: "Wakil Ketua", category: "bph", order: 3, photo: null, initials: "HA" },
+  { id: 4, name: "Najma Ulya Izzatunnisa'", position: "Sekretaris", category: "bph", order: 4, photo: null, initials: "NI" },
+  { id: 5, name: "Wanodya Pangarswari Husnussairi", position: "Bendahara", category: "bph", order: 5, photo: null, initials: "WP" },
 ];
 
-const divisi = [
+const DIVISI_DATA = [
   {
+    key: "divisi_kajian",
     nama: "Divisi Kajian dan Riset",
-    icon: "M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25",
-    anggota: [
+    deskripsi: "Pengembangan budaya riset, bedah literatur hukum keluarga Islam, dan produksi karya ilmiah mahasiswa.",
+    defaultMembers: [
       "Ashiil Naziyahil Enri Auni",
       "Saily Amalia",
       "Rihadatul 'Aisyi",
@@ -28,9 +35,10 @@ const divisi = [
     ],
   },
   {
-    nama: "Divisi Advokasi",
-    icon: "M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-    anggota: [
+    key: "divisi_advokasi",
+    nama: "Divisi Advokasi & Mediasi",
+    deskripsi: "Edukasi kesadaran hukum masyarakat, simulasi peradilan semu (moot court), dan penguatan kapasitas mediasi.",
+    defaultMembers: [
       "Azela Nafisa",
       "Zahwa Choirunnida",
       "Ghayda Zaneta",
@@ -40,9 +48,10 @@ const divisi = [
     ],
   },
   {
-    nama: "Divisi Pengembangan SDM",
-    icon: "M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z",
-    anggota: [
+    key: "divisi_psdm",
+    nama: "Divisi Pengembangan Sumber Daya Mahasiswa",
+    deskripsi: "Kaderisasi berjenjang, pelatihan kepemimpinan, dan peningkatan kompetensi kepenulisan akademik.",
+    defaultMembers: [
       "Muhammad Fikriyyatullah",
       "Irfan Brian Nur Adyatma",
       "Hasna Sa'diyah Zulfa",
@@ -52,9 +61,10 @@ const divisi = [
     ],
   },
   {
-    nama: "Divisi Publikasi dan Relasi",
-    icon: "M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5",
-    anggota: [
+    key: "divisi_publikasi",
+    nama: "Divisi Publikasi & Hubungan Masyarakat",
+    deskripsi: "Pengelolaan kanal komunikasi resmi, diseminasi artikel hukum, dan kemitraan antarlembaga.",
+    defaultMembers: [
       "Muhammad Riziq Fauzi",
       "Putri Nafidah Chumairo'",
       "Muhamad Rivan Syahir",
@@ -65,285 +75,300 @@ const divisi = [
   },
 ];
 
-const misi = [
+const MISI_LIST = [
   "Meningkatkan pemahaman mahasiswa Hukum Keluarga Islam melalui kegiatan pendidikan, pelatihan, dan diskusi yang bersifat integratif dan interkonektif.",
   "Mendorong budaya riset dan kajian ilmiah dalam bidang Hukum Keluarga Islam secara multidisipliner dan aplikatif.",
   "Memberdayakan mahasiswa untuk berperan aktif dalam pengabdian masyarakat berbasis ilmu Hukum Keluarga Islam.",
-  "Mengembangkan jejaring kerja sama dengan akademisi, praktisi, dan lembaga terkait untuk mendukung pengembangan Tri Dharma Perguruan Tinggi.",
-  "Mewujudkan forum sebagai wadah aspirasi dan pengembangan keterampilan praktis mahasiswa Hukum Keluarga Islam dalam menyelesaikan isu-isu hukum keluarga.",
+  "Mengembangkan jejaring kerja sama dengan akademisi, praktisi, dan lembaga terkait untuk mendukung Tri Dharma Perguruan Tinggi.",
+  "Mewujudkan forum sebagai wadah aspirasi dan pengembangan keterampilan praktis mahasiswa dalam menyelesaikan problematika hukum keluarga.",
 ];
 
-const container = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.08 } },
-};
-
-const itemAnim = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-};
-
 export default function TentangPage() {
+  const [officers, setOfficers] = useState<Officer[]>([]);
+
+  useEffect(() => {
+    fetch("/api/officers")
+      .then((r) => r.json())
+      .then((json) => {
+        const list = Array.isArray(json)
+          ? json
+          : json && Array.isArray(json.data)
+          ? json.data
+          : [];
+        if (list.length > 0) {
+          setOfficers(list);
+        }
+      })
+      .catch((err) => {
+        console.error("Gagal memuat daftar pengurus:", err);
+      });
+  }, []);
+
+  const bphList =
+    officers.length > 0
+      ? officers.filter((o) => o.category === "bph" || o.category === "lainnya")
+      : fallbackBPH;
+
+  const totalPengurus = officers.length > 0 ? officers.length : 29;
+
   return (
-    <div className="pt-[68px]">
-      {/* ===== HERO ===== */}
-      <section className="relative py-24 md:py-32 overflow-hidden bg-gradient-to-b from-white to-[#fcfaf8]">
-        <div className="absolute inset-0 pointer-events-none" style={{
-          backgroundImage: "linear-gradient(to right, #E5E7EB 1px, transparent 1px), linear-gradient(to bottom, #E5E7EB 1px, transparent 1px)",
-          backgroundSize: "60px 60px",
-          opacity: 0.07,
-        }} />
-        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-[#7EF8F6] opacity-25 blur-[250px] pointer-events-none" />
-        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-[#7EF8F6] opacity-20 blur-[250px] pointer-events-none" />
-        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-[#7EF8F6] opacity-20 blur-[250px] pointer-events-none" />
-        <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] rounded-full bg-[#7EF8F6] opacity-25 blur-[250px] pointer-events-none" />
+    <div className="pt-[68px] min-h-screen bg-[#FCFAF8] text-zinc-900">
+      {/* Editorial Header */}
+      <header className="border-b border-zinc-200 bg-white">
+        <div className="container mx-auto px-4 max-w-5xl pt-10 pb-8 sm:pt-14 sm:pb-10">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+            <div className="max-w-2xl">
+              <span className="text-xs font-semibold text-[#2C5857] uppercase tracking-wider block mb-2">
+                Profil & Struktur Lembaga
+              </span>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-zinc-950 font-serif leading-tight">
+                Forum Kajian Hukum Keluarga
+              </h1>
+              <p className="mt-3 text-sm sm:text-base text-zinc-600 leading-relaxed max-w-xl">
+                Lembaga keilmuan mahasiswa yang berdedikasi pada riset akademik, advokasi, dan pengembangan diskursus Hukum Keluarga Islam integratif.
+              </p>
+            </div>
 
-        <div className="relative container mx-auto px-4 max-w-[1240px] text-center">
-          <motion.span
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-accent text-sm font-semibold uppercase tracking-[0.2em]"
-          >
-            Tentang Kami
-          </motion.span>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.1 }}
-            className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mt-4 mb-6 leading-[1.1] text-gray-900"
-          >
-            Forum Kajian Hukum Keluarga
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-            className="text-gray-500 text-lg leading-relaxed max-w-xl mx-auto"
-          >
-            Pioneering Research, Inspiring Insights — wadah mahasiswa untuk
-            berkarya, berdiskusi, dan berkontribusi dalam pengembangan Hukum
-            Keluarga Islam.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.35 }}
-            className="flex justify-center gap-8 md:gap-12 mt-10 pt-10 border-t border-gray-200 max-w-lg mx-auto"
-          >
-            {[
-              { angka: "4", label: "Divisi" },
-              { angka: "29", label: "Pengurus" },
-              { angka: "2026", label: "Periode" },
-            ].map((s) => (
-              <div key={s.label}>
-                <div className="text-3xl font-bold text-primary">{s.angka}</div>
-                <div className="text-xs text-gray-400 mt-1">{s.label}</div>
+            {/* Metrics Snapshot */}
+            <div className="flex items-center gap-6 border-l-2 border-[#2C5857] pl-4 py-1 text-xs text-zinc-600 shrink-0">
+              <div>
+                <p className="font-serif text-lg font-bold text-zinc-950 leading-none">4</p>
+                <p className="text-[11px] text-zinc-500 mt-0.5">Divisi Riset</p>
               </div>
-            ))}
-          </motion.div>
+              <div className="h-6 w-px bg-zinc-200" />
+              <div>
+                <p className="font-serif text-lg font-bold text-zinc-950 leading-none">{totalPengurus}</p>
+                <p className="text-[11px] text-zinc-500 mt-0.5">Pengurus Aktif</p>
+              </div>
+              <div className="h-6 w-px bg-zinc-200" />
+              <div>
+                <p className="font-serif text-lg font-bold text-[#2C5857] leading-none">2026</p>
+                <p className="text-[11px] text-zinc-500 mt-0.5">Periode Mandat</p>
+              </div>
+            </div>
+          </div>
         </div>
-      </section>
+      </header>
 
-      {/* ===== LATAR BELAKANG ===== */}
-      <section className="bg-[#fcfaf8] py-20 md:py-28">
-        <div className="container mx-auto px-4 max-w-[1240px]">
-          <div className="grid md:grid-cols-2 gap-12 items-start">
-            <div>
-              <span className="text-xs font-semibold uppercase tracking-[0.15em] text-accent mb-3 block">
+      {/* Main Content Area */}
+      <main className="container mx-auto px-4 max-w-5xl py-10 sm:py-14 space-y-12 sm:space-y-16">
+        {/* Section 1: Latar Belakang & Pembina */}
+        <section className="bg-white border border-zinc-200 rounded-lg p-6 sm:p-8 shadow-sm">
+          <div className="grid md:grid-cols-12 gap-8 items-start">
+            <div className="md:col-span-7 space-y-4">
+              <span className="text-xs font-semibold text-[#2C5857] uppercase tracking-wider block">
                 Latar Belakang
               </span>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mb-6 leading-[1.15]">
-                Wadah Pengembangan{" "}
-                <span className="text-primary">Hukum Keluarga Islam</span>
+              <h2 className="text-xl sm:text-2xl font-semibold text-zinc-950 font-serif leading-snug">
+                Menjawab Problematika Hukum Keluarga Melalui Riset Multidisipliner
               </h2>
-              <blockquote className="border-l-4 border-accent pl-5 italic text-gray-500 mb-6 text-base sm:text-lg leading-relaxed">
-                &ldquo;FKHK, sebuah organisasi yang didirikan untuk menjawab
-                kebutuhan dan menjadi wadah bagi mahasiswa dalam memperdalam
-                pengetahuan dan mengasah keterampilan untuk berkontribusi
-                langsung dalam memecahkan permasalahan-permasalahan yang
-                berkaitan dengan hukum keluarga. Forum ini bukan hanya sebagai
-                tempat belajar, tetapi juga sebagai pusat kegiatan riset, diskusi
-                dan pengabdian masyarakat.&rdquo;
-                <footer className="mt-3 text-sm text-gray-400 not-italic">
-                  — Dr. Mansur, S.Ag., M.Ag., CM. (Pembina FKHK)
-                </footer>
+              <p className="text-sm text-zinc-600 leading-relaxed">
+                Forum Kajian Hukum Keluarga (FKHK) didirikan sebagai wadah mahasiswa untuk mendalami hukum perkawinan, kewarisan, perlindungan perempuan dan anak, serta mediasi sengketa keluarga. Kami berfokus pada integrasi norma hukum normatif dengan realitas sosiologis di pengadilan agama dan masyarakat.
+              </p>
+              <div className="pt-2 border-t border-zinc-100 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-zinc-700">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#2C5857]" />
+                  <span>Kajian Berkas Peradilan Agama</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#2C5857]" />
+                  <span>Publikasi Opini & Jurnal Ilmiah</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#2C5857]" />
+                  <span>Klinik Advokasi & Mediasi</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#2C5857]" />
+                  <span>Diskusi Rutin & Lokakarya Nasional</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Kutipan Pembina */}
+            <div className="md:col-span-5 bg-[#FAF7F2] border border-zinc-200/90 rounded-lg p-5">
+              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-2">
+                Amanat Pembina
+              </span>
+              <blockquote className="text-xs sm:text-sm text-zinc-700 italic leading-relaxed">
+                &ldquo;Forum ini hadir untuk memperdalam keilmuan dan mengasah keterampilan mahasiswa dalam memecahkan permasalahan hukum keluarga yang semakin kompleks di era modern.&rdquo;
               </blockquote>
-              <p className="text-gray-600 leading-relaxed mb-4">
-                Perkembangan kehidupan sosial masyarakat yang semakin kompleks
-                memunculkan berbagai permasalahan dalam ranah hukum keluarga,
-                seperti perceraian, sengketa hak asuh anak, pembagian warisan,
-                serta persoalan lain yang memerlukan penyelesaian sesuai hukum
-                positif dan nilai-nilai Islam.
-              </p>
-              <p className="text-gray-600 leading-relaxed mb-4">
-                Program Studi Hukum Keluarga Islam/Ahwal Syakhshiyyah (HKI/AS)
-                di Universitas Islam Negeri Sunan Kalijaga Yogyakarta berkomitmen
-                mencetak lulusan yang mampu menjawab tantangan tersebut. Namun,
-                masih terdapat kendala dalam pengembangan kompetensi mahasiswa,
-                khususnya belum tersedianya sarana pengembangan yang terintegrasi.
-              </p>
-              <p className="text-gray-600 leading-relaxed">
-                Forum Kajian Hukum Keluarga diharapkan dapat menjadi ruang bagi
-                mahasiswa untuk meningkatkan kemampuan analisis, konsultasi, dan
-                mediasi, sekaligus mendukung pelaksanaan Tridharma Perguruan
-                Tinggi melalui kegiatan penelitian, diskusi akademik, serta
-                pengabdian kepada masyarakat.
-              </p>
-
-              <ul className="space-y-3 mt-8">
-                {[
-                  "Kajian mendalam isu Hukum Keluarga Islam kontemporer",
-                  "Publikasi karya tulis anggota ke ranah publik",
-                  "Program kegiatan reguler: seminar, diskusi, workshop",
-                  "Jejaring mahasiswa lintas angkatan dan lintas kampus",
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-sm text-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="#2C5857" className="w-5 h-5 shrink-0 mt-0.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="relative">
-              <div className="rounded-2xl overflow-hidden shadow-lg">
-                <img
-                  src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80"
-                  alt="Anggota FKHK berdiskusi"
-                  className="w-full h-[500px] object-cover transition-transform duration-700 hover:scale-105"
-                />
+              <div className="mt-4 pt-3 border-t border-zinc-200/60">
+                <p className="text-xs font-semibold text-zinc-900">Dr. Mansur, S.Ag., M.Ag., CM.</p>
+                <p className="text-[11px] text-zinc-500">Pembina Forum Kajian Hukum Keluarga</p>
               </div>
-              <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-accent/10 rounded-2xl -z-10" />
-              <div className="absolute -top-4 -right-4 w-32 h-32 bg-primary/5 rounded-full -z-10" />
+            </div>
+          </div>
+        </section>
+
+        {/* Section 2: Visi & Misi */}
+        <section className="grid md:grid-cols-2 gap-6">
+          <div className="bg-white border border-zinc-200 rounded-lg p-6 sm:p-7 shadow-sm flex flex-col justify-between">
+            <div>
+              <div className="w-8 h-8 rounded bg-[#2C5857]/10 text-[#2C5857] flex items-center justify-center font-serif font-bold text-sm mb-4">
+                V
+              </div>
+              <h3 className="text-lg font-semibold text-zinc-950 font-serif mb-2">
+                Visi Organisasi
+              </h3>
+              <p className="text-sm text-zinc-600 leading-relaxed">
+                Menjadi forum keilmuan yang unggul dan bereputasi dalam pengembangan wawasan, riset, serta kemahiran praktis mahasiswa Hukum Keluarga Islam yang integratif, solutif, dan berorientasi kemaslahatan masyarakat.
+              </p>
+            </div>
+            <div className="mt-6 pt-4 border-t border-zinc-100 text-[11px] text-zinc-400">
+              Pilar: Keilmuan, Integritas, Kemaslahatan
             </div>
           </div>
 
-          {/* Visi & Misi */}
-          <div className="grid md:grid-cols-2 gap-8 mt-20">
-            <Reveal>
-              <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm h-full flex flex-col">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#2C5857" className="w-6 h-6">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Visi FKHK</h3>
-                <p className="text-gray-600 leading-relaxed">
-                  Menjadi forum keilmuan yang unggul dalam pengembangan wawasan,
-                  pengetahuan, dan keterampilan mahasiswa Hukum Keluarga Islam,
-                  untuk mewujudkan peradaban yang berlandaskan ilmu integratif
-                  dan aplikatif.
-                </p>
-              </div>
-            </Reveal>
-
-            <Reveal delay={0.15}>
-              <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm h-full flex flex-col">
-                <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-5">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#D99B00" className="w-6 h-6">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Misi FKHK</h3>
-                <ul className="space-y-3 text-gray-600 leading-relaxed">
-                  {misi.map((item, i) => (
-                    <li key={i} className="flex items-start gap-3">
-                      <span className="text-accent font-bold text-xs mt-1 shrink-0">{i + 1}.</span>
-                      <span className="text-sm">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </Reveal>
+          <div className="bg-white border border-zinc-200 rounded-lg p-6 sm:p-7 shadow-sm">
+            <div className="w-8 h-8 rounded bg-[#D99B00]/10 text-[#D99B00] flex items-center justify-center font-serif font-bold text-sm mb-4">
+              M
+            </div>
+            <h3 className="text-lg font-semibold text-zinc-950 font-serif mb-3">
+              Misi Strategis
+            </h3>
+            <ol className="space-y-2.5 text-xs sm:text-sm text-zinc-600 leading-relaxed list-decimal list-inside">
+              {MISI_LIST.map((m, i) => (
+                <li key={i} className="pl-1">
+                  <span>{m}</span>
+                </li>
+              ))}
+            </ol>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ===== STRUKTUR ORGANISASI ===== */}
-      <section className="bg-white py-20 md:py-28">
-        <div className="container mx-auto px-4 max-w-[1240px]">
-          <div className="text-center mb-14">
-            <span className="text-xs font-semibold uppercase tracking-[0.15em] text-accent mb-3 block">Organisasi</span>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mb-3">Struktur Organisasi</h2>
-            <p className="text-gray-500">Susunan Pengurus FKHK Periode 2026</p>
+        {/* Section 3: Badan Pengurus Harian (BPH) */}
+        <section className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-zinc-200 pb-3">
+            <div>
+              <span className="text-xs font-semibold text-[#2C5857] uppercase tracking-wider block">
+                Kepengurusan Inti
+              </span>
+              <h2 className="text-xl sm:text-2xl font-semibold text-zinc-950 font-serif">
+                Badan Pengurus Harian (BPH)
+              </h2>
+            </div>
+            <p className="text-xs text-zinc-500">Masa Bakti Periode 2026</p>
           </div>
 
-          {/* BPH */}
-          <motion.div
-            variants={container}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true }}
-            className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-12"
-          >
-            {strukturBPH.map((p) => (
-              <motion.div
-                key={p.nama}
-                variants={itemAnim}
-                className="group bg-gradient-to-b from-[#fcfaf8] to-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-center"
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {bphList.map((p) => (
+              <div
+                key={p.id}
+                className="bg-white border border-zinc-200 rounded-lg p-4 text-center shadow-sm flex flex-col items-center justify-between"
               >
-                <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center mx-auto mb-4 shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all">
-                  <span className="text-lg font-bold text-white">{p.initials}</span>
-                </div>
-                <p className="text-sm font-semibold text-gray-900 leading-tight">{p.nama}</p>
-                <p className="text-xs text-accent font-semibold mt-1.5">{p.jabatan}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* Divisi */}
-          <div className="grid md:grid-cols-2 gap-6">
-            {divisi.map((d, idx) => (
-              <Reveal key={d.nama} variant="fade-up" delay={idx * 0.1}>
-                <div className="bg-[#fcfaf8] rounded-2xl p-6 border border-gray-100 shadow-sm h-full">
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="#D99B00" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d={d.icon} />
-                      </svg>
+                <div className="w-full flex flex-col items-center">
+                  {p.photo ? (
+                    <img
+                      src={p.photo}
+                      alt={p.name}
+                      className="w-16 h-16 rounded-full object-cover mb-3 border border-zinc-200"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-[#2C5857]/10 text-[#2C5857] flex items-center justify-center mb-3 font-serif font-bold text-base border border-[#2C5857]/20">
+                      {p.initials || p.name.charAt(0)}
                     </div>
-                    <h3 className="text-base font-bold text-gray-900">{d.nama}</h3>
-                  </div>
-                  <ul className="space-y-2">
-                    {d.anggota.map((nama, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                        <span className="w-1.5 h-1.5 rounded-full bg-accent/50 shrink-0" />
-                        {nama}
-                      </li>
-                    ))}
-                  </ul>
+                  )}
+                  <h3 className="text-xs font-semibold text-zinc-900 leading-snug line-clamp-2">
+                    {p.name}
+                  </h3>
                 </div>
-              </Reveal>
+                <div className="mt-3 pt-2 border-t border-zinc-100 w-full">
+                  <span className="inline-block px-2 py-0.5 rounded text-[10px] font-medium bg-[#FAF7F2] text-[#2C5857] border border-zinc-200/80">
+                    {p.position}
+                  </span>
+                </div>
+              </div>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ===== QUOTE / GALERI ===== */}
-      <section className="bg-gradient-to-b from-[#fcfaf8] to-[#1a2e2e] py-20 md:py-28">
-        <div className="container mx-auto px-4 max-w-[1240px] text-center">
-          <Reveal variant="fade-up">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="#D99B00" className="w-12 h-12 mx-auto mb-6 opacity-50">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-            </svg>
-            <p className="text-xl sm:text-2xl md:text-3xl font-light text-white/90 leading-relaxed max-w-3xl mx-auto italic">
-              &ldquo;Forum ini lahir dari keyakinan bahwa keluarga adalah tempat
-              pertama cinta diajarkan. Maka melalui kajian hukum keluarga, kita
-              berusaha memastikan bahwa cinta, keadilan, dan tanggung jawab dapat
-              berjalan beriringan.&rdquo;
-            </p>
-            <p className="text-white/50 text-sm mt-8">
-              Pioneering Research, Inspiring Insights
-            </p>
-          </Reveal>
-        </div>
-      </section>
+        {/* Section 4: Departemen & Divisi Kerja */}
+        <section className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-zinc-200 pb-3">
+            <div>
+              <span className="text-xs font-semibold text-[#2C5857] uppercase tracking-wider block">
+                Struktur Kerja
+              </span>
+              <h2 className="text-xl sm:text-2xl font-semibold text-zinc-950 font-serif">
+                Divisi & Anggota Pengurus
+              </h2>
+            </div>
+            <p className="text-xs text-zinc-500">4 Bidang Fokus Riset & Operasional</p>
+          </div>
 
+          <div className="grid md:grid-cols-2 gap-6">
+            {DIVISI_DATA.map((d) => {
+              const membersInDiv =
+                officers.length > 0
+                  ? officers.filter((o) => o.category === d.key)
+                  : [];
+
+              return (
+                <div
+                  key={d.key}
+                  className="bg-white border border-zinc-200 rounded-lg p-5 sm:p-6 shadow-sm flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <h3 className="text-base font-semibold text-zinc-950 font-serif">
+                        {d.nama}
+                      </h3>
+                      <span className="text-[10px] font-mono text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded">
+                        {membersInDiv.length > 0 ? `${membersInDiv.length} Anggota` : "6 Anggota"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-zinc-500 leading-relaxed mb-4">
+                      {d.deskripsi}
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-3 border-t border-zinc-100">
+                      {membersInDiv.length > 0
+                        ? membersInDiv.map((m) => (
+                            <div
+                              key={m.id}
+                              className="flex items-center gap-2 p-1.5 rounded bg-zinc-50/70 border border-zinc-100"
+                            >
+                              {m.photo ? (
+                                <img
+                                  src={m.photo}
+                                  alt={m.name}
+                                  className="w-6 h-6 rounded-full object-cover shrink-0"
+                                />
+                              ) : (
+                                <div className="w-6 h-6 rounded-full bg-[#2C5857]/10 text-[#2C5857] flex items-center justify-center font-bold text-[10px] shrink-0">
+                                  {m.initials || m.name.charAt(0)}
+                                </div>
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[11px] font-semibold text-zinc-800 truncate">
+                                  {m.name}
+                                </p>
+                                <p className="text-[9px] text-zinc-400 truncate">
+                                  {m.position}
+                                </p>
+                              </div>
+                            </div>
+                          ))
+                        : d.defaultMembers.map((nama, idx) => (
+                            <div
+                              key={idx}
+                              className="flex items-center gap-2 p-1.5 rounded bg-zinc-50/70 border border-zinc-100"
+                            >
+                              <div className="w-1.5 h-1.5 rounded-full bg-[#2C5857]/60 shrink-0 ml-1" />
+                              <span className="text-[11px] text-zinc-700 truncate font-medium">
+                                {nama}
+                              </span>
+                            </div>
+                          ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

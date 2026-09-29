@@ -76,6 +76,7 @@ const commentRoutes = require('./routes/comments');
 const eventRoutes = require('./routes/events');
 const newsletterRoutes = require('./routes/newsletter');
 const achievementRoutes = require('./routes/achievements');
+const officerRoutes = require('./routes/officers');
 const uploadRoutes = require('./routes/upload');
 
 app.use('/api', apiLimiter);
@@ -91,6 +92,7 @@ app.use('/api/events', eventRoutes);
 app.use('/api/newsletter/subscribe', newsletterLimiter);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/achievements', achievementRoutes);
+app.use('/api/officers', officerRoutes);
 app.use('/api/upload', uploadRoutes);
 
 app.get('/', (req, res) => {
