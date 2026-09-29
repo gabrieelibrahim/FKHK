@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Reveal from "../Reveal";
 
 export default function AboutSection() {
@@ -10,11 +11,13 @@ export default function AboutSection() {
         <div className="grid md:grid-cols-2 gap-8 sm:gap-12 items-center mb-20">
           <Reveal variant="fade-left">
             <div className="relative">
-              <div className="rounded-2xl overflow-hidden shadow-lg">
-                <img
-                  src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80"
-                  alt="Anggota FKHK berdiskusi"
-                  className="w-full h-[280px] sm:h-[400px] object-cover transition-transform duration-500 hover:scale-105"
+              <div className="relative rounded-2xl overflow-hidden shadow-lg h-[280px] sm:h-[400px]">
+                <Image
+                  src="/assets/images/about-fkhk.webp"
+                  alt="Anggota FKHK berdiskusi di UIN Sunan Kalijaga"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 600px"
+                  className="object-cover transition-transform duration-500 hover:scale-105"
                 />
               </div>
               <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-accent/10 rounded-2xl -z-10" />
