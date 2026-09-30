@@ -205,9 +205,9 @@ export default function TentangPage() {
         <section className="grid md:grid-cols-2 gap-6">
           <div className="bg-white border border-zinc-200 rounded-lg p-6 sm:p-7 shadow-sm flex flex-col justify-between">
             <div>
-              <div className="w-8 h-8 rounded bg-[#2C5857]/10 text-[#2C5857] flex items-center justify-center font-serif font-bold text-sm mb-4">
-                V
-              </div>
+              <span className="text-[10px] font-bold tracking-widest text-[#2C5857] uppercase block mb-2">
+                Visi
+              </span>
               <h3 className="text-lg font-semibold text-zinc-950 font-serif mb-2">
                 Visi Organisasi
               </h3>
@@ -221,9 +221,9 @@ export default function TentangPage() {
           </div>
 
           <div className="bg-white border border-zinc-200 rounded-lg p-6 sm:p-7 shadow-sm">
-            <div className="w-8 h-8 rounded bg-[#D99B00]/10 text-[#D99B00] flex items-center justify-center font-serif font-bold text-sm mb-4">
-              M
-            </div>
+            <span className="text-[10px] font-bold tracking-widest text-[#D99B00] uppercase block mb-2">
+              Misi
+            </span>
             <h3 className="text-lg font-semibold text-zinc-950 font-serif mb-3">
               Misi Strategis
             </h3>
