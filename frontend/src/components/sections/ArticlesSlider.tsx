@@ -40,7 +40,7 @@ export default function ArticlesSlider() {
   };
 
   return (
-    <section className="py-16 sm:py-24" id="artikel">
+    <section className="relative z-10 bg-[#FCFAF8] border-t border-stone-200 py-6 sm:py-10" id="artikel">
       <div className="container mx-auto px-4 max-w-[1240px]">
         <div className="flex items-end justify-between mb-10">
           <Reveal variant="fade-left">

@@ -39,7 +39,7 @@ export default function ActivitiesSection() {
   };
 
   return (
-    <section className="py-16 sm:py-24 bg-[#f7f2ed]" id="kegiatan">
+    <section className="relative z-10 py-16 sm:py-24 pb-24 sm:pb-32 bg-[#f7f2ed] border-t border-stone-200" id="kegiatan">
       <div className="container mx-auto px-4 max-w-[1240px]">
         {/* Header */}
         <div className="flex items-end justify-between mb-10">
@@ -83,14 +83,14 @@ export default function ActivitiesSection() {
 
           <div
             ref={scrollRef}
-            className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 -mx-4 px-4"
+            className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-8 -mx-4 px-4"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             {items.map((e) => (
               <Link
                 key={e.id}
                 href={`/events/${e.slug}`}
-                className="w-[calc(100vw-32px)] max-w-[340px] h-[320px] bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all group/card no-underline flex flex-col snap-start shrink-0 hover:-translate-y-1 duration-300"
+                className="w-[calc(100vw-32px)] max-w-[340px] h-[280px] sm:h-[320px] bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all group/card no-underline flex flex-col snap-start shrink-0 hover:-translate-y-1 duration-300"
               >
                 <div className="h-36 sm:h-44 bg-gray-100 relative overflow-hidden shrink-0">
                   {e.imageUrl ? (

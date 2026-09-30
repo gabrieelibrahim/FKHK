@@ -20,14 +20,20 @@ const MISI = [
 
 const TOTAL_FRAMES = 56;
 
+type PinState = 'fixed' | 'scrolling' | 'hidden';
+
 export default function AboutSection() {
   const [activeTab, setActiveTab] = useState<'visi' | 'misi'>('visi');
-  const [isPinned, setIsPinned] = useState(false);
+  const [pinState, setPinState] = useState<PinState>('hidden');
+
   const sectionRef = useRef<HTMLElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const framesRef = useRef<HTMLImageElement[]>([]);
   const currentFrameIndexRef = useRef<number>(0);
   const animationFrameIdRef = useRef<number | null>(null);
+  const unpinnedTopRef = useRef<number>(0);
+  const bgRef = useRef<HTMLDivElement>(null);
 
   const drawFrame = useCallback((frameIdx: number) => {
     const canvas = canvasRef.current;
@@ -50,19 +56,24 @@ export default function AboutSection() {
     const sy = (ih - sh) / 2;
 
     ctx.clearRect(0, 0, cw, ch);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(img, sx, sy, sw, sh, 0, 0, cw, ch);
     currentFrameIndexRef.current = frameIdx;
   }, []);
 
-  // Preload frames dan sync canvas size
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const updateCanvasSize = () => {
       if (!canvas) return;
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      // DPR-aware: bitmap canvas dikalikan devicePixelRatio supaya tajam di
+      // layar retina / Windows display scaling. Tanpa ini bitmap = CSS pixel
+      // saja dan browser meng-upscale -> terlihat burik. Cap 2x demi performa.
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(window.innerWidth * dpr);
+      canvas.height = Math.round(window.innerHeight * dpr);
       drawFrame(currentFrameIndexRef.current);
     };
 
@@ -73,7 +84,7 @@ export default function AboutSection() {
     for (let i = 1; i <= TOTAL_FRAMES; i++) {
       const img = new window.Image();
       const numStr = String(i).padStart(3, '0');
-      img.src = `/assets/images/about-sequence/frame_${numStr}.webp`;
+      img.src = `/assets/images/about-sequence-hd/frame_${numStr}.webp`;
       if (i === 1) {
         img.onload = () => {
           drawFrame(0);
@@ -88,7 +99,6 @@ export default function AboutSection() {
     };
   }, [drawFrame]);
 
-  // Scroll listener: frame video HANYA bergerak saat di-scroll!
   useEffect(() => {
     const handleScroll = () => {
       if (animationFrameIdRef.current) return;
@@ -96,29 +106,52 @@ export default function AboutSection() {
       animationFrameIdRef.current = requestAnimationFrame(() => {
         animationFrameIdRef.current = null;
         const section = sectionRef.current;
+        const sentinel = sentinelRef.current;
         if (!section) return;
 
-        const rect = section.getBoundingClientRect();
+        const sectionRect = section.getBoundingClientRect();
         const windowHeight = window.innerHeight;
 
-        // Pin canvas saat section #tentang sedang melewati viewport
-        const pinned = rect.top <= 0 && rect.bottom > 0;
-        setIsPinned(pinned);
+        const sectionVisible = sectionRect.top < windowHeight && sectionRect.bottom > 0;
+        if (!sectionVisible) {
+          setPinState('hidden');
+          return;
+        }
 
-        // Progress scroll dihitung dari awal section sampai akhir section
-        const scrollDistance = rect.height - windowHeight;
-        if (scrollDistance <= 0) return;
+        if (sentinel) {
+          const sentinelRect = sentinel.getBoundingClientRect();
+          const shouldPin = sectionRect.top <= 0 && sentinelRect.bottom > 0;
 
-        const scrolled = Math.max(0, -rect.top);
-        const progress = Math.min(1, scrolled / scrollDistance);
+          if (shouldPin && pinState !== 'fixed') {
+            setPinState('fixed');
+          } else if (!shouldPin && pinState !== 'scrolling') {
+            setPinState('scrolling');
+          }
 
-        const targetIndex = Math.min(
-          TOTAL_FRAMES - 1,
-          Math.floor(progress * TOTAL_FRAMES)
-        );
+          // FIX: selama fase unpinned (approach/exit), posisi bg harus di-update
+          // SETIAP FRAME, bukan hanya saat transisi state. Tanpa ini, style.top
+          // mentok di posisi transisi terakhir -> area section tampak putih
+          // (body bg) padahal video seharusnya terlihat di belakang kartu.
+          if (!shouldPin && bgRef.current) {
+            const newTop = -sectionRect.top;
+            if (bgRef.current.style.top !== `${newTop}px`) {
+              unpinnedTopRef.current = newTop;
+              bgRef.current.style.top = `${newTop}px`;
+            }
+          }
+        }
 
-        if (targetIndex !== currentFrameIndexRef.current) {
-          drawFrame(targetIndex);
+        const scrollDistance = sectionRect.height - windowHeight;
+        if (scrollDistance > 0) {
+          const scrolled = Math.max(0, -sectionRect.top);
+          const progress = Math.min(1, scrolled / scrollDistance);
+          const targetIndex = Math.min(
+            TOTAL_FRAMES - 1,
+            Math.floor(progress * TOTAL_FRAMES)
+          );
+          if (targetIndex !== currentFrameIndexRef.current) {
+            drawFrame(targetIndex);
+          }
         }
       });
     };
@@ -132,40 +165,33 @@ export default function AboutSection() {
         cancelAnimationFrame(animationFrameIdRef.current);
       }
     };
-  }, [drawFrame]);
+  }, [drawFrame, pinState]);
+
+  const bgClasses =
+    pinState === 'fixed'
+      ? 'fixed inset-0'
+      : pinState === 'scrolling'
+      ? 'absolute'
+      : 'absolute opacity-0';
 
   return (
-    <section ref={sectionRef} id="tentang" className="relative w-full">
-      {/*
-        Background Video/Canvas Layer
-        - Fixed ke viewport saat section #tentang sedang di-scroll (pinned).
-        - Absolute di awal/akhir section agar tidak mengganggu layout di luar section.
-        - Frame berubah mengikuti scroll progress.
-        - Warna asli tanpa overlay/tint tambahan.
-      */}
+    <section ref={sectionRef} id="tentang" className="relative w-full overflow-hidden">
+      {/* Background layer */}
       <div
-        className={`${
-          isPinned ? 'fixed' : 'absolute'
-        } top-0 left-0 w-full h-screen z-0 overflow-hidden pointer-events-none`}
+        ref={bgRef}
+        className={`left-0 w-full h-screen z-0 pointer-events-none overflow-hidden ${bgClasses}`}
+        style={pinState === 'scrolling' ? { top: `${unpinnedTopRef.current}px` } : undefined}
       >
-        <canvas
-          ref={canvasRef}
-          className="w-full h-full object-cover block"
-        />
+        <canvas ref={canvasRef} className="w-full h-full object-cover block" />
       </div>
 
-      {/*
-        Foreground Content Layer
-        - Meluncur di atas background video saat di-scroll.
-        - Mencakup Latar Belakang sampai Visi & Misi.
-      */}
-      <div className="relative z-10 pt-20 md:pt-28 pb-[400px] sm:pb-[500px]">
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 space-y-16 md:space-y-24">
+      {/* Foreground content — pb memberi ruang video di bawah kartu Visi & Misi sebelum batas artikel */}
+      <div className="relative z-10 pt-20 md:pt-28 pb-16 sm:pb-24">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 space-y-10 md:space-y-14">
 
-          {/* Section 1: Latar Belakang */}
+          {/* Latar Belakang */}
           <div className="bg-white/60 backdrop-blur-[6px] rounded-3xl p-6 sm:p-8 md:p-12 shadow-2xl border border-white/40 ring-1 ring-black/5">
             <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-              {/* Foto Dokumentasi Asli */}
               <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-md">
                 <Image
                   src="/assets/images/about-fkhk.webp"
@@ -176,8 +202,6 @@ export default function AboutSection() {
                   priority
                 />
               </div>
-
-              {/* Teks Latar Belakang */}
               <div>
                 <span className="text-xs font-bold tracking-widest text-[#D99B00] uppercase">
                   Latar Belakang
@@ -186,15 +210,12 @@ export default function AboutSection() {
                   Wadah Pengembangan{' '}
                   <span className="text-[#2C5857] italic">Hukum Keluarga Islam</span>
                 </h2>
-
                 <blockquote className="mt-4 pl-4 border-l-4 border-[#D99B00] text-sm sm:text-base italic text-stone-800">
                   &ldquo;Memastikan cinta, keadilan, dan tanggung jawab berjalan beriringan melalui penguatan keilmuan dan kemaslahatan keluarga.&rdquo;
                 </blockquote>
-
                 <p className="mt-4 text-sm sm:text-base text-stone-700 leading-relaxed">
                   Forum Kajian Hukum Keluarga (FKHK) hadir sebagai ruang kolaboratif mahasiswa untuk mengkaji isu-isu kontemporer hukum keluarga, mengasah kecakapan advokasi dan mediasi, serta mendorong riset aplikatif yang solutif bagi masyarakat.
                 </p>
-
                 <ul className="mt-6 space-y-2.5">
                   {CHECKLIST.map((item, i) => (
                     <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-stone-800">
@@ -203,7 +224,6 @@ export default function AboutSection() {
                     </li>
                   ))}
                 </ul>
-
                 <div className="mt-8 flex flex-wrap gap-4 items-center">
                   <a
                     href="#visi-misi"
@@ -219,7 +239,7 @@ export default function AboutSection() {
             </div>
           </div>
 
-          {/* Section 2: Visi & Misi */}
+          {/* Visi & Misi */}
           <div id="visi-misi" className="bg-white/60 backdrop-blur-[6px] rounded-3xl p-6 sm:p-8 md:p-12 shadow-2xl border border-white/40 ring-1 ring-black/5">
             <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10">
               <span className="text-xs font-bold tracking-widest text-[#D99B00] uppercase">
@@ -231,8 +251,6 @@ export default function AboutSection() {
               <p className="mt-3 text-sm text-stone-700">
                 Landasan pijak dan langkah strategis FKHK dalam membentuk kader akademisi dan praktisi hukum keluarga yang progresif.
               </p>
-
-              {/* Tab Selector */}
               <div className="inline-flex mt-6 p-1.5 rounded-2xl bg-white/70 backdrop-blur-[6px] border border-white/50 shadow-sm">
                 <button
                   onClick={() => setActiveTab('visi')}
@@ -257,7 +275,6 @@ export default function AboutSection() {
               </div>
             </div>
 
-            {/* Konten Tab */}
             {activeTab === 'visi' ? (
               <div className="max-w-3xl mx-auto p-6 sm:p-8 rounded-2xl bg-white/60 backdrop-blur-[6px] border border-white/50 shadow-sm text-center">
                 <div className="inline-block px-3 py-1 rounded-full bg-[#2C5857]/10 text-[#2C5857] text-xs font-bold uppercase tracking-wider mb-4">
@@ -284,10 +301,16 @@ export default function AboutSection() {
                 ))}
               </div>
             )}
+
+            {/* Sentinel: titik akhir Visi & Misi */}
+            <div ref={sentinelRef} className="h-0 w-full" />
           </div>
 
         </div>
       </div>
+
+      {/* Solid bottom divider: menutup background sequence dan transisi rapi ke section artikel */}
+      <div className="relative z-[60] w-full bg-[#FCFAF8] border-t border-stone-200 py-4" />
     </section>
   );
 }
