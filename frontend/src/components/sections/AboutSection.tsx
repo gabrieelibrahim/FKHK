@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 
+const DESKTOP_BREAKPOINT = 1024;
+
 const CHECKLIST = [
   'Kajian mendalam isu Hukum Keluarga Islam kontemporer',
   'Publikasi karya ilmiah dan opini hukum di media bereputasi',
@@ -25,6 +27,7 @@ type PinState = 'fixed' | 'scrolling' | 'hidden';
 export default function AboutSection() {
   const [activeTab, setActiveTab] = useState<'visi' | 'misi'>('visi');
   const [pinState, setPinState] = useState<PinState>('hidden');
+  const [isMobile, setIsMobile] = useState<boolean>(true);
 
   const sectionRef = useRef<HTMLElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -62,7 +65,19 @@ export default function AboutSection() {
     currentFrameIndexRef.current = frameIdx;
   }, []);
 
+  // Detect mobile/tablet vs desktop; disable video background on small screens.
   useEffect(() => {
+    const updateMobile = () => {
+      setIsMobile(window.innerWidth < DESKTOP_BREAKPOINT);
+    };
+    updateMobile();
+    window.addEventListener('resize', updateMobile, { passive: true });
+    return () => window.removeEventListener('resize', updateMobile);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) return; // skip loading frames on mobile
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -84,7 +99,7 @@ export default function AboutSection() {
     for (let i = 1; i <= TOTAL_FRAMES; i++) {
       const img = new window.Image();
       const numStr = String(i).padStart(3, '0');
-      img.src = `/assets/images/about-sequence-hd/frame_${numStr}.webp`;
+      img.src = `/assets/images/about-sequence-v3/frame_${numStr}.webp`;
       if (i === 1) {
         img.onload = () => {
           drawFrame(0);
@@ -97,9 +112,15 @@ export default function AboutSection() {
     return () => {
       window.removeEventListener('resize', updateCanvasSize);
     };
-  }, [drawFrame]);
+  }, [drawFrame, isMobile]);
 
   useEffect(() => {
+    if (isMobile) {
+      // No video background on mobile -> pin state irrelevant.
+      setPinState('hidden');
+      return;
+    }
+
     const handleScroll = () => {
       if (animationFrameIdRef.current) return;
 
@@ -165,7 +186,7 @@ export default function AboutSection() {
         cancelAnimationFrame(animationFrameIdRef.current);
       }
     };
-  }, [drawFrame, pinState]);
+  }, [drawFrame, pinState, isMobile]);
 
   const bgClasses =
     pinState === 'fixed'
@@ -175,15 +196,17 @@ export default function AboutSection() {
       : 'absolute opacity-0';
 
   return (
-    <section ref={sectionRef} id="tentang" className="relative w-full overflow-hidden">
-      {/* Background layer */}
-      <div
-        ref={bgRef}
-        className={`left-0 w-full h-screen z-0 pointer-events-none overflow-hidden ${bgClasses}`}
-        style={pinState === 'scrolling' ? { top: `${unpinnedTopRef.current}px` } : undefined}
-      >
-        <canvas ref={canvasRef} className="w-full h-full object-cover block" />
-      </div>
+    <section ref={sectionRef} id="tentang" className={`relative w-full overflow-hidden ${isMobile ? 'bg-[#f7f2ed]' : ''}`}>
+      {/* Background layer: video scroll only on desktop */}
+      {!isMobile && (
+        <div
+          ref={bgRef}
+          className={`left-0 w-full h-screen z-0 pointer-events-none overflow-hidden ${bgClasses}`}
+          style={pinState === 'scrolling' ? { top: `${unpinnedTopRef.current}px` } : undefined}
+        >
+          <canvas ref={canvasRef} className="w-full h-full object-cover block" />
+        </div>
+      )}
 
       {/* Foreground content — pb memberi ruang video di bawah kartu Visi & Misi sebelum batas artikel */}
       <div className="relative z-10 pt-20 md:pt-28 pb-16 sm:pb-24">
