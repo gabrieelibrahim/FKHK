@@ -9,11 +9,12 @@ interface EventItem {
   slug: string;
   description: string;
   dateTime: string;
-  location: string;
-  onlineUrl: string;
-  capacity: number;
+  location: string | null;
+  onlineUrl: string | null;
+  capacity: number | null;
   status: string;
-  imageUrl: string;
+  category: string;
+  imageUrl: string | null;
   _count: { registrations: number };
   createdBy: { name: string };
 }
@@ -78,7 +79,7 @@ export default function EventsPage() {
             {/* Quick Venue Note */}
             <div className="border-l-2 border-[#2C5857] pl-3 py-0.5 text-xs text-zinc-600 shrink-0">
               <p className="font-semibold text-zinc-900">Fakultas Syariah & Hukum</p>
-              <p className="text-zinc-500">Terbuka untuk umum & mahasiswa</p>
+              <p className="text-zinc-500">Terbuka untuk umum & internal anggota</p>
             </div>
           </div>
         </div>
@@ -217,11 +218,12 @@ export default function EventsPage() {
 
               const isCompleted = e.status === "completed";
               const isCancelled = e.status === "cancelled";
+              const isInternal = e.category === "internal";
 
               return (
                 <article key={e.id} className="group p-5 sm:p-6 transition hover:bg-zinc-50/70">
                   <div className="flex items-start gap-4 sm:gap-5">
-                    {/* Date Badge: Consistent compact vertical calendar card on all screens */}
+                    {/* Date Badge */}
                     <div className="flex flex-col items-center justify-center shrink-0 w-14 sm:w-16 py-2 px-1 text-center rounded-lg bg-[#FAF7F2] border border-zinc-200/90 shadow-sm">
                       <span className="text-[10px] sm:text-[11px] font-bold text-[#2C5857] uppercase tracking-wider leading-none">
                         {monthStr}
@@ -237,15 +239,28 @@ export default function EventsPage() {
                     {/* Content Details */}
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 text-xs mb-2">
+                        {/* Kategori Badge */}
+                        {isInternal ? (
+                          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-900 border border-amber-300">
+                            🔒 Internal FKHK
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+                            🌐 Terbuka Umum
+                          </span>
+                        )}
+
+                        {/* Status Badge */}
                         <span className={`px-2 py-0.5 rounded text-[11px] font-medium border ${
                           isCompleted
                             ? "bg-zinc-100 text-zinc-600 border-zinc-200"
                             : isCancelled
                             ? "bg-rose-50 text-rose-700 border-rose-200"
-                            : "bg-emerald-50 text-emerald-800 border-emerald-200"
+                            : "bg-[#2C5857]/10 text-[#2C5857] border-[#2C5857]/20"
                         }`}>
-                          {isCompleted ? "Terlaksana" : isCancelled ? "Dibatalkan" : "Pendaftaran Dibuka"}
+                          {isCompleted ? "Terlaksana" : isCancelled ? "Dibatalkan" : "Akan Datang"}
                         </span>
+
                         {fullTimeStr && <span className="text-zinc-500">• {fullTimeStr}</span>}
                       </div>
 
@@ -271,7 +286,9 @@ export default function EventsPage() {
                             </span>
                           )}
                           <span className="shrink-0">
-                            {e.capacity
+                            {isInternal
+                              ? "Khusus Anggota"
+                              : e.capacity
                               ? `${e._count?.registrations || 0}/${e.capacity} Peserta`
                               : `${e._count?.registrations || 0} Peserta`}
                           </span>

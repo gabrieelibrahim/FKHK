@@ -68,6 +68,7 @@ model Event {
   createdBy     Member    @relation("EventCreator", fields: [createdById], references: [id])
   status        String    @default("upcoming") // "upcoming", "completed", "cancelled"
   imageUrl      String?
+  category      String    @default("umum") // "umum", "internal"
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -80,12 +81,16 @@ model Registration {
   id            Int       @id @default(autoincrement())
   eventId       Int
   event         Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  memberId      Int
-  member        Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId      Int?
+  member        Member?   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  name          String?
+  email         String?
+  phone         String?
+  institution   String?
+  nim           String?
   registeredAt  DateTime  @default(now())
   attended      Boolean   @default(false)
 
-  @@unique([eventId, memberId])
   @@map("registrations")
 }
 
