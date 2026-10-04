@@ -217,11 +217,11 @@ export default function EventDetailPage() {
           <div className="flex flex-wrap items-center gap-2 mb-4">
             {isInternal ? (
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-300">
-                🔒 Khusus Internal FKHK
+                Khusus Internal FKHK
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-900 border border-emerald-300">
-                🌐 Terbuka untuk Umum
+                Terbuka untuk Umum
               </span>
             )}
 
@@ -324,7 +324,7 @@ export default function EventDetailPage() {
           )}
           {regSuccess && (
             <div className="p-4 mb-6 text-sm text-emerald-900 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-2.5">
-              <span className="text-lg">✓</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
               <div>
                 <p className="font-semibold">{regSuccess}</p>
                 <p className="text-xs text-emerald-800 mt-0.5">
@@ -339,7 +339,7 @@ export default function EventDetailPage() {
             /* KATEGORI INTERNAL: TIDAK ADA TOMBOL DAFTAR */
             <div className="rounded-xl p-5 bg-amber-50/70 border border-amber-200/90 text-amber-950">
               <div className="flex items-center gap-2 font-semibold text-sm text-amber-900 mb-1">
-                <span>🔒</span>
+                <svg className="w-3.5 h-3.5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                 <span>Kegiatan Internal Pengurus / Anggota</span>
               </div>
               <p className="text-xs sm:text-sm text-amber-800 leading-relaxed">
@@ -407,7 +407,7 @@ export default function EventDetailPage() {
                       onClick={() => setShowRegForm(false)}
                       className="text-xs text-zinc-400 hover:text-zinc-700"
                     >
-                      Batal ✕
+                      Batal
                     </button>
                   </div>
 

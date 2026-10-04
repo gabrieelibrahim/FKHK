@@ -242,11 +242,11 @@ export default function EventsPage() {
                         {/* Kategori Badge */}
                         {isInternal ? (
                           <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-900 border border-amber-300">
-                            🔒 Internal FKHK
+                            Internal FKHK
                           </span>
                         ) : (
                           <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
-                            🌐 Terbuka Umum
+                            Terbuka Umum
                           </span>
                         )}
 

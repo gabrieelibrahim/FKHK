@@ -263,11 +263,11 @@ export default function AdminEventsPage() {
                       <td className="px-4 py-3">
                         {e.category === "internal" ? (
                           <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                            🔒 Internal
+                            Internal
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
-                            🌐 Umum
+                            Umum
                           </span>
                         )}
                       </td>
@@ -340,11 +340,11 @@ export default function AdminEventsPage() {
                   <div className="mt-2 flex items-center gap-2">
                     {e.category === "internal" ? (
                       <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                        🔒 Internal
+                        Internal
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
-                        🌐 Umum
+                        Umum
                       </span>
                     )}
                   </div>
@@ -426,7 +426,7 @@ export default function AdminEventsPage() {
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span>🌐</span>
+                      
                       <span className="text-sm">Umum</span>
                     </div>
                     <p className="text-[11px] text-gray-500 mt-1 font-normal">
@@ -444,7 +444,7 @@ export default function AdminEventsPage() {
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span>🔒</span>
+                      
                       <span className="text-sm">Internal</span>
                     </div>
                     <p className="text-[11px] text-gray-500 mt-1 font-normal">
@@ -518,7 +518,7 @@ export default function AdminEventsPage() {
                       if (file) handleUploadImage(file, false);
                     }}
                   />
-                  {createForm.imageUrl && <span className="text-xs text-primary font-medium">✓ Foto terupload</span>}
+                  {createForm.imageUrl && <span className="text-xs text-primary font-medium">Foto terupload</span>}
                 </div>
                 {createForm.imageUrl && (
                   <img
@@ -574,7 +574,7 @@ export default function AdminEventsPage() {
                 onClick={() => setShowEditModal(false)}
                 className="text-gray-400 hover:text-gray-600 text-lg leading-none"
               >
-                ✕
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
             {formError && <div className="p-3 mb-4 text-red-700 bg-red-50 border border-red-200 rounded-lg text-sm">{formError}</div>}
@@ -604,7 +604,7 @@ export default function AdminEventsPage() {
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span>🌐</span>
+                      
                       <span className="text-sm">Umum</span>
                     </div>
                     <p className="text-[11px] text-gray-500 mt-1 font-normal">
@@ -622,7 +622,7 @@ export default function AdminEventsPage() {
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span>🔒</span>
+                      
                       <span className="text-sm">Internal</span>
                     </div>
                     <p className="text-[11px] text-gray-500 mt-1 font-normal">
@@ -707,7 +707,7 @@ export default function AdminEventsPage() {
                       if (file) handleUploadImage(file, true);
                     }}
                   />
-                  {editForm.imageUrl && <span className="text-xs text-primary font-medium">✓ Foto terpasang</span>}
+                  {editForm.imageUrl && <span className="text-xs text-primary font-medium">Foto terpasang</span>}
                 </div>
                 {editForm.imageUrl && (
                   <div className="mt-2 flex items-center gap-2">
