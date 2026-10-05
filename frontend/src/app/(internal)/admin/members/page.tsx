@@ -208,11 +208,11 @@ export default function AdminMembersPage() {
                     </span>
                   </div>
                   <dl className="mt-4 grid grid-cols-2 gap-3 text-xs">
-                    <div>
+                    <div className="min-w-0">
                       <dt className="text-gray-400">NIM</dt>
                       <dd className="mt-1 truncate font-mono text-gray-700">{m.nim || "-"}</dd>
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <dt className="text-gray-400">Afiliasi</dt>
                       <dd className="mt-1 truncate font-medium text-gray-700">{m.affiliation || "-"}</dd>
                     </div>
