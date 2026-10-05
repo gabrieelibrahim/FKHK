@@ -90,6 +90,21 @@ exports.getEventBySlug = async (req, res, next) => {
   }
 };
 
+// Parse dateTime dari admin (datetime-local, tanpa zona waktu) sebagai WIB (UTC+7).
+// String yang sudah punya zona waktu (Z / +07:00) dipakai apa adanya.
+function parseWibDateTime(value) {
+  if (value instanceof Date) return value;
+  const s = String(value).trim();
+  if (/[zZ]$/.test(s) || /([+-]\d{2}:?\d{2})$/.test(s)) {
+    return new Date(s);
+  }
+  const m = s.match(/^(\d{4}-\d{2}-\d{2})(?:[T ](\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)?)?$/);
+  if (m) {
+    return new Date(`${m[1]}T${m[2] || "00:00:00"}+07:00`);
+  }
+  return new Date(s);
+}
+
 exports.createEvent = async (req, res, next) => {
   try {
     const { title, description, dateTime, location, onlineUrl, capacity, imageUrl, category, presensiCode } = req.body;
@@ -107,7 +122,7 @@ exports.createEvent = async (req, res, next) => {
         title,
         slug,
         description,
-        dateTime: new Date(dateTime),
+        dateTime: parseWibDateTime(dateTime),
         location: location || null,
         onlineUrl: onlineUrl || null,
         imageUrl: imageUrl || null,
@@ -140,7 +155,7 @@ exports.updateEvent = async (req, res, next) => {
     const data = {};
     if (title !== undefined) data.title = title;
     if (description !== undefined) data.description = description;
-    if (dateTime !== undefined) data.dateTime = new Date(dateTime);
+    if (dateTime !== undefined) data.dateTime = parseWibDateTime(dateTime);
     if (location !== undefined) data.location = location || null;
     if (onlineUrl !== undefined) data.onlineUrl = onlineUrl || null;
     if (capacity !== undefined) data.capacity = capacity ? parseInt(capacity) : null;
