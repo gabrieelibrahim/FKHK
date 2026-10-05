@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 
 // --- INLINE SVG ICONS ---
 function TrophyIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -78,6 +78,9 @@ export default function PrestasiPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState<string>("all");
 
+  const t = useTranslations("prestasiPage");
+  const locale = useLocale();
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -97,7 +100,7 @@ export default function PrestasiPage() {
   }, []);
 
   function getRecipient(item: Achievement): string {
-    return item.name || item.recipient || "Mahasiswa FKHK";
+    return item.name || item.recipient || (locale === "en" ? "FKHK Student" : locale === "ar" ? "طالب بالمنتدى" : "Mahasiswa FKHK");
   }
 
   function getInitials(item: Achievement): string {
@@ -113,361 +116,244 @@ export default function PrestasiPage() {
   }
 
   function getCategory(item: Achievement): "kompetisi" | "jurnal" | "konferensi" {
-    // Kategori tersimpan dari admin (field eksplisit); fallback deteksi kata kunci untuk data lama
     if (item.category === "kompetisi" || item.category === "jurnal" || item.category === "konferensi") {
       return item.category;
     }
-    const t = (item.title + " " + (item.description || "")).toLowerCase();
-    if (t.includes("juara") || t.includes("lomba") || t.includes("fest")) {
-      return "kompetisi";
-    }
-    if (t.includes("jurnal") || t.includes("sinta") || t.includes("multicultural")) {
+    const txt = (item.title + " " + (item.description || "")).toLowerCase();
+    if (txt.includes("jurnal") || txt.includes("sinta") || txt.includes("scopus") || txt.includes("artikel")) {
       return "jurnal";
     }
-    return "konferensi";
+    if (txt.includes("call for paper") || txt.includes("konferensi") || txt.includes("conference") || txt.includes("seminar")) {
+      return "konferensi";
+    }
+    return "kompetisi";
   }
 
-  const filtered = achievements.filter((item) => {
-    const cat = getCategory(item);
-    if (selectedCategory !== "all" && cat !== selectedCategory) return false;
-    if (selectedYear !== "all" && item.year.toString() !== selectedYear) return false;
+  const years = Array.from(new Set(achievements.map((item) => String(item.year)))).sort(
+    (a, b) => Number(b) - Number(a)
+  );
 
-    if (!searchQuery.trim()) return true;
+  const filtered = achievements.filter((item) => {
     const q = searchQuery.toLowerCase();
-    const recip = getRecipient(item).toLowerCase();
-    return (
+    const matchSearch =
+      !q ||
       item.title.toLowerCase().includes(q) ||
-      recip.includes(q) ||
-      (item.description && item.description.toLowerCase().includes(q))
-    );
+      getRecipient(item).toLowerCase().includes(q) ||
+      (item.event && item.event.toLowerCase().includes(q));
+
+    const matchCategory =
+      selectedCategory === "all" || getCategory(item) === selectedCategory;
+
+    const matchYear =
+      selectedYear === "all" || String(item.year) === selectedYear;
+
+    return matchSearch && matchCategory && matchYear;
   });
 
-  const countKompetisi = achievements.filter((a) => getCategory(a) === "kompetisi").length;
-  const countKonferensi = achievements.filter((a) => getCategory(a) === "konferensi").length;
-  const countJurnal = achievements.filter((a) => getCategory(a) === "jurnal").length;
-
-  const uniqueYears = Array.from(new Set(achievements.map((a) => a.year.toString()))).sort((a, b) => b.localeCompare(a));
-
-  const categories = [
-    { key: "all", label: "Semua Prestasi", count: achievements.length },
-    { key: "kompetisi", label: "Kejuaraan Esai", count: countKompetisi },
-    { key: "konferensi", label: "Call for Papers", count: countKonferensi },
-    { key: "jurnal", label: "Publikasi Jurnal", count: countJurnal },
-  ];
-
   return (
-    <div className="min-h-screen bg-[#FCFAF8] text-[#1a1a1a]">
-      {/* Header */}
-      <section className="border-b border-[#e5e0d8] bg-[#F7F2ED]/80 pt-10 pb-10 sm:pt-14 sm:pb-14">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-[#737373] mb-4">
-            <Link href="/" className="hover:text-[#2C5857] transition-colors">Beranda</Link>
-            <span>/</span>
-            <span className="text-[#2C5857] font-semibold">Rekam Jejak Prestasi</span>
-          </div>
-
+    <div className="pt-[68px] min-h-screen bg-[#FAF7F2] text-[#1a1a1a]">
+      {/* Header Banner */}
+      <section className="border-b border-[#e5e0d8] bg-white">
+        <div className="container mx-auto px-4 max-w-5xl pt-10 pb-8 sm:pt-14 sm:pb-10">
           <div className="max-w-3xl">
-            <span className="text-[10px] font-bold tracking-widest text-[#2C5857] uppercase block mb-2">
-              Registri Kehormatan Akademik
+            <span className="text-xs font-semibold text-[#2C5857] uppercase tracking-wider block mb-2">
+              Prestasi &amp; Kontribusi
             </span>
-            <h1 className="font-serif text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#1a1a1a] mb-3 leading-tight">
-              Rekam Jejak Prestasi Akademik
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-[#1a1a1a] font-serif leading-tight">
+              {t("title")}
             </h1>
-            <p className="text-sm sm:text-base text-[#525252] leading-relaxed">
-              Dokumentasi resmi capaian kejuaraan, delegasi forum ilmiah, serta publikasi artikel pada jurnal terindeks oleh mahasiswa dan kader Forum Kajian Hukum Keluarga.
+            <p className="mt-3 text-sm sm:text-base text-[#525252] leading-relaxed">
+              {t("subtitle")}
             </p>
           </div>
         </div>
       </section>
 
-      {/* Main Content */}
-      <section className="py-8 sm:py-12">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-
-          {/* Controls */}
-          <div className="flex flex-col gap-4 sm:gap-5 pb-8 border-b border-[#e5e0d8]">
-
-            {/* Category tabs */}
-            <div className="flex flex-wrap items-center gap-2">
-              {categories.map((cat) => (
-                <button
-                  key={cat.key}
-                  onClick={() => setSelectedCategory(cat.key)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                    selectedCategory === cat.key
-                      ? "bg-[#2C5857] text-white"
-                      : "bg-white border border-[#e5e0d8] text-[#525252] hover:bg-[#F7F2ED]"
-                  }`}
-                >
-                  {cat.label} ({cat.count})
-                </button>
-              ))}
+      {/* Main Filter & List Section */}
+      <section className="container mx-auto px-4 max-w-5xl py-8 sm:py-12">
+        <div className="flex flex-col md:flex-row gap-8 items-start">
+          {/* Sidebar / Filters */}
+          <aside className="w-full md:w-64 shrink-0 space-y-6">
+            {/* Search Input */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder={t("searchPlaceholder")}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 text-xs bg-white border border-[#e5e0d8] rounded-xl text-[#1a1a1a] placeholder:text-[#a3a3a3] focus:outline-none focus:ring-2 focus:ring-[#2C5857] focus:border-transparent transition"
+              />
+              <SearchIcon className="w-4 h-4 text-[#a3a3a3] absolute left-3 top-2.5 pointer-events-none" />
             </div>
 
-            {/* Search & Year */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              <div className="relative flex-1 max-w-md">
-                <SearchIcon className="w-4 h-4 text-[#a3a3a3] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Cari nama peraih, forum, atau penyelenggara..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 rounded-lg bg-white border border-[#e5e0d8] text-xs sm:text-sm text-[#1a1a1a] placeholder-[#a3a3a3] focus:outline-none focus:ring-1 focus:ring-[#2C5857] focus:border-[#2C5857] transition-all"
-                />
-              </div>
-
-              <div className="flex items-center gap-1.5 self-start sm:self-auto text-xs">
-                <span className="text-[#737373] font-medium mr-1">Tahun:</span>
-                <button
-                  onClick={() => setSelectedYear("all")}
-                  className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-                    selectedYear === "all"
-                      ? "bg-[#2C5857] text-white"
-                      : "bg-white border border-[#e5e0d8] text-[#525252] hover:bg-[#F7F2ED]"
-                  }`}
-                >
-                  Semua
-                </button>
-                {uniqueYears.map((yr) => (
+            {/* Category Filter */}
+            <div className="bg-white rounded-xl border border-[#e5e0d8] p-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#737373] mb-3">
+                {locale === "en" ? "Categories" : locale === "ar" ? "التصنيفات" : "Kategori"}
+              </h3>
+              <div className="space-y-1">
+                {[
+                  { id: "all", label: t("tabAll") },
+                  { id: "kompetisi", label: t("tabPeradilan") },
+                  { id: "jurnal", label: t("tabKaryaTulis") },
+                  { id: "konferensi", label: t("tabAkademik") },
+                ].map((cat) => (
                   <button
-                    key={yr}
-                    onClick={() => setSelectedYear(yr)}
-                    className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-                      selectedYear === yr
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                      selectedCategory === cat.id
                         ? "bg-[#2C5857] text-white"
-                        : "bg-white border border-[#e5e0d8] text-[#525252] hover:bg-[#F7F2ED]"
+                        : "text-[#525252] hover:bg-[#FAF7F2] hover:text-[#1a1a1a]"
                     }`}
                   >
-                    {yr}
+                    {cat.label}
                   </button>
                 ))}
               </div>
             </div>
 
-          </div>
+            {/* Year Filter */}
+            {years.length > 0 && (
+              <div className="bg-white rounded-xl border border-[#e5e0d8] p-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#737373] mb-3">
+                  {t("yearLabel")}
+                </h3>
+                <div className="flex flex-wrap gap-1.5">
+                  <button
+                    onClick={() => setSelectedYear("all")}
+                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${
+                      selectedYear === "all"
+                        ? "bg-[#2C5857] text-white"
+                        : "bg-[#FAF7F2] text-[#525252] hover:text-[#1a1a1a]"
+                    }`}
+                  >
+                    {locale === "en" ? "All" : locale === "ar" ? "الكل" : "Semua"}
+                  </button>
+                  {years.map((y) => (
+                    <button
+                      key={y}
+                      onClick={() => setSelectedYear(y)}
+                      className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${
+                        selectedYear === y
+                          ? "bg-[#2C5857] text-white"
+                          : "bg-[#FAF7F2] text-[#525252] hover:text-[#1a1a1a]"
+                      }`}
+                    >
+                      {y}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </aside>
 
-          {/* Items */}
-          <div className="mt-8">
+          {/* List Cards */}
+          <div className="flex-1 w-full min-w-0">
             {loading ? (
-              <div className="py-16 text-center text-sm text-[#737373]">
-                Memuat registri prestasi...
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="p-6 bg-white rounded-xl border border-[#e5e0d8] animate-pulse">
+                    <div className="h-4 bg-zinc-200 rounded w-1/3 mb-3" />
+                    <div className="h-5 bg-zinc-200 rounded w-3/4 mb-2" />
+                    <div className="h-3 bg-zinc-200 rounded w-full" />
+                  </div>
+                ))}
               </div>
             ) : filtered.length === 0 ? (
               <div className="py-16 text-center bg-white rounded-xl border border-[#e5e0d8] p-8">
                 <TrophyIcon className="w-10 h-10 text-[#d4cfc7] mx-auto mb-3" />
-                <h3 className="font-serif text-lg font-bold text-[#1a1a1a]">Arsip Tidak Ditemukan</h3>
+                <h3 className="font-serif text-lg font-bold text-[#1a1a1a]">{t("empty")}</h3>
                 <p className="text-xs sm:text-sm text-[#737373] mt-1 max-w-sm mx-auto">
-                  Tidak ada data prestasi yang cocok dengan kata kunci pencarian atau kombinasi filter aktif.
+                  {locale === "en"
+                    ? "Try adjusting your search query or changing active filters."
+                    : locale === "ar"
+                    ? "يرجى تعديل مصطلح البحث أو تغيير فلاتر التصفية النشطة."
+                    : "Tidak ada data prestasi yang cocok dengan kata kunci pencarian atau kombinasi filter aktif."}
                 </p>
               </div>
             ) : (
-              <div className="space-y-10">
-
-                {/* Kejuaraan */}
-                {(selectedCategory === "all" || selectedCategory === "kompetisi") && (
-                  <div className="space-y-4">
-                    {selectedCategory === "all" && (
-                      <div className="flex items-center gap-2 pb-2 border-b border-[#e5e0d8]">
-                        <TrophyIcon className="w-4 h-4 text-[#2C5857]" />
-                        <h2 className="font-serif text-lg sm:text-xl font-bold text-[#1a1a1a]">
-                          Kejuaraan & Kompetisi Ilmiah
-                        </h2>
-                        <span className="text-xs text-[#737373] ml-auto">
-                          {filtered.filter(i => getCategory(i) === "kompetisi").length} Penghargaan
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {filtered.map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded-xl bg-white border border-[#e5e0d8] p-5 sm:p-6 flex flex-col justify-between hover:shadow-sm transition"
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <span className="text-[10px] font-bold tracking-widest text-[#2C5857] uppercase">
+                          {getCategory(item) === "jurnal"
+                            ? locale === "en"
+                              ? "Journal Article"
+                              : locale === "ar"
+                              ? "بحث علمي"
+                              : "Publikasi Jurnal"
+                            : getCategory(item) === "konferensi"
+                            ? locale === "en"
+                              ? "Conference / Call for Papers"
+                              : locale === "ar"
+                              ? "مؤتمر علمي"
+                              : "Konferensi"
+                            : locale === "en"
+                            ? "Competition Award"
+                            : locale === "ar"
+                            ? "جائزة تفوق"
+                            : "Kejuaraan"}
                         </span>
+                        <div className="flex items-center gap-1 text-xs text-[#737373] font-medium shrink-0">
+                          <CalendarIcon className="w-3.5 h-3.5 text-[#a3a3a3]" />
+                          {item.year}
+                        </div>
                       </div>
-                    )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {filtered
-                        .filter((item) => getCategory(item) === "kompetisi")
-                        .map((item) => (
-                          <div
-                            key={item.id}
-                            className="rounded-xl bg-white border border-[#e5e0d8] p-5 sm:p-6"
-                          >
-                            <div className="flex items-start justify-between gap-3 mb-3">
-                              <span className="text-[10px] font-bold tracking-widest text-[#2C5857] uppercase">
-                                Kejuaraan Esai
-                              </span>
-                              <div className="flex items-center gap-1 text-xs text-[#737373] font-medium shrink-0">
-                                <CalendarIcon className="w-3.5 h-3.5 text-[#a3a3a3]" />
-                                {item.year}
-                              </div>
-                            </div>
+                      <h3 className="font-serif text-base sm:text-lg font-bold text-[#1a1a1a] mb-2 leading-snug">
+                        {item.title}
+                      </h3>
 
-                            <h3 className="font-serif text-base sm:text-lg font-bold text-[#1a1a1a] mb-2 leading-snug">
-                              {item.title}
-                            </h3>
+                      {item.event && (
+                        <p className="text-xs text-[#525252] mb-2">
+                          <span className="font-semibold text-[#2C5857]">
+                            {locale === "en" ? "Event: " : locale === "ar" ? "المسابقة: " : "Ajang: "}
+                          </span>{" "}
+                          {item.event}
+                        </p>
+                      )}
 
-                            {item.event && (
-                              <p className="text-xs text-[#525252] mb-2">
-                                <span className="font-semibold text-[#2C5857]">Ajang:</span> {item.event}
-                              </p>
-                            )}
+                      {item.description && (
+                        <p className="text-xs sm:text-sm text-[#525252] mb-4 leading-relaxed line-clamp-3">
+                          {item.description}
+                        </p>
+                      )}
+                    </div>
 
-                            {item.description && (
-                              <p className="text-xs sm:text-sm text-[#525252] mb-4 leading-relaxed">
-                                {item.description}
-                              </p>
-                            )}
-
-                            <div className="pt-3 border-t border-[#f0ece6] flex items-center gap-2 text-xs">
-                              {item.photo ? (
-                                <img src={item.photo} alt={getRecipient(item)} className="w-7 h-7 rounded-full object-cover border border-[#d1e8e8]" />
-                              ) : (
-                                <div className="w-7 h-7 rounded-full bg-[#f0f7f7] text-[#2C5857] font-bold flex items-center justify-center text-xs border border-[#d1e8e8]">
-                                  {getInitials(item)}
-                                </div>
-                              )}
-                              <div>
-                                <div className="font-semibold text-[#1a1a1a]">{getRecipient(item)}</div>
-                                <div className="text-[11px] text-[#737373]">Delegasi Mahasiswa FKHK</div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+                    <div className="pt-3 border-t border-[#f0ece6] flex items-center gap-2 text-xs mt-3">
+                      {item.photo ? (
+                        <img
+                          src={item.photo}
+                          alt={getRecipient(item)}
+                          className="w-7 h-7 rounded-full object-cover border border-[#d1e8e8]"
+                        />
+                      ) : (
+                        <div className="w-7 h-7 rounded-full bg-[#f0f7f7] text-[#2C5857] font-bold flex items-center justify-center text-xs border border-[#d1e8e8]">
+                          {getInitials(item)}
+                        </div>
+                      )}
+                      <div>
+                        <div className="font-semibold text-[#1a1a1a]">{getRecipient(item)}</div>
+                        <div className="text-[11px] text-[#737373]">
+                          {locale === "en"
+                            ? "FKHK Student Delegate"
+                            : locale === "ar"
+                            ? "مندوب طلبة منتدى FKHK"
+                            : "Delegasi Mahasiswa FKHK"}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                )}
-
-                {/* Jurnal */}
-                {(selectedCategory === "all" || selectedCategory === "jurnal") && (
-                  <div className="space-y-4">
-                    {selectedCategory === "all" && (
-                      <div className="flex items-center gap-2 pb-2 border-b border-[#e5e0d8]">
-                        <BookOpenIcon className="w-4 h-4 text-[#2C5857]" />
-                        <h2 className="font-serif text-lg sm:text-xl font-bold text-[#1a1a1a]">
-                          Publikasi Jurnal Terakreditasi
-                        </h2>
-                        <span className="text-xs text-[#737373] ml-auto">
-                          {filtered.filter(i => getCategory(i) === "jurnal").length} Publikasi
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-1 gap-4">
-                      {filtered
-                        .filter((item) => getCategory(item) === "jurnal")
-                        .map((item) => (
-                          <div
-                            key={item.id}
-                            className="rounded-xl bg-white border border-[#e5e0d8] p-5 sm:p-6"
-                          >
-                            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                              <span className="text-[10px] font-bold tracking-widest text-[#2C5857] uppercase">
-                                Publikasi Jurnal
-                              </span>
-                              <div className="flex items-center gap-1 text-xs text-[#737373] font-medium">
-                                <CalendarIcon className="w-3.5 h-3.5 text-[#a3a3a3]" />
-                                Tahun Terbit {item.year}
-                              </div>
-                            </div>
-
-                            <h3 className="font-serif text-base sm:text-xl font-bold text-[#1a1a1a] mb-2 leading-snug">
-                              {item.title}
-                            </h3>
-
-                            {item.event && (
-                              <p className="text-xs text-[#525252] mb-2">
-                                <span className="font-semibold text-[#2C5857]">Ajang:</span> {item.event}
-                              </p>
-                            )}
-
-                            {item.description && (
-                              <p className="text-xs sm:text-sm text-[#525252] mb-4 leading-relaxed">
-                                {item.description}
-                              </p>
-                            )}
-
-                            <div className="pt-3 border-t border-[#f0ece6] flex flex-wrap items-center gap-2.5 text-xs">
-                              {item.photo ? (
-                                <img src={item.photo} alt={getRecipient(item)} className="w-8 h-8 rounded-full object-cover border border-[#d1e8e8]" />
-                              ) : (
-                                <div className="w-8 h-8 rounded-full bg-[#f0f7f7] text-[#2C5857] font-bold flex items-center justify-center text-xs border border-[#d1e8e8]">
-                                  {getInitials(item)}
-                                </div>
-                              )}
-                              <div>
-                                <div className="font-semibold text-[#1a1a1a]">{getRecipient(item)}</div>
-                                <div className="text-[11px] text-[#737373]">Penulis Utama / Kader Peneliti FKHK</div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Call for Papers */}
-                {(selectedCategory === "all" || selectedCategory === "konferensi") && (
-                  <div className="space-y-4">
-                    {selectedCategory === "all" && (
-                      <div className="flex items-center gap-2 pb-2 border-b border-[#e5e0d8]">
-                        <FileTextIcon className="w-4 h-4 text-[#2C5857]" />
-                        <h2 className="font-serif text-lg sm:text-xl font-bold text-[#1a1a1a]">
-                          Call for Papers & Konferensi Nasional
-                        </h2>
-                        <span className="text-xs text-[#737373] ml-auto">
-                          {filtered.filter(i => getCategory(i) === "konferensi").length} Naskah Terpilih
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {filtered
-                        .filter((item) => getCategory(item) === "konferensi")
-                        .map((item) => (
-                          <div
-                            key={item.id}
-                            className="rounded-xl bg-white border border-[#e5e0d8] p-5 sm:p-6 flex flex-col justify-between"
-                          >
-                            <div>
-                              <div className="flex items-center justify-between gap-2 mb-2.5">
-                                <span className="text-[10px] font-bold tracking-widest text-[#2C5857] uppercase">
-                                  Call for Papers
-                                </span>
-                                <span className="text-xs text-[#737373]">{item.year}</span>
-                              </div>
-
-                              <h3 className="font-serif text-sm sm:text-base font-bold text-[#1a1a1a] mb-2 leading-snug">
-                                {item.title}
-                              </h3>
-
-                              {item.event && (
-                                <p className="text-xs text-[#525252] mb-2">
-                                  <span className="font-semibold text-[#2C5857]">Ajang:</span> {item.event}
-                                </p>
-                              )}
-
-                              {item.description && (
-                                <p className="text-xs text-[#525252] mb-4 leading-relaxed line-clamp-2">
-                                  {item.description}
-                                </p>
-                              )}
-                            </div>
-
-                            <div className="pt-3 border-t border-[#f0ece6] flex items-center gap-2 text-xs mt-2">
-                              {item.photo ? (
-                                <img src={item.photo} alt={getRecipient(item)} className="w-6 h-6 rounded-full object-cover border border-[#d1e8e8]" />
-                              ) : (
-                                <div className="w-6 h-6 rounded-full bg-[#f0f7f7] text-[#2C5857] font-bold flex items-center justify-center text-[10px] border border-[#d1e8e8]">
-                                  {getInitials(item)}
-                                </div>
-                              )}
-                              <span className="font-medium text-[#1a1a1a]">{getRecipient(item)}</span>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                )}
-
+                ))}
               </div>
             )}
           </div>
-
         </div>
       </section>
     </div>

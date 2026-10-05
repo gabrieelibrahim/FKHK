@@ -1,9 +1,13 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+import { Link as LocaleLink } from "@/i18n/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function TeamSection() {
+  const t = useTranslations("home.team");
+
   return (
     <section className="relative overflow-hidden" id="team">
       <div className="relative h-[400px] sm:h-[500px]">
@@ -21,32 +25,30 @@ export default function TeamSection() {
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
               <div className="max-w-xl">
                 <span className="text-xs font-semibold uppercase tracking-[0.15em] text-white mb-3 block [text-shadow:0_1px_6px_rgba(0,0,0,0.8)]">
-                  Bergabung dengan Kami
+                  {t("badge")}
                 </span>
                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight [text-shadow:0_2px_12px_rgba(0,0,0,0.9)]">
-                  Bersama Kita Wujudkan<br />
-                  <em className="not-italic">Kajian yang Berdampak</em>
+                  {t("heading")}<br />
+                  <em className="not-italic">{t("headingItalic")}</em>
                 </h2>
                 <p className="text-sm sm:text-base text-white/80 mt-3 leading-relaxed [text-shadow:0_1px_4px_rgba(0,0,0,0.8)]">
-                  FKHK membuka ruang seluas-luasnya bagi mahasiswa yang ingin
-                  berkembang dalam kajian hukum, kepenulisan, dan advokasi
-                  masyarakat.
+                  {t("desc")}
                 </p>
               </div>
 
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/auth/register"
-                  className="px-6 py-3 bg-[#2C5857] text-white font-medium rounded-full text-sm hover:bg-[#1a2e2e] transition-colors shadow-lg"
+                  href="/auth/login"
+                  className="px-6 py-3 bg-[#2C5857] text-white font-medium rounded-full text-sm hover:bg-[#1a2e2e] transition-colors shadow-lg no-underline"
                 >
-                  Daftar Anggota
+                  {t("btnRegister")}
                 </Link>
-                <Link
+                <LocaleLink
                   href="/tentang"
-                  className="px-6 py-3 bg-white/20 backdrop-blur-sm text-white font-medium rounded-full text-sm hover:bg-white/30 transition-colors border border-white/30"
+                  className="px-6 py-3 bg-white/20 backdrop-blur-sm text-white font-medium rounded-full text-sm hover:bg-white/30 transition-colors border border-white/30 no-underline"
                 >
-                  Pelajari Lebih Lanjut
-                </Link>
+                  {t("btnLearnMore")}
+                </LocaleLink>
               </div>
             </div>
           </div>

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import Reveal from "../Reveal";
 import StaggerContainer from "../StaggerContainer";
 
@@ -16,6 +18,7 @@ interface Achievement {
 export default function AchievementsSection() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
+  const t = useTranslations("home.achievements");
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -23,7 +26,6 @@ export default function AchievementsSection() {
       .then((r) => r.json())
       .then((res) => {
         if (res?.data) {
-          // Ambil 3 prestasi terbaru (ID terbesar = terbaru di-insert)
           const newest = [...res.data]
             .sort((a, b) => b.id - a.id)
             .slice(0, 3);
@@ -41,19 +43,19 @@ export default function AchievementsSection() {
         <div className="flex items-end justify-between mb-10">
           <Reveal variant="fade-left">
             <span className="text-xs font-semibold uppercase tracking-[0.15em] text-accent">
-              Prestasi
+              {t("badge")}
             </span>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mt-2">
-              Kebanggaan Anggota<br />FKHK
+              {t("heading")}
             </h2>
           </Reveal>
           <Reveal variant="fade-right">
-            <a
+            <Link
               href="/prestasi"
               className="inline-flex px-5 py-2.5 border border-gray-300 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition no-underline"
             >
-              Lihat Semua
-            </a>
+              {t("viewAll")}
+            </Link>
           </Reveal>
         </div>
 
@@ -70,7 +72,11 @@ export default function AchievementsSection() {
               >
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4 overflow-hidden">
                   {a.photo ? (
-                    <img src={`${process.env.NEXT_PUBLIC_API_URL}${a.photo}`} alt={a.name} className="w-16 h-16 rounded-full object-cover" />
+                    <img
+                      src={`${process.env.NEXT_PUBLIC_API_URL}${a.photo}`}
+                      alt={a.name}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
                   ) : (
                     <span className="text-lg font-bold text-primary">{a.initials}</span>
                   )}

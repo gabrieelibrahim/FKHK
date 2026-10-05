@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { useTranslations, useLocale } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 interface EventItem {
   id: number;
@@ -38,22 +41,27 @@ export default function PresensiPage() {
   const [successData, setSuccessData] = useState<AttendedData | null>(null);
   const [currentTime, setCurrentTime] = useState("");
 
+  const t = useTranslations("presensiPage");
+  const locale = useLocale();
+
+  const dateLocale = locale === "en" ? "en-US" : locale === "ar" ? "ar-SA" : "id-ID";
+
   useEffect(() => {
     const updateClock = () => {
       const now = new Date();
-      setCurrentTime(
-        now.toLocaleTimeString("id-ID", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          timeZone: "Asia/Jakarta",
-        }) + " WIB"
-      );
+      const timeStr = now.toLocaleTimeString(dateLocale, {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        timeZone: "Asia/Jakarta",
+      });
+      const tzSuffix = locale === "en" ? " WIB" : locale === "ar" ? " بتوقيت غرب إندونيسيا" : " WIB";
+      setCurrentTime(timeStr + tzSuffix);
     };
     updateClock();
     const interval = setInterval(updateClock, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [dateLocale, locale]);
 
   useEffect(() => {
     fetchEvents();
@@ -71,10 +79,16 @@ export default function PresensiPage() {
           setSelectedEventId(json.data[0].id);
         }
       } else {
-        setErrorMsg("Belum ada kegiatan aktif yang membuka presensi.");
+        setErrorMsg(t("noActiveEvents"));
       }
     } catch {
-      setErrorMsg("Gagal memuat daftar kegiatan aktif. Periksa koneksi internet.");
+      setErrorMsg(
+        locale === "en"
+          ? "Failed to load active activities. Please check your internet connection."
+          : locale === "ar"
+          ? "فشل في تحميل الفعاليات النشطة. يرجى التحقق من اتصال الإنترنت."
+          : "Gagal memuat daftar kegiatan aktif. Periksa koneksi internet."
+      );
     } finally {
       setLoading(false);
     }
@@ -85,11 +99,23 @@ export default function PresensiPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedEventId) {
-      setErrorMsg("Silakan pilih kegiatan terlebih dahulu.");
+      setErrorMsg(
+        locale === "en"
+          ? "Please select an activity first."
+          : locale === "ar"
+          ? "يرجى اختيار الفعالية أولاً."
+          : "Silakan pilih kegiatan terlebih dahulu."
+      );
       return;
     }
     if (!identifier.trim()) {
-      setErrorMsg("Nomor Induk Mahasiswa (NIM) atau Identitas wajib diisi.");
+      setErrorMsg(
+        locale === "en"
+          ? "Student ID (NIM) or Identity is required."
+          : locale === "ar"
+          ? "رقم القيد الجامعي أو الهوية مطلوب."
+          : "Nomor Induk Mahasiswa (NIM) atau Identitas wajib diisi."
+      );
       return;
     }
 
@@ -113,10 +139,23 @@ export default function PresensiPage() {
       if (res.ok && json.success) {
         setSuccessData(json.data);
       } else {
-        setErrorMsg(json.message || "Gagal mencatat presensi.");
+        setErrorMsg(
+          json.message ||
+            (locale === "en"
+              ? "Failed to record attendance."
+              : locale === "ar"
+              ? "فشل في تسجيل الحضور."
+              : "Gagal mencatat presensi.")
+        );
       }
     } catch {
-      setErrorMsg("Terjadi gangguan jaringan saat mengirim data presensi.");
+      setErrorMsg(
+        locale === "en"
+          ? "Network error while submitting attendance data."
+          : locale === "ar"
+          ? "حدث خطأ في الشبكة أثناء إرسال البيانات."
+          : "Terjadi gangguan jaringan saat mengirim data presensi."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -133,7 +172,7 @@ export default function PresensiPage() {
   const formatDate = (dateString: string) => {
     try {
       const d = new Date(dateString);
-      return d.toLocaleDateString("id-ID", {
+      return d.toLocaleDateString(dateLocale, {
         weekday: "long",
         day: "numeric",
         month: "long",
@@ -148,7 +187,7 @@ export default function PresensiPage() {
     try {
       const d = new Date(dateString);
       return (
-        d.toLocaleTimeString("id-ID", {
+        d.toLocaleTimeString(dateLocale, {
           hour: "2-digit",
           minute: "2-digit",
           timeZone: "Asia/Jakarta",
@@ -164,7 +203,7 @@ export default function PresensiPage() {
       {/* Header Bar */}
       <header className="bg-white border-b border-[#E5E7EB] sticky top-0 z-30 px-4 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
         <div className="max-w-md mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+          <Link href="/" className="flex items-center gap-2.5 no-underline">
             <Image
               src="/assets/logo/logo-fkhk-hijau.webp"
               alt="Logo FKHK"
@@ -175,15 +214,16 @@ export default function PresensiPage() {
             />
             <div>
               <h1 className="text-xs font-bold text-[#1A1A1A] uppercase tracking-wider leading-none">
-                Portal Presensi Mandiri
+                {t("badge")}
               </h1>
               <p className="text-[11px] text-[#6B7280] font-medium leading-tight mt-0.5">
                 Forum Kajian Hukum Keluarga
               </p>
             </div>
-          </div>
-          <div className="text-right">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-[#2C5857]/10 text-[#2C5857]">
+          </Link>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher light />
+            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-[#2C5857]/10 text-[#2C5857]">
               {currentTime || "WIB"}
             </span>
           </div>
@@ -195,7 +235,7 @@ export default function PresensiPage() {
         {loading ? (
           <div className="bg-white rounded-2xl p-8 border border-[#E5E7EB] text-center shadow-sm">
             <div className="w-9 h-9 border-2 border-[#2C5857] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-xs text-[#6B7280] font-medium">Memuat kegiatan aktif...</p>
+            <p className="text-xs text-[#6B7280] font-medium">{t("submittingBtn")}</p>
           </div>
         ) : successData ? (
           /* Card Bukti Presensi */
@@ -207,19 +247,19 @@ export default function PresensiPage() {
             </div>
 
             <span className="inline-block px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[11px] font-semibold uppercase tracking-wider rounded-md border border-emerald-200 mb-2">
-              Presensi Berhasil
+              {t("statusAttended")}
             </span>
             <h2 className="text-lg font-bold text-[#1A1A1A] leading-snug">
-              Kehadiran Telah Tercatat
+              {t("successTitle")}
             </h2>
             <p className="text-xs text-[#6B7280] mt-1 mb-5">
-              Data kehadiran Anda telah diverifikasi secara langsung ke sistem FKHK.
+              {t("successSubtitle")}
             </p>
 
             <div className="bg-[#F8F9FA] rounded-xl p-4 border border-[#E5E7EB] text-left space-y-2.5 text-xs mb-6">
               <div>
                 <span className="text-[10px] uppercase font-bold text-[#6B7280] tracking-wider block">
-                  Nama Peserta
+                  {t("nameLabel")}
                 </span>
                 <span className="font-semibold text-[#1A1A1A] text-sm block">
                   {successData.name}
@@ -229,7 +269,7 @@ export default function PresensiPage() {
               {successData.nim && (
                 <div>
                   <span className="text-[10px] uppercase font-bold text-[#6B7280] tracking-wider block">
-                    NIM
+                    {t("nimLabel")}
                   </span>
                   <span className="font-mono font-medium text-[#1A1A1A] block">
                     {successData.nim}
@@ -239,7 +279,7 @@ export default function PresensiPage() {
 
               <div>
                 <span className="text-[10px] uppercase font-bold text-[#6B7280] tracking-wider block">
-                  Kegiatan
+                  {t("eventLabel")}
                 </span>
                 <span className="font-medium text-[#2C5857] block">
                   {successData.eventTitle}
@@ -251,7 +291,7 @@ export default function PresensiPage() {
               onClick={handleReset}
               className="w-full py-3 bg-[#2C5857] hover:bg-[#1e3e3d] active:scale-[0.99] text-white font-semibold text-xs rounded-xl transition duration-150 shadow-sm"
             >
-              Presensi untuk Peserta Lain
+              {t("submitAnother")}
             </button>
           </div>
         ) : (
@@ -259,13 +299,13 @@ export default function PresensiPage() {
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-[#E5E7EB] shadow-sm">
             <div className="mb-5">
               <span className="inline-block px-2 py-0.5 bg-[#2C5857]/10 text-[#2C5857] text-[10px] font-bold uppercase tracking-wider rounded">
-                Check-In Langsung
+                {t("badge")}
               </span>
               <h2 className="text-base sm:text-lg font-bold text-[#1A1A1A] mt-1.5 leading-snug">
-                Isi Kehadiran Kegiatan
+                {t("title")}
               </h2>
               <p className="text-xs text-[#6B7280] mt-0.5">
-                Masukkan NIM atau nama Anda untuk konfirmasi kehadiran kegiatan hari ini.
+                {t("subtitle")}
               </p>
             </div>
 
@@ -282,11 +322,11 @@ export default function PresensiPage() {
               {/* Dropdown Kegiatan */}
               <div>
                 <label className="block text-xs font-semibold text-[#374151] mb-1.5">
-                  Pilih Kegiatan Aktif <span className="text-red-500">*</span>
+                  {t("selectEvent")} <span className="text-red-500">*</span>
                 </label>
                 {events.length === 0 ? (
                   <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs">
-                    Saat ini belum ada agenda kegiatan yang membuka sesi presensi.
+                    {t("noActiveEvents")}
                   </div>
                 ) : (
                   <div className="relative">
@@ -323,9 +363,6 @@ export default function PresensiPage() {
                       {formatTime(selectedEvent.dateTime) && ` · ${formatTime(selectedEvent.dateTime)}`}
                     </span>
                   </div>
-                  <div className="text-[10px] text-[#4D7C0F] pt-0.5">
-                    Presensi dibuka 15 menit sebelum mulai dan ditutup 3 jam setelah jadwal.
-                  </div>
                   {selectedEvent.location && (
                     <div className="text-[11px] text-[#15803D] flex items-center gap-1.5">
                       <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -341,12 +378,12 @@ export default function PresensiPage() {
               {selectedEvent?.requiresCode && (
                 <div>
                   <label className="block text-xs font-semibold text-[#374151] mb-1.5">
-                    Kode Presensi <span className="text-red-500">*</span>
+                    {t("codeLabel")} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="Diumumkan panitia di lokasi kegiatan"
+                    placeholder={t("codePlaceholder")}
                     value={presensiCode}
                     onChange={(e) => setPresensiCode(e.target.value.toUpperCase())}
                     autoComplete="off"
@@ -354,7 +391,7 @@ export default function PresensiPage() {
                     className="w-full bg-[#F9FAFB] border border-[#D1D5DB] rounded-xl px-3.5 py-2.5 text-xs font-mono uppercase tracking-widest text-[#1A1A1A] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2C5857] focus:border-transparent transition"
                   />
                   <p className="text-[11px] text-[#6B7280] mt-1">
-                    Minta kode kepada panitia di tempat. Presensi hanya bisa dikonfirmasi dengan kode yang sah.
+                    {t("codeRequiredNotice")}
                   </p>
                 </div>
               )}
@@ -362,29 +399,29 @@ export default function PresensiPage() {
               {/* Input Identitas / NIM */}
               <div>
                 <label className="block text-xs font-semibold text-[#374151] mb-1.5">
-                  Nomor Induk Mahasiswa (NIM) <span className="text-red-500">*</span>
+                  {t("identifierLabel")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Contoh: 21103040001"
+                  placeholder={t("identifierPlaceholder")}
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   className="w-full bg-[#F9FAFB] border border-[#D1D5DB] rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#1A1A1A] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2C5857] focus:border-transparent transition"
                 />
                 <p className="text-[11px] text-[#6B7280] mt-1">
-                  Anggota FKHK cukup ketik NIM. Data otomatis terhubung ke sistem.
+                  {t("identifierHelp")}
                 </p>
               </div>
 
               {/* Input Nama Lengkap (Opsional / Tamu) */}
               <div>
                 <label className="block text-xs font-semibold text-[#374151] mb-1.5">
-                  Nama Lengkap <span className="text-[11px] text-[#6B7280] font-normal">(opsional jika NIM sudah terdaftar)</span>
+                  {t("fullNameLabel")}
                 </label>
                 <input
                   type="text"
-                  placeholder="Nama lengkap Anda beserta gelar bila ada"
+                  placeholder={t("fullNamePlaceholder")}
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   className="w-full bg-[#F9FAFB] border border-[#D1D5DB] rounded-xl px-3.5 py-2.5 text-xs text-[#1A1A1A] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2C5857] focus:border-transparent transition"
@@ -400,10 +437,10 @@ export default function PresensiPage() {
                 {submitting ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Mencatat Kehadiran...</span>
+                    <span>{t("submittingBtn")}</span>
                   </>
                 ) : (
-                  <span>Konfirmasi Kehadiran</span>
+                  <span>{t("submitBtn")}</span>
                 )}
               </button>
             </form>

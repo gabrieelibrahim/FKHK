@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 const HERO_IMAGES = [
   "/assets/images/hero01.webp",
@@ -10,15 +12,17 @@ const HERO_IMAGES = [
 
 export default function Hero() {
   const [current, setCurrent] = useState(0);
+  const t = useTranslations("home.hero");
 
   useEffect(() => {
-    // preload first hero image
     const link = document.createElement("link");
     link.rel = "preload";
     link.as = "image";
     link.href = HERO_IMAGES[0];
     document.head.appendChild(link);
-    return () => { document.head.removeChild(link); };
+    return () => {
+      document.head.removeChild(link);
+    };
   }, []);
 
   useEffect(() => {
@@ -57,33 +61,57 @@ export default function Hero() {
       {/* Content */}
       <div className="relative z-10 w-full px-4 max-w-[1240px] mx-auto">
         <div className="max-w-2xl">
-          <h1 className="animate-fade-up text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter leading-tight sm:leading-none text-white mb-6" style={{ animationDelay: "0.05s", textShadow: "0 4px 40px rgba(0,0,0,0.6), 0 2px 10px rgba(0,0,0,0.5)" }}>
-            Pioneering Research,<br />
-            <span className="text-white/90">Inspiring Insights</span>
+          <h1
+            className="animate-fade-up text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter leading-tight sm:leading-none text-white mb-6"
+            style={{
+              animationDelay: "0.05s",
+              textShadow: "0 4px 40px rgba(0,0,0,0.6), 0 2px 10px rgba(0,0,0,0.5)",
+            }}
+          >
+            {t("titleLine1")}<br />
+            <span className="text-white/90">{t("titleLine2")}</span>
           </h1>
 
-          <p className="animate-fade-up text-sm sm:text-lg text-white/90 max-w-2xl mb-10 leading-relaxed" style={{ animationDelay: "0.05s", textShadow: "0 2px 20px rgba(0,0,0,0.5)" }}>
-            FKHK adalah forum mahasiswa yang berkomitmen dalam kajian, penelitian,
-            dan pengembangan keilmuan di bidang Hukum Keluarga Islam.
-            Bersama kami, gagasan bertumbuh menjadi perubahan nyata.
+          <p
+            className="animate-fade-up text-sm sm:text-lg text-white/90 max-w-2xl mb-10 leading-relaxed"
+            style={{
+              animationDelay: "0.05s",
+              textShadow: "0 2px 20px rgba(0,0,0,0.5)",
+            }}
+          >
+            {t("description")}
           </p>
 
-          <div className="animate-fade-up flex flex-col sm:flex-row gap-3 w-full sm:w-auto" style={{ animationDelay: "0.05s" }}>
-            <a
+          <div
+            className="animate-fade-up flex flex-col sm:flex-row gap-3 w-full sm:w-auto"
+            style={{ animationDelay: "0.05s" }}
+          >
+            <Link
               href="/articles"
               className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent-dark hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-xl shadow-black/40 w-full sm:w-auto"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+                />
               </svg>
-              Jelajahi Artikel
-            </a>
-            <a
+              {t("btnArticles")}
+            </Link>
+            <Link
               href="/#tentang"
               className="inline-flex items-center justify-center gap-2 px-6 py-3 border-2 border-white/30 text-white rounded-xl font-semibold hover:bg-white hover:text-[#1a2e2e] transition shadow-xl shadow-black/40 w-full sm:w-auto"
             >
-              Tentang Kami
-            </a>
+              {t("btnAbout")}
+            </Link>
           </div>
         </div>
       </div>

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 interface EventItem {
   id: number;
@@ -19,12 +20,6 @@ interface EventItem {
   createdBy: { name: string };
 }
 
-const STATUS_TABS = [
-  { id: "upcoming", label: "Mendatang" },
-  { id: "completed", label: "Arsip Selesai" },
-  { id: "all", label: "Semua Agenda" },
-];
-
 export default function EventsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +28,17 @@ export default function EventsPage() {
   const [submittedSearch, setSubmittedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+
+  const t = useTranslations("eventsPage");
+  const locale = useLocale();
+
+  const statusTabs = [
+    { id: "upcoming", label: t("tabUpcoming") },
+    { id: "completed", label: t("tabCompleted") },
+    { id: "all", label: t("tabAll") },
+  ];
+
+  const dateLocale = locale === "en" ? "en-US" : locale === "ar" ? "ar-SA" : "id-ID";
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -69,17 +75,23 @@ export default function EventsPage() {
                 Forum Akademik
               </span>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-zinc-950 font-serif leading-tight">
-                Agenda Kegiatan & Seminar
+                {t("title")}
               </h1>
               <p className="mt-3 text-sm sm:text-base text-zinc-600 leading-relaxed max-w-xl">
-                Jadwal diskusi publik, lokakarya hukum, bedah berkas peradilan, dan program keilmuan Forum Kajian Hukum Keluarga.
+                {t("subtitle")}
               </p>
             </div>
 
             {/* Quick Venue Note */}
             <div className="border-l-2 border-[#2C5857] pl-3 py-0.5 text-xs text-zinc-600 shrink-0">
               <p className="font-semibold text-zinc-900">Fakultas Syariah & Hukum</p>
-              <p className="text-zinc-500">Terbuka untuk umum & internal anggota</p>
+              <p className="text-zinc-500">
+                {locale === "en"
+                  ? "Open to public & internal members"
+                  : locale === "ar"
+                  ? "متاح للعموم ولأعضاء المنتدى"
+                  : "Terbuka untuk umum & internal anggota"}
+              </p>
             </div>
           </div>
         </div>
@@ -90,13 +102,13 @@ export default function EventsPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3">
               {/* Status Segmented Buttons */}
               <div className="flex gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-                {STATUS_TABS.map((t) => {
-                  const isActive = filter === t.id;
+                {statusTabs.map((tab) => {
+                  const isActive = filter === tab.id;
                   return (
                     <button
-                      key={t.id}
+                      key={tab.id}
                       onClick={() => {
-                        setFilter(t.id);
+                        setFilter(tab.id);
                         setPage(1);
                       }}
                       className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors ${
@@ -105,7 +117,7 @@ export default function EventsPage() {
                           : "text-zinc-600 hover:text-zinc-950 hover:bg-zinc-200/60"
                       }`}
                     >
-                      {t.label}
+                      {tab.label}
                     </button>
                   );
                 })}
@@ -122,7 +134,7 @@ export default function EventsPage() {
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Cari agenda kegiatan..."
+                  placeholder={t("searchPlaceholder")}
                   className="w-full pl-8 pr-7 py-1.5 bg-white border border-zinc-300 rounded-md text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-[#2C5857] focus:ring-1 focus:ring-[#2C5857] transition"
                 />
                 {search && (
@@ -150,7 +162,8 @@ export default function EventsPage() {
         {submittedSearch && (
           <div className="mb-6 flex items-center justify-between text-xs text-zinc-500 border-b border-zinc-200 pb-3">
             <p>
-              Hasil pencarian: <span className="font-semibold text-zinc-900">&quot;{submittedSearch}&quot;</span>
+              {locale === "en" ? "Search results for: " : locale === "ar" ? "نتائج البحث عن: " : "Hasil pencarian: "}
+              <span className="font-semibold text-zinc-900">&quot;{submittedSearch}&quot;</span>
             </p>
             <button
               onClick={() => {
@@ -160,7 +173,7 @@ export default function EventsPage() {
               }}
               className="text-[#2C5857] hover:underline font-medium"
             >
-              Reset pencarian
+              Reset
             </button>
           </div>
         )}
@@ -178,13 +191,25 @@ export default function EventsPage() {
         ) : events.length === 0 ? (
           <div className="py-14 text-center border-t border-b border-zinc-200 bg-white px-6">
             <h2 className="text-base font-semibold text-zinc-900 mb-2 font-serif">
-              Belum ada agenda pada kategori ini
+              {t("empty")}
             </h2>
             <p className="text-xs sm:text-sm text-zinc-500 max-w-md mx-auto leading-relaxed">
               {submittedSearch
-                ? "Tidak ditemukan agenda kegiatan yang cocok dengan kata kunci tersebut."
+                ? locale === "en"
+                  ? "No activities found matching that keyword."
+                  : locale === "ar"
+                  ? "لم يتم العثور على أنشطة تطابق كلمة البحث."
+                  : "Tidak ditemukan agenda kegiatan yang cocok dengan kata kunci tersebut."
                 : filter === "upcoming"
-                ? "Agenda mendatang sedang disiapkan oleh panitia. Silakan periksa arsip kegiatan sebelumnya."
+                ? locale === "en"
+                  ? "Upcoming agendas are being prepared by the committee."
+                  : locale === "ar"
+                  ? "يتم إعداد الفعاليات القادمة من قِبل اللجنة المنظمة."
+                  : "Agenda mendatang sedang disiapkan oleh panitia. Silakan periksa arsip kegiatan sebelumnya."
+                : locale === "en"
+                ? "No archive activities recorded in the system yet."
+                : locale === "ar"
+                ? "لا توجد فعاليات سابقة مسجلة في النظام حالياً."
                 : "Arsip kegiatan sebelumnya belum tersedia di sistem."}
             </p>
             {filter !== "all" && (
@@ -198,7 +223,7 @@ export default function EventsPage() {
                   }}
                   className="inline-flex items-center px-4 py-2 border border-zinc-300 rounded-md bg-white text-xs font-medium text-zinc-700 hover:bg-zinc-50 transition"
                 >
-                  Tampilkan Semua Agenda
+                  {t("tabAll")}
                 </button>
               </div>
             )}
@@ -209,11 +234,13 @@ export default function EventsPage() {
               const eventDate = new Date(e.dateTime);
               const dayNum = !isNaN(eventDate.getTime()) ? eventDate.getDate() : "--";
               const monthStr = !isNaN(eventDate.getTime())
-                ? eventDate.toLocaleDateString("id-ID", { month: "short" })
+                ? eventDate.toLocaleDateString(dateLocale, { month: "short" })
                 : "---";
               const yearStr = !isNaN(eventDate.getTime()) ? eventDate.getFullYear() : "";
               const fullTimeStr = !isNaN(eventDate.getTime())
-                ? `${eventDate.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })} WIB`
+                ? `${eventDate.toLocaleTimeString(dateLocale, { hour: "2-digit", minute: "2-digit" })} ${
+                    locale === "en" ? "WIB (UTC+7)" : locale === "ar" ? "بتوقيت غرب إندونيسيا" : "WIB"
+                  }`
                 : "";
 
               const isCompleted = e.status === "completed";
@@ -242,36 +269,59 @@ export default function EventsPage() {
                         {/* Kategori Badge */}
                         {isInternal ? (
                           <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-900 border border-amber-300">
-                            Internal FKHK
+                            {locale === "en" ? "FKHK Internal" : locale === "ar" ? "داخلي للمنتدى" : "Internal FKHK"}
                           </span>
                         ) : (
                           <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
-                            Terbuka Umum
+                            {locale === "en" ? "Public" : locale === "ar" ? "عام للجمهور" : "Terbuka Umum"}
                           </span>
                         )}
 
                         {/* Status Badge */}
-                        <span className={`px-2 py-0.5 rounded text-[11px] font-medium border ${
-                          isCompleted
-                            ? "bg-zinc-100 text-zinc-600 border-zinc-200"
+                        <span
+                          className={`px-2 py-0.5 rounded text-[11px] font-medium border ${
+                            isCompleted
+                              ? "bg-zinc-100 text-zinc-600 border-zinc-200"
+                              : isCancelled
+                              ? "bg-rose-50 text-rose-700 border-rose-200"
+                              : "bg-[#2C5857]/10 text-[#2C5857] border-[#2C5857]/20"
+                          }`}
+                        >
+                          {isCompleted
+                            ? locale === "en"
+                              ? "Completed"
+                              : locale === "ar"
+                              ? "تم بنجاح"
+                              : "Terlaksana"
                             : isCancelled
-                            ? "bg-rose-50 text-rose-700 border-rose-200"
-                            : "bg-[#2C5857]/10 text-[#2C5857] border-[#2C5857]/20"
-                        }`}>
-                          {isCompleted ? "Terlaksana" : isCancelled ? "Dibatalkan" : "Akan Datang"}
+                            ? locale === "en"
+                              ? "Cancelled"
+                              : locale === "ar"
+                              ? "ملغاة"
+                              : "Dibatalkan"
+                            : locale === "en"
+                            ? "Upcoming"
+                            : locale === "ar"
+                            ? "قادمة"
+                            : "Akan Datang"}
                         </span>
 
                         {fullTimeStr && <span className="text-zinc-500">• {fullTimeStr}</span>}
                       </div>
 
                       <h2 className="text-base sm:text-lg font-semibold text-zinc-950 font-serif leading-snug group-hover:text-[#2C5857] transition-colors mb-2">
-                        <Link href={`/events/${e.slug}`} className="focus:outline-none">
+                        <Link href={`/events/${e.slug}`} className="focus:outline-none no-underline text-inherit hover:text-[#2C5857]">
                           {e.title}
                         </Link>
                       </h2>
 
                       <p className="text-xs sm:text-sm text-zinc-600 line-clamp-2 leading-relaxed mb-4">
-                        {e.description || "Informasi teknis dan materi kajian dapat dilihat pada halaman detail agenda ini."}
+                        {e.description ||
+                          (locale === "en"
+                            ? "Technical agenda details and discussion materials are available on this event page."
+                            : locale === "ar"
+                            ? "المعلومات التفصيلية ومحاور النقاش متوفرة في صفحة الفعالية."
+                            : "Informasi teknis dan materi kajian dapat dilihat pada halaman detail agenda ini.")}
                       </p>
 
                       <div className="pt-3 border-t border-zinc-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 text-xs text-zinc-500">
@@ -287,18 +337,26 @@ export default function EventsPage() {
                           )}
                           <span className="shrink-0">
                             {isInternal
-                              ? "Khusus Anggota"
+                              ? locale === "en"
+                                ? "Members Only"
+                                : locale === "ar"
+                                ? "خاص بالأعضاء"
+                                : "Khusus Anggota"
                               : e.capacity
-                              ? `${e._count?.registrations || 0}/${e.capacity} Peserta`
-                              : `${e._count?.registrations || 0} Peserta`}
+                              ? `${e._count?.registrations || 0}/${e.capacity} ${
+                                  locale === "en" ? "Attendees" : locale === "ar" ? "مشارك" : "Peserta"
+                                }`
+                              : `${e._count?.registrations || 0} ${
+                                  locale === "en" ? "Attendees" : locale === "ar" ? "مشارك" : "Peserta"
+                                }`}
                           </span>
                         </div>
 
                         <Link
                           href={`/events/${e.slug}`}
-                          className="self-end sm:self-auto font-medium text-[#2C5857] hover:underline inline-flex items-center text-xs shrink-0"
+                          className="self-end sm:self-auto font-medium text-[#2C5857] hover:underline inline-flex items-center text-xs shrink-0 no-underline"
                         >
-                          Detail Agenda
+                          {t("detailTitle")} &rarr;
                         </Link>
                       </div>
                     </div>
@@ -317,18 +375,18 @@ export default function EventsPage() {
                 onClick={() => setPage((p) => p - 1)}
                 className="px-3 py-1.5 border border-zinc-300 bg-white rounded-md text-xs font-medium text-zinc-700 hover:bg-zinc-50 transition"
               >
-                Sebelumnya
+                &larr;
               </button>
             )}
             <span className="text-xs text-zinc-500">
-              Halaman {page} dari {totalPages}
+              {page} / {totalPages}
             </span>
             {page < totalPages && (
               <button
                 onClick={() => setPage((p) => p + 1)}
                 className="px-3 py-1.5 border border-zinc-300 bg-white rounded-md text-xs font-medium text-zinc-700 hover:bg-zinc-50 transition"
               >
-                Selanjutnya
+                &rarr;
               </button>
             )}
           </div>

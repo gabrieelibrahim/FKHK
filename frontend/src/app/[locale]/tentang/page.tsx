@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 interface Officer {
   id: number;
@@ -20,71 +21,70 @@ const fallbackBPH: Officer[] = [
   { id: 5, name: "Wanodya Pangarswari Husnussairi", position: "Bendahara", category: "bph", order: 5, photo: null, initials: "WP" },
 ];
 
-const DIVISI_DATA = [
-  {
-    key: "divisi_kajian",
-    nama: "Divisi Kajian dan Riset",
-    deskripsi: "Pengembangan budaya riset, bedah literatur hukum keluarga Islam, dan produksi karya ilmiah mahasiswa.",
-    defaultMembers: [
-      "Ashiil Naziyahil Enri Auni",
-      "Saily Amalia",
-      "Rihadatul 'Aisyi",
-      "Fauzan Hafiz Razly",
-      "Raezhard Rayhan Dio Akbari",
-      "Nabila Febrianty",
-    ],
-  },
-  {
-    key: "divisi_advokasi",
-    nama: "Divisi Advokasi & Mediasi",
-    deskripsi: "Edukasi kesadaran hukum masyarakat, simulasi peradilan semu (moot court), dan penguatan kapasitas mediasi.",
-    defaultMembers: [
-      "Azela Nafisa",
-      "Zahwa Choirunnida",
-      "Ghayda Zaneta",
-      "Muhammad Fadhil Nurfatahilah",
-      "Mhd. Zhairofi Nur",
-      "Lutfiya Syauqi Akyas",
-    ],
-  },
-  {
-    key: "divisi_psdm",
-    nama: "Divisi Pengembangan Sumber Daya Mahasiswa",
-    deskripsi: "Kaderisasi berjenjang, pelatihan kepemimpinan, dan peningkatan kompetensi kepenulisan akademik.",
-    defaultMembers: [
-      "Muhammad Fikriyyatullah",
-      "Irfan Brian Nur Adyatma",
-      "Hasna Sa'diyah Zulfa",
-      "Ahmad Devaky Raset Dananjaya",
-      "Ardeliani",
-      "Ela Nur Hidayati",
-    ],
-  },
-  {
-    key: "divisi_publikasi",
-    nama: "Divisi Publikasi & Hubungan Masyarakat",
-    deskripsi: "Pengelolaan kanal komunikasi resmi, diseminasi artikel hukum, dan kemitraan antarlembaga.",
-    defaultMembers: [
-      "Muhammad Riziq Fauzi",
-      "Putri Nafidah Chumairo'",
-      "Muhamad Rivan Syahir",
-      "Muhammad Agung Zakiyuddin",
-      "Muhammad Nauval Zabidy",
-      "Aulia Eka Salsabilla",
-    ],
-  },
-];
-
-const MISI_LIST = [
-  "Meningkatkan pemahaman mahasiswa Hukum Keluarga Islam melalui kegiatan pendidikan, pelatihan, dan diskusi yang bersifat integratif dan interkonektif.",
-  "Mendorong budaya riset dan kajian ilmiah dalam bidang Hukum Keluarga Islam secara multidisipliner dan aplikatif.",
-  "Memberdayakan mahasiswa untuk berperan aktif dalam pengabdian masyarakat berbasis ilmu Hukum Keluarga Islam.",
-  "Mengembangkan jejaring kerja sama dengan akademisi, praktisi, dan lembaga terkait untuk mendukung Tri Dharma Perguruan Tinggi.",
-  "Mewujudkan forum sebagai wadah aspirasi dan pengembangan keterampilan praktis mahasiswa dalam menyelesaikan problematika hukum keluarga.",
-];
-
 export default function TentangPage() {
   const [officers, setOfficers] = useState<Officer[]>([]);
+  const t = useTranslations("aboutPage");
+
+  const DIVISI_DATA = [
+    {
+      key: "divisi_kajian",
+      nama: t("divKajian"),
+      deskripsi: t("divKajianDesc"),
+      defaultMembers: [
+        "Ashiil Naziyahil Enri Auni",
+        "Saily Amalia",
+        "Rihadatul 'Aisyi",
+        "Fauzan Hafiz Razly",
+        "Raezhard Rayhan Dio Akbari",
+        "Nabila Febrianty",
+      ],
+    },
+    {
+      key: "divisi_advokasi",
+      nama: t("divAdvokasi"),
+      deskripsi: t("divAdvokasiDesc"),
+      defaultMembers: [
+        "Azela Nafisa",
+        "Zahwa Choirunnida",
+        "Ghayda Zaneta",
+        "Muhammad Fadhil Nurfatahilah",
+        "Mhd. Zhairofi Nur",
+        "Lutfiya Syauqi Akyas",
+      ],
+    },
+    {
+      key: "divisi_psdm",
+      nama: t("divPsdm"),
+      deskripsi: t("divPsdmDesc"),
+      defaultMembers: [
+        "Muhammad Fikriyyatullah",
+        "Irfan Brian Nur Adyatma",
+        "Hasna Sa'diyah Zulfa",
+        "Ahmad Devaky Raset Dananjaya",
+        "Ardeliani",
+        "Ela Nur Hidayati",
+      ],
+    },
+    {
+      key: "divisi_publikasi",
+      nama: t("divMedia"),
+      deskripsi: t("divMediaDesc"),
+      defaultMembers: [
+        "Muhammad Riziq Fauzi",
+        "Putri Nafidah Chumairo'",
+        "Muhamad Rivan Syahir",
+        "Muhammad Agung Zakiyuddin",
+        "Muhammad Nauval Zabidy",
+        "Aulia Eka Salsabilla",
+      ],
+    },
+  ];
+
+  const MISI_LIST = [
+    t("historyP1"),
+    t("historyP2"),
+    t("historyP3"),
+  ];
 
   useEffect(() => {
     fetch("/api/officers")
@@ -119,13 +119,13 @@ export default function TentangPage() {
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div className="max-w-2xl">
               <span className="text-xs font-semibold text-[#2C5857] uppercase tracking-wider block mb-2">
-                Profil & Struktur Lembaga
+                {t("badge")}
               </span>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-zinc-950 font-serif leading-tight">
-                Forum Kajian Hukum Keluarga
+                {t("title")}
               </h1>
               <p className="mt-3 text-sm sm:text-base text-zinc-600 leading-relaxed max-w-xl">
-                Lembaga keilmuan mahasiswa yang berdedikasi pada riset akademik, advokasi, dan pengembangan diskursus Hukum Keluarga Islam integratif.
+                {t("subtitle")}
               </p>
             </div>
 
@@ -133,17 +133,17 @@ export default function TentangPage() {
             <div className="flex items-center gap-6 border-l-2 border-[#2C5857] pl-4 py-1 text-xs text-zinc-600 shrink-0">
               <div>
                 <p className="font-serif text-lg font-bold text-zinc-950 leading-none">4</p>
-                <p className="text-[11px] text-zinc-500 mt-0.5">Divisi Riset</p>
+                <p className="text-[11px] text-zinc-500 mt-0.5">{t("researchDivisions")}</p>
               </div>
               <div className="h-6 w-px bg-zinc-200" />
               <div>
                 <p className="font-serif text-lg font-bold text-zinc-950 leading-none">{totalPengurus}</p>
-                <p className="text-[11px] text-zinc-500 mt-0.5">Pengurus Aktif</p>
+                <p className="text-[11px] text-zinc-500 mt-0.5">{t("activeOfficers")}</p>
               </div>
               <div className="h-6 w-px bg-zinc-200" />
               <div>
                 <p className="font-serif text-lg font-bold text-[#2C5857] leading-none">2026</p>
-                <p className="text-[11px] text-zinc-500 mt-0.5">Periode Mandat</p>
+                <p className="text-[11px] text-zinc-500 mt-0.5">{t("mandatePeriod")}</p>
               </div>
             </div>
           </div>
@@ -157,30 +157,30 @@ export default function TentangPage() {
           <div className="grid md:grid-cols-12 gap-8 items-start">
             <div className="md:col-span-7 space-y-4">
               <span className="text-xs font-semibold text-[#2C5857] uppercase tracking-wider block">
-                Latar Belakang
+                {t("bgBadge")}
               </span>
               <h2 className="text-xl sm:text-2xl font-semibold text-zinc-950 font-serif leading-snug">
-                Menjawab Problematika Hukum Keluarga Melalui Riset Multidisipliner
+                {t("bgHeading")}
               </h2>
               <p className="text-sm text-zinc-600 leading-relaxed">
-                Forum Kajian Hukum Keluarga (FKHK) didirikan sebagai wadah mahasiswa untuk mendalami hukum perkawinan, kewarisan, perlindungan perempuan dan anak, serta mediasi sengketa keluarga. Kami berfokus pada integrasi norma hukum normatif dengan realitas sosiologis di pengadilan agama dan masyarakat.
+                {t("bgDesc")}
               </p>
               <div className="pt-2 border-t border-zinc-100 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-zinc-700">
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#2C5857]" />
-                  <span>Kajian Berkas Peradilan Agama</span>
+                  <span>{t("checkItem1")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#2C5857]" />
-                  <span>Publikasi Opini & Jurnal Ilmiah</span>
+                  <span>{t("checkItem2")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#2C5857]" />
-                  <span>Klinik Advokasi & Mediasi</span>
+                  <span>{t("checkItem3")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#2C5857]" />
-                  <span>Diskusi Rutin & Lokakarya Nasional</span>
+                  <span>{t("checkItem4")}</span>
                 </div>
               </div>
             </div>
@@ -188,14 +188,14 @@ export default function TentangPage() {
             {/* Kutipan Pembina */}
             <div className="md:col-span-5 bg-[#FAF7F2] border border-zinc-200/90 rounded-lg p-5">
               <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-2">
-                Amanat Pembina
+                {t("advisorTitle")}
               </span>
               <blockquote className="text-xs sm:text-sm text-zinc-700 italic leading-relaxed">
-                &ldquo;Forum ini hadir untuk memperdalam keilmuan dan mengasah keterampilan mahasiswa dalam memecahkan permasalahan hukum keluarga yang semakin kompleks di era modern.&rdquo;
+                &ldquo;{t("advisorQuote")}&rdquo;
               </blockquote>
               <div className="mt-4 pt-3 border-t border-zinc-200/60">
                 <p className="text-xs font-semibold text-zinc-900">Dr. Mansur, S.Ag., M.Ag., CM.</p>
-                <p className="text-[11px] text-zinc-500">Pembina Forum Kajian Hukum Keluarga</p>
+                <p className="text-[11px] text-zinc-500">{t("advisorRole")}</p>
               </div>
             </div>
           </div>
@@ -222,10 +222,10 @@ export default function TentangPage() {
 
           <div className="bg-white border border-zinc-200 rounded-lg p-6 sm:p-7 shadow-sm">
             <span className="text-[10px] font-bold tracking-widest text-[#D99B00] uppercase block mb-2">
-              Misi
+              Misi & Nilai Dasar
             </span>
             <h3 className="text-lg font-semibold text-zinc-950 font-serif mb-3">
-              Misi Strategis
+              {t("historyTitle")}
             </h3>
             <ol className="space-y-2.5 text-xs sm:text-sm text-zinc-600 leading-relaxed list-decimal list-inside">
               {MISI_LIST.map((m, i) => (
@@ -242,13 +242,13 @@ export default function TentangPage() {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-zinc-200 pb-3">
             <div>
               <span className="text-xs font-semibold text-[#2C5857] uppercase tracking-wider block">
-                Kepengurusan Inti
+                {t("coreLeadership")}
               </span>
               <h2 className="text-xl sm:text-2xl font-semibold text-zinc-950 font-serif">
-                Badan Pengurus Harian (BPH)
+                {t("bphTitle")}
               </h2>
             </div>
-            <p className="text-xs text-zinc-500">Masa Bakti Periode 2026</p>
+            <p className="text-xs text-zinc-500">{t("tenure2026")}</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -288,13 +288,13 @@ export default function TentangPage() {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-zinc-200 pb-3">
             <div>
               <span className="text-xs font-semibold text-[#2C5857] uppercase tracking-wider block">
-                Struktur Kerja
+                {t("workStructure")}
               </span>
               <h2 className="text-xl sm:text-2xl font-semibold text-zinc-950 font-serif">
-                Divisi & Anggota Pengurus
+                {t("divisionsHeading")}
               </h2>
             </div>
-            <p className="text-xs text-zinc-500">4 Bidang Fokus Riset & Operasional</p>
+            <p className="text-xs text-zinc-500">{t("fourFocusAreas")}</p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
@@ -315,7 +315,7 @@ export default function TentangPage() {
                         {d.nama}
                       </h3>
                       <span className="text-[10px] font-mono text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded">
-                        {membersInDiv.length > 0 ? `${membersInDiv.length} Anggota` : "6 Anggota"}
+                        {membersInDiv.length > 0 ? `${membersInDiv.length} ${t("membersSuffix")}` : `6 ${t("membersSuffix")}`}
                       </span>
                     </div>
                     <p className="text-xs text-zinc-500 leading-relaxed mb-4">

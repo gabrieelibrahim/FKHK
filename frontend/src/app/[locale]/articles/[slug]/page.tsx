@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Link } from "@/i18n/navigation";
 import { fetchArticleBySlug, fetchRelatedArticles } from "@/lib/articles";
 import { getSiteUrl, mediaUrl } from "@/lib/site";
 import { readingTime } from "@/lib/readingTime";
 import CommentSection from "@/components/CommentSection";
 
-type Props = { params: { slug: string } };
+type Props = { params: { locale: string; slug: string } };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = await fetchArticleBySlug(params.slug);
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       url,
-      locale: "id_ID",
+      locale: params.locale === "en" ? "en_US" : params.locale === "ar" ? "ar_AR" : "id_ID",
       publishedTime: article.publishedAt || undefined,
       authors: article.author?.name ? [article.author.name] : undefined,
       images: [{ url: image, alt: title }],
@@ -59,6 +59,9 @@ export default async function ArticleDetailPage({ params }: Props) {
   const article = await fetchArticleBySlug(params.slug);
   if (!article) notFound();
 
+  const locale = params.locale;
+  const dateLocale = locale === "en" ? "en-US" : locale === "ar" ? "ar-SA" : "id-ID";
+
   const siteUrl = getSiteUrl();
   const image = mediaUrl(article.imageUrl);
   const minutes = readingTime(article.content || "");
@@ -75,13 +78,13 @@ export default async function ArticleDetailPage({ params }: Props) {
                 {
                   "@type": "ListItem",
                   position: 1,
-                  name: "Beranda",
+                  name: locale === "en" ? "Home" : locale === "ar" ? "الرئيسية" : "Beranda",
                   item: siteUrl,
                 },
                 {
                   "@type": "ListItem",
                   position: 2,
-                  name: "Artikel",
+                  name: locale === "en" ? "Articles" : locale === "ar" ? "المقالات" : "Artikel",
                   item: `${siteUrl}/articles`,
                 },
                 {
@@ -137,7 +140,7 @@ export default async function ArticleDetailPage({ params }: Props) {
           {/* Back button */}
           <Link
             href="/articles"
-            className="absolute -left-14 top-0 flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-500 hover:text-primary hover:border-primary/30 hover:bg-primary/5 transition-all shadow-sm"
+            className="absolute -left-14 top-0 flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-500 hover:text-[#2C5857] hover:border-[#2C5857]/30 hover:bg-[#2C5857]/5 transition-all shadow-sm no-underline"
             aria-label="Kembali ke artikel"
           >
             <svg
@@ -165,12 +168,12 @@ export default async function ArticleDetailPage({ params }: Props) {
 
             <article className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-semibold text-accent uppercase tracking-wider">
+                <span className="text-xs font-semibold text-[#2C5857] uppercase tracking-wider">
                   {article.topic}
                 </span>
                 <span className="text-xs text-gray-400">
                   {article.publishedAt
-                    ? new Date(article.publishedAt).toLocaleDateString("id-ID", {
+                    ? new Date(article.publishedAt).toLocaleDateString(dateLocale, {
                         year: "numeric",
                         month: "long",
                         day: "numeric",
@@ -178,12 +181,15 @@ export default async function ArticleDetailPage({ params }: Props) {
                     : ""}
                 </span>
                 <span className="text-xs text-gray-400">•</span>
-                <span className="text-xs text-gray-400">{minutes} menit baca</span>
+                <span className="text-xs text-gray-400">
+                  {minutes}{" "}
+                  {locale === "en" ? "min read" : locale === "ar" ? "دقائق قراءة" : "menit baca"}
+                </span>
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-6">{article.title}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 font-serif">{article.title}</h1>
 
               <div className="flex items-center gap-3 mb-8 pb-8 border-b border-gray-100">
-                <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent font-bold text-sm">
+                <div className="w-10 h-10 rounded-full bg-[#2C5857]/10 flex items-center justify-center text-[#2C5857] font-bold text-sm">
                   {article.author.name.charAt(0)}
                 </div>
                 <div>
@@ -204,7 +210,7 @@ export default async function ArticleDetailPage({ params }: Props) {
                 </div>
               )}
 
-              <div className="prose prose-gray max-w-none leading-relaxed whitespace-pre-wrap">
+              <div className="prose prose-gray max-w-none leading-relaxed whitespace-pre-wrap text-sm sm:text-base text-zinc-800">
                 {article.content}
               </div>
 
@@ -221,7 +227,9 @@ export default async function ArticleDetailPage({ params }: Props) {
                 </div>
               )}
 
-              <div className="text-sm text-gray-400 mt-4">{article.viewCount} dilihat</div>
+              <div className="text-sm text-gray-400 mt-4">
+                {article.viewCount} {locale === "en" ? "views" : locale === "ar" ? "مشاهدة" : "dilihat"}
+              </div>
             </article>
 
             {/* Komentar + Share */}
@@ -234,7 +242,9 @@ export default async function ArticleDetailPage({ params }: Props) {
             {/* Artikel Terkait */}
             {related.length > 0 && (
               <div className="mt-8">
-                <h2 className="text-lg font-bold text-gray-900 mb-4">Baca Juga</h2>
+                <h2 className="text-lg font-bold text-gray-900 mb-4 font-serif">
+                  {locale === "en" ? "Related Articles" : locale === "ar" ? "مقالات ذات صلة" : "Baca Juga"}
+                </h2>
                 <div className="grid gap-4 sm:grid-cols-3">
                   {related.map((ra) => {
                     const rImg = mediaUrl(ra.imageUrl);
@@ -242,7 +252,7 @@ export default async function ArticleDetailPage({ params }: Props) {
                       <Link
                         key={ra.id}
                         href={`/articles/${ra.slug}`}
-                        className="flex flex-col overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition hover:shadow-md group"
+                        className="flex flex-col overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition hover:shadow-md group no-underline text-inherit"
                       >
                         {rImg && (
                           <div className="h-28 overflow-hidden">
@@ -255,7 +265,7 @@ export default async function ArticleDetailPage({ params }: Props) {
                           </div>
                         )}
                         <div className="flex flex-1 flex-col p-4">
-                          <span className="text-[10px] font-semibold text-accent uppercase tracking-wider mb-1">
+                          <span className="text-[10px] font-semibold text-[#2C5857] uppercase tracking-wider mb-1">
                             {ra.topic}
                           </span>
                           <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">
