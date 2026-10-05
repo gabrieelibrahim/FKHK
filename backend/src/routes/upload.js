@@ -8,7 +8,7 @@ const mammoth = require("mammoth");
 const { execFile } = require("child_process");
 const { promisify } = require("util");
 const execFileAsync = promisify(execFile);
-const { protect } = require("../middleware/auth");
+const { protect, authorize } = require("../middleware/auth");
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -35,12 +35,13 @@ const docUpload = multer({
     const allowedMimes = [
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "text/plain",
-      "application/msword"
+      "application/msword",
+      "application/pdf"
     ];
-    if ((ext === ".docx" || ext === ".txt") && (allowedMimes.includes(file.mimetype) || file.mimetype === "application/octet-stream")) {
+    if ((ext === ".docx" || ext === ".txt" || ext === ".pdf") && (allowedMimes.includes(file.mimetype) || file.mimetype === "application/octet-stream")) {
       cb(null, true);
     } else {
-      cb(new Error("Hanya file .docx atau .txt yang diizinkan"));
+      cb(new Error("Hanya file .docx, .txt, atau .pdf yang diizinkan"));
     }
   },
 });
@@ -139,8 +140,9 @@ router.post("/convert-heic", protect, (req, res) => {
   });
 });
 
-// Extract plain text from Word (.docx) or .txt for article content
-router.post("/extract-text", protect, (req, res) => {
+// Extract plain text from Word (.docx), .txt, or PDF for article content
+// File diproses di memori dan TIDAK disimpan ke disk — hemat storage server.
+router.post("/extract-text", protect, authorize("superadmin", "admin_kaset"), (req, res) => {
   docUpload.single("file")(req, res, async (err) => {
     if (err) return res.status(400).json({ message: err.message });
     try {
@@ -151,6 +153,10 @@ router.post("/extract-text", protect, (req, res) => {
 
       if (ext === ".txt") {
         text = req.file.buffer.toString("utf8");
+      } else if (ext === ".pdf") {
+        const pdfParse = require("pdf-parse");
+        const pdfData = await pdfParse(req.file.buffer);
+        text = (pdfData.text || "").trim();
       } else {
         const result = await mammoth.extractRawText({ buffer: req.file.buffer });
         text = (result.value || "").trim();

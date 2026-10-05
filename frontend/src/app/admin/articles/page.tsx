@@ -51,6 +51,8 @@ export default function AdminArticlesPage() {
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [uploadedDocName, setUploadedDocName] = useState("");
   const [createForm, setCreateForm] = useState({
     title: "",
     topic: "General",
@@ -216,6 +218,40 @@ export default function AdminArticlesPage() {
       setCreateError(err.message);
     } finally {
       setUploadingImage(false);
+    }
+  };
+
+  const handleCreateDocUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingDoc(true);
+    setCreateError("");
+    try {
+      const token = getToken();
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/extract-text`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Gagal mengekstrak teks");
+      if (!data.text || !data.text.trim()) throw new Error("Tidak ada teks yang bisa diekstrak dari file");
+      setCreateForm((prev) => ({ ...prev, content: data.text.trim() }));
+      setUploadedDocName(data.filename || file.name);
+      if (!file.name) setUploadedDocName(file.name);
+      // Isi judul otomatis dari nama file jika masih kosong
+      setCreateForm((prev) => {
+        if (prev.title.trim()) return prev;
+        const baseName = (data.filename || file.name || "").replace(/\.(docx|pdf|txt)$/i, "").replace(/[-_]+/g, " ").trim();
+        return baseName ? { ...prev, title: baseName } : prev;
+      });
+    } catch (err: any) {
+      setCreateError(err.message);
+    } finally {
+      setUploadingDoc(false);
+      e.target.value = "";
     }
   };
 
@@ -595,14 +631,39 @@ export default function AdminArticlesPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">Konten *</label>
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <input
+                    type="file"
+                    accept=".docx,.txt,.pdf"
+                    className="hidden"
+                    id="create-article-doc"
+                    onChange={handleCreateDocUpload}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById("create-article-doc")?.click()}
+                    disabled={uploadingDoc}
+                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
+                  >
+                    {uploadingDoc ? "Mengekstrak..." : "Upload Word/PDF"}
+                  </button>
+                  {uploadedDocName && (
+                    <span className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5 max-w-[240px] truncate">
+                      ✓ {uploadedDocName}
+                    </span>
+                  )}
+                </div>
                 <textarea
                   rows={10}
                   required
                   value={createForm.content}
                   onChange={(e) => setCreateForm({ ...createForm, content: e.target.value })}
-                  placeholder="Tulis isi artikel di sini..."
+                  placeholder="Tulis isi artikel di sini, atau upload file Word/PDF untuk isi otomatis..."
                   className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none font-mono leading-relaxed"
                 />
+                <p className="text-[11px] text-gray-500 mt-1">
+                  Upload .docx/.pdf/.txt — teksnya otomatis masuk ke kolom konten, lalu bisa diedit. File tidak disimpan di server.
+                </p>
               </div>
 
               <label className="flex items-center gap-2 text-sm text-gray-700">

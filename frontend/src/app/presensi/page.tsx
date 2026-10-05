@@ -147,6 +147,21 @@ export default function PresensiPage() {
     }
   };
 
+  const formatTime = (dateString: string) => {
+    try {
+      const d = new Date(dateString);
+      return (
+        d.toLocaleTimeString("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: "Asia/Jakarta",
+        }) + " WIB"
+      );
+    } catch {
+      return "";
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-[#1A1A1A] flex flex-col justify-between selection:bg-[#2C5857] selection:text-white">
       {/* Header Bar */}
@@ -315,7 +330,13 @@ export default function PresensiPage() {
                     <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span>{formatDate(selectedEvent.dateTime)}</span>
+                    <span>
+                      {formatDate(selectedEvent.dateTime)}
+                      {formatTime(selectedEvent.dateTime) && ` · ${formatTime(selectedEvent.dateTime)}`}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-[#4D7C0F] pt-0.5">
+                    Presensi dibuka 15 menit sebelum mulai dan ditutup 3 jam setelah jadwal.
                   </div>
                   {selectedEvent.location && (
                     <div className="text-[11px] text-[#15803D] flex items-center gap-1.5">

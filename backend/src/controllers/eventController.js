@@ -283,9 +283,20 @@ exports.getRegistrations = async (req, res, next) => {
 
 exports.getActiveEventsForPresensi = async (req, res, next) => {
   try {
+    // Hanya event hari ini (zona WIB) — presensi hanya dibuka hari-H
+    const wibOffsetMs = 7 * 60 * 60 * 1000;
+    const nowWib = new Date(Date.now() + wibOffsetMs);
+    const todayWibStr = nowWib.toISOString().slice(0, 10);
+    const startOfDayUtc = new Date(todayWibStr + "T00:00:00.000Z").getTime() - wibOffsetMs;
+    const endOfDayUtc = startOfDayUtc + 24 * 60 * 60 * 1000;
+
     const events = await prisma.event.findMany({
       where: {
-        status: { in: ["upcoming", "ongoing"] }
+        status: { in: ["upcoming", "ongoing"] },
+        dateTime: {
+          gte: new Date(startOfDayUtc),
+          lt: new Date(endOfDayUtc),
+        },
       },
       select: {
         id: true,
@@ -300,7 +311,7 @@ exports.getActiveEventsForPresensi = async (req, res, next) => {
           select: { registrations: true }
         }
       },
-      orderBy: { dateTime: "desc" },
+      orderBy: { dateTime: "asc" },
       take: 10
     });
 
@@ -340,14 +351,35 @@ exports.recordPresensi = async (req, res, next) => {
     // === Anti-manipulasi 1: jendela waktu presensi (hari-H saja, WIB) ===
     const now = new Date();
     const eventDate = new Date(event.dateTime);
-    // hari kegiatan dalam zona WIB (UTC+7)
+    // hari & jam kegiatan dalam zona WIB (UTC+7)
     const wibOffsetMs = 7 * 60 * 60 * 1000;
-    const nowWibDay = new Date(now.getTime() + wibOffsetMs).toISOString().slice(0, 10);
-    const eventWibDay = new Date(eventDate.getTime() + wibOffsetMs).toISOString().slice(0, 10);
+    const nowWib = new Date(now.getTime() + wibOffsetMs);
+    const eventWib = new Date(eventDate.getTime() + wibOffsetMs);
+    const nowWibDay = nowWib.toISOString().slice(0, 10);
+    const eventWibDay = eventWib.toISOString().slice(0, 10);
     if (nowWibDay !== eventWibDay) {
       return res.status(400).json({
         success: false,
         message: "Presensi hanya bisa diisi pada hari kegiatan berlangsung."
+      });
+    }
+
+    // === Jendela jam presensi: dibuka 15 menit sebelum mulai, ditutup 3 jam setelah mulai ===
+    const PRESENSI_OPEN_BEFORE_MS = 15 * 60 * 1000;
+    const PRESENSI_CLOSE_AFTER_MS = 3 * 60 * 60 * 1000;
+    const openAtMs = eventWib.getTime() - PRESENSI_OPEN_BEFORE_MS;
+    const closeAtMs = eventWib.getTime() + PRESENSI_CLOSE_AFTER_MS;
+    if (nowWib.getTime() < openAtMs) {
+      const jamMulai = eventWib.toISOString().slice(11, 16);
+      return res.status(400).json({
+        success: false,
+        message: `Presensi belum dibuka. Kegiatan dimulai pukul ${jamMulai} WIB — presensi dibuka 15 menit sebelum mulai.`
+      });
+    }
+    if (nowWib.getTime() > closeAtMs) {
+      return res.status(400).json({
+        success: false,
+        message: "Sesi presensi sudah ditutup (3 jam setelah jadwal mulai kegiatan)."
       });
     }
 
