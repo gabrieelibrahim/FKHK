@@ -1,18 +1,33 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Presensi Mandiri — FKHK UIN Sunan Kalijaga",
-  description: "Portal check-in presensi mandiri kegiatan Forum Kajian Hukum Keluarga",
+  title: "Presensi FKHK — Absensi Kegiatan Online",
+  description:
+    "Halaman presensi online FKHK UIN Sunan Kalijaga. Isi kehadiran kegiatan, seminar, dan kajian FKHK langsung dari HP — cepat, tanpa ribet.",
+  keywords: [
+    "presensi FKHK",
+    "absensi FKHK",
+    "presensi online FKHK",
+    "Presensi FKHK UIN Sunan Kalijaga",
+    "absensi kegiatan FKHK",
+  ],
+  alternates: {
+    canonical: "./",
+  },
+  openGraph: {
+    title: "Presensi FKHK — Absensi Kegiatan Online",
+    description:
+      "Isi kehadiran kegiatan, seminar, dan kajian FKHK UIN Sunan Kalijaga langsung dari HP.",
+    url: "/presensi",
+    type: "website",
+    locale: "id_ID",
+    siteName: "FKHK",
+    images: ["/og-image.jpg"],
+  },
 };
 
 export default function PresensiLayout({
   children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="min-h-screen bg-[#F8F9FA] fixed inset-0 z-[9999] overflow-y-auto">
-      {children}
-    </div>
-  );
+}: Readonly<{ children: React.ReactNode }>) {
+  return children;
 }
