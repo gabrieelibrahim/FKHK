@@ -343,14 +343,30 @@ exports.getActiveEventsForPresensi = async (req, res, next) => {
   }
 };
 
+// POST /api/events/presensi/record — WAJIB LOGIN (khusus anggota FKHK)
 exports.recordPresensi = async (req, res, next) => {
   try {
-    const { eventId, identifier, name, institution, phone, code } = req.body;
+    if (!req.member) {
+      return res.status(401).json({
+        success: false,
+        message: "Presensi khusus anggota FKHK. Silakan login terlebih dahulu."
+      });
+    }
 
-    if (!eventId || (!identifier && !name)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Kegiatan dan NIM atau Nama wajib diisi" 
+    const member = await prisma.member.findUnique({
+      where: { id: req.member.id },
+      select: { id: true, name: true, nim: true, email: true, affiliation: true }
+    });
+    if (!member) {
+      return res.status(401).json({ success: false, message: "Akun tidak ditemukan." });
+    }
+
+    const { eventId, code } = req.body;
+
+    if (!eventId) {
+      return res.status(400).json({
+        success: false,
+        message: "Kegiatan wajib dipilih"
       });
     }
 
@@ -421,43 +437,24 @@ exports.recordPresensi = async (req, res, next) => {
       req.socket.remoteAddress ||
       null;
 
-    const cleanInput = (identifier || name || "").trim();
-    const isEmail = cleanInput.includes("@");
-    const isDigitOnly = /^[0-9]+$/.test(cleanInput);
+    // Identitas diambil dari akun yang login — bukan dari input form (anti titip absen)
+    const resolvedName = member.name;
+    const resolvedEmail = member.email;
+    const resolvedNim = member.nim;
 
-    let matchedMember = null;
-    if (isDigitOnly && cleanInput.length >= 7) {
-      matchedMember = await prisma.member.findFirst({
-        where: { nim: cleanInput }
-      });
-    } else if (isEmail) {
-      matchedMember = await prisma.member.findFirst({
-        where: { email: cleanInput.toLowerCase() }
-      });
-    }
-
-    let registration = null;
-
-    if (matchedMember) {
+    // Cari registration yang sudah ada untuk member ini di event ini
+    let registration = await prisma.registration.findFirst({
+      where: { eventId: event.id, memberId: member.id }
+    });
+    if (!registration && resolvedNim) {
       registration = await prisma.registration.findFirst({
-        where: { eventId: event.id, memberId: matchedMember.id }
+        where: { eventId: event.id, nim: resolvedNim }
       });
     }
-
     if (!registration) {
-      if (isDigitOnly && cleanInput.length >= 7) {
-        registration = await prisma.registration.findFirst({
-          where: { eventId: event.id, nim: cleanInput }
-        });
-      } else if (isEmail) {
-        registration = await prisma.registration.findFirst({
-          where: { eventId: event.id, email: cleanInput.toLowerCase() }
-        });
-      } else {
-        registration = await prisma.registration.findFirst({
-          where: { eventId: event.id, name: { equals: cleanInput, mode: "insensitive" } }
-        });
-      }
+      registration = await prisma.registration.findFirst({
+        where: { eventId: event.id, email: resolvedEmail.toLowerCase() }
+      });
     }
 
     if (registration) {
@@ -467,9 +464,9 @@ exports.recordPresensi = async (req, res, next) => {
           alreadyAttended: true,
           message: "Presensi sudah tercatat sebelumnya.",
           data: {
-            name: registration.name || (matchedMember ? matchedMember.name : cleanInput),
-            nim: registration.nim || (matchedMember ? matchedMember.nim : null),
-            institution: registration.institution || (matchedMember ? matchedMember.affiliation : "FKHK"),
+            name: registration.name || resolvedName,
+            nim: registration.nim || resolvedNim,
+            institution: registration.institution || (member.affiliation || "FKHK"),
             eventTitle: event.title,
             attended: true,
             registeredAt: registration.registeredAt
@@ -479,16 +476,20 @@ exports.recordPresensi = async (req, res, next) => {
 
       const updated = await prisma.registration.update({
         where: { id: registration.id },
-        data: { attended: true, presensiIp: clientIp }
+        data: {
+          attended: true,
+          presensiIp: clientIp,
+          memberId: registration.memberId || member.id
+        }
       });
 
       return res.status(200).json({
         success: true,
         message: "Presensi berhasil dicatat!",
         data: {
-          name: updated.name || (matchedMember ? matchedMember.name : cleanInput),
-          nim: updated.nim || (matchedMember ? matchedMember.nim : null),
-          institution: updated.institution || (matchedMember ? matchedMember.affiliation : "FKHK"),
+          name: updated.name || resolvedName,
+          nim: updated.nim || resolvedNim,
+          institution: updated.institution || (member.affiliation || "FKHK"),
           eventTitle: event.title,
           attended: true,
           registeredAt: updated.registeredAt
@@ -496,19 +497,14 @@ exports.recordPresensi = async (req, res, next) => {
       });
     }
 
-    const resolvedName = matchedMember ? matchedMember.name : (name ? name.trim() : (isDigitOnly ? "Anggota (" + cleanInput + ")" : cleanInput));
-    const resolvedEmail = matchedMember ? matchedMember.email : (isEmail ? cleanInput.toLowerCase() : cleanInput.toLowerCase().replace(/[^a-z0-9]/g, "") + "@presensi.fkhk.id");
-    const resolvedNim = matchedMember ? matchedMember.nim : (isDigitOnly ? cleanInput : null);
-
     const newReg = await prisma.registration.create({
       data: {
         eventId: event.id,
-        memberId: matchedMember ? matchedMember.id : null,
+        memberId: member.id,
         name: resolvedName,
         email: resolvedEmail,
         nim: resolvedNim,
-        phone: phone ? phone.trim() : (matchedMember ? matchedMember.phone : null),
-        institution: institution ? institution.trim() : (matchedMember ? matchedMember.affiliation : (event.category === "internal" ? "Internal FKHK" : "Umum")),
+        institution: member.affiliation || (event.category === "internal" ? "Internal FKHK" : "FKHK"),
         attended: true,
         presensiIp: clientIp
       }

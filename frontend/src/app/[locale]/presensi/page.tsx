@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useAuth } from "@/context/AuthContext";
 
 interface EventItem {
   id: number;
@@ -29,11 +30,25 @@ interface AttendedData {
   registeredAt: string;
 }
 
+function getToken(): string | null {
+  if (typeof document === "undefined") return null;
+  const cookie = document.cookie
+    .split("; ")
+    .find((r) => r.startsWith("fkhk_token="))
+    ?.split("=")[1];
+  if (cookie) return cookie;
+  try {
+    return localStorage.getItem("fkhk_token");
+  } catch {
+    return null;
+  }
+}
+
 export default function PresensiPage() {
+  const { member, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [events, setEvents] = useState<EventItem[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<number | "">("");
-  const [identifier, setIdentifier] = useState("");
-  const [fullName, setFullName] = useState("");
   const [presensiCode, setPresensiCode] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -45,6 +60,9 @@ export default function PresensiPage() {
   const locale = useLocale();
 
   const dateLocale = locale === "en" ? "en-US" : locale === "ar" ? "ar-SA" : "id-ID";
+
+  const L = (id: string, en: string, ar: string) =>
+    locale === "en" ? en : locale === "ar" ? ar : id;
 
   useEffect(() => {
     const updateClock = () => {
@@ -64,14 +82,18 @@ export default function PresensiPage() {
   }, [dateLocale, locale]);
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    if (!authLoading && member) {
+      fetchEvents();
+    } else if (!authLoading && !member) {
+      setLoading(false);
+    }
+  }, [authLoading, member]);
 
   const fetchEvents = async () => {
     try {
       setLoading(true);
       setErrorMsg("");
-      const res = await fetch("/api/events/presensi/active");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/presensi/active`);
       const json = await res.json();
       if (json.success && json.data) {
         setEvents(json.data);
@@ -100,21 +122,11 @@ export default function PresensiPage() {
     e.preventDefault();
     if (!selectedEventId) {
       setErrorMsg(
-        locale === "en"
-          ? "Please select an activity first."
-          : locale === "ar"
-          ? "يرجى اختيار الفعالية أولاً."
-          : "Silakan pilih kegiatan terlebih dahulu."
-      );
-      return;
-    }
-    if (!identifier.trim()) {
-      setErrorMsg(
-        locale === "en"
-          ? "Student ID (NIM) or Identity is required."
-          : locale === "ar"
-          ? "رقم القيد الجامعي أو الهوية مطلوب."
-          : "Nomor Induk Mahasiswa (NIM) atau Identitas wajib diisi."
+        L(
+          "Silakan pilih kegiatan terlebih dahulu.",
+          "Please select an activity first.",
+          "يرجى اختيار الفعالية أولاً."
+        )
       );
       return;
     }
@@ -122,22 +134,32 @@ export default function PresensiPage() {
     try {
       setSubmitting(true);
       setErrorMsg("");
+      const token = getToken();
       const payload = {
         eventId: Number(selectedEventId),
-        identifier: identifier.trim(),
-        name: fullName.trim() || undefined,
         code: presensiCode.trim() || undefined,
       };
 
-      const res = await fetch("/api/events/presensi/record", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/presensi/record`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify(payload),
       });
 
       const json = await res.json();
       if (res.ok && json.success) {
         setSuccessData(json.data);
+      } else if (res.status === 401) {
+        setErrorMsg(
+          L(
+            "Sesi login berakhir. Silakan login ulang.",
+            "Your session has ended. Please log in again.",
+            "انتهت جلسة تسجيل الدخول. يرجى تسجيل الدخول مرة أخرى."
+          )
+        );
       } else {
         setErrorMsg(
           json.message ||
@@ -163,8 +185,6 @@ export default function PresensiPage() {
 
   const handleReset = () => {
     setSuccessData(null);
-    setIdentifier("");
-    setFullName("");
     setPresensiCode("");
     setErrorMsg("");
   };
@@ -197,6 +217,8 @@ export default function PresensiPage() {
       return "";
     }
   };
+
+  const loginHref = locale === "id" ? "/auth/login" : `/${locale}/auth/login`;
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-[#1A1A1A] flex flex-col justify-between selection:bg-[#2C5857] selection:text-white">
@@ -232,10 +254,56 @@ export default function PresensiPage() {
 
       {/* Main Container */}
       <main className="flex-1 max-w-md w-full mx-auto p-4 sm:p-5 flex flex-col justify-center">
-        {loading ? (
+        {authLoading || loading ? (
           <div className="bg-white rounded-2xl p-8 border border-[#E5E7EB] text-center shadow-sm">
             <div className="w-9 h-9 border-2 border-[#2C5857] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
             <p className="text-xs text-[#6B7280] font-medium">{t("submittingBtn")}</p>
+          </div>
+        ) : !member ? (
+          /* ============ KARTU WAJIB LOGIN ============ */
+          <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[#E5E7EB] shadow-sm text-center">
+            <div className="w-14 h-14 bg-[#2C5857]/10 text-[#2C5857] rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+                />
+              </svg>
+            </div>
+
+            <h2 className="text-lg font-bold text-[#1A1A1A] leading-snug">
+              {L("Login Dulu, Ya!", "Please Log In First", "سجّل الدخول أولاً")}
+            </h2>
+            <p className="text-xs text-[#6B7280] mt-2 mb-6 leading-relaxed">
+              {L(
+                "Presensi kegiatan FKHK kini khusus anggota. Masuk dengan akun anggota FKHK untuk mencatat kehadiran — anti titip absen.",
+                "FKHK attendance is now for members only. Log in with your FKHK member account to record your attendance — no more proxy check-ins.",
+                "حضور فعاليات FKHK أصبح للأعضاء فقط. سجّل الدخول بحسابك كعضو في FKHK لتسجيل حضورك."
+              )}
+            </p>
+
+            <a
+              href={loginHref}
+              className="w-full inline-flex items-center justify-center gap-2 py-3 bg-[#2C5857] hover:bg-[#1e3e3d] active:scale-[0.99] text-white font-semibold text-xs rounded-xl transition duration-150 shadow-sm no-underline"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"
+                />
+              </svg>
+              {L("Masuk Akun Anggota", "Log In as Member", "تسجيل الدخول كعضو")}
+            </a>
+
+            <p className="text-[11px] text-[#9CA3AF] mt-4">
+              {L(
+                "Belum punya akun? Hubungi admin FKHK.",
+                "Don't have an account? Contact the FKHK admin.",
+                "ليس لديك حساب؟ تواصل مع مسؤول FKHK."
+              )}
+            </p>
           </div>
         ) : successData ? (
           /* Card Bukti Presensi */
@@ -295,7 +363,7 @@ export default function PresensiPage() {
             </button>
           </div>
         ) : (
-          /* Form Input Presensi Cepat */
+          /* Form Presensi Anggota */
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-[#E5E7EB] shadow-sm">
             <div className="mb-5">
               <span className="inline-block px-2 py-0.5 bg-[#2C5857]/10 text-[#2C5857] text-[10px] font-bold uppercase tracking-wider rounded">
@@ -307,6 +375,25 @@ export default function PresensiPage() {
               <p className="text-xs text-[#6B7280] mt-0.5">
                 {t("subtitle")}
               </p>
+            </div>
+
+            {/* Kartu identitas anggota yang login */}
+            <div className="mb-4 p-3 bg-[#2C5857]/5 border border-[#2C5857]/15 rounded-xl flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-[#2C5857] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                {(member.name || "?").charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-semibold text-[#1A1A1A] truncate">{member.name}</div>
+                <div className="text-[11px] text-[#6B7280] truncate">{member.email}</div>
+              </div>
+              <div className="ml-auto shrink-0">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  {L("Terverifikasi", "Verified", "موثّق")}
+                </span>
+              </div>
             </div>
 
             {errorMsg && (
@@ -395,38 +482,6 @@ export default function PresensiPage() {
                   </p>
                 </div>
               )}
-
-              {/* Input Identitas / NIM */}
-              <div>
-                <label className="block text-xs font-semibold text-[#374151] mb-1.5">
-                  {t("identifierLabel")} <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder={t("identifierPlaceholder")}
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  className="w-full bg-[#F9FAFB] border border-[#D1D5DB] rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#1A1A1A] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2C5857] focus:border-transparent transition"
-                />
-                <p className="text-[11px] text-[#6B7280] mt-1">
-                  {t("identifierHelp")}
-                </p>
-              </div>
-
-              {/* Input Nama Lengkap (Opsional / Tamu) */}
-              <div>
-                <label className="block text-xs font-semibold text-[#374151] mb-1.5">
-                  {t("fullNameLabel")}
-                </label>
-                <input
-                  type="text"
-                  placeholder={t("fullNamePlaceholder")}
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="w-full bg-[#F9FAFB] border border-[#D1D5DB] rounded-xl px-3.5 py-2.5 text-xs text-[#1A1A1A] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2C5857] focus:border-transparent transition"
-                />
-              </div>
 
               {/* Submit Button */}
               <button

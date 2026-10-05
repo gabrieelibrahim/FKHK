@@ -8,7 +8,8 @@ const ADMIN_ROLES = ['superadmin', 'admin_kaset', 'admin_psdm', 'admin_bph', 'ad
 // Public
 router.get('/', optionalProtect, eventController.getEvents);
 router.get('/presensi/active', eventController.getActiveEventsForPresensi);
-router.post('/presensi/record', eventController.recordPresensi);
+// Presensi wajib login anggota — optionalProtect agar menghasilkan 401 custom jika tidak ada token
+router.post('/presensi/record', optionalProtect, eventController.recordPresensi);
 router.get('/:slug', optionalProtect, eventController.getEventBySlug);
 
 // Protected (Admin)

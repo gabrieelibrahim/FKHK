@@ -38,6 +38,7 @@ exports.login = async (req, res, next) => {
         email: member.email,
         name: member.name,
         role: member.role,
+        mustChangePassword: member.mustChangePassword || false,
       },
     });
   } catch (err) {
@@ -49,10 +50,49 @@ exports.me = async (req, res, next) => {
   try {
     const member = await prisma.member.findUnique({
       where: { id: req.member.id },
-      select: { id: true, email: true, name: true, role: true, affiliation: true, avatarUrl: true },
+      select: { id: true, email: true, name: true, role: true, affiliation: true, avatarUrl: true, mustChangePassword: true },
     });
     if (!member) return res.status(404).json({ message: 'Member not found' });
     res.json(member);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /api/auth/change-password — ganti password sendiri (dari dashboard, termasuk pemaksaan ganti password awal)
+exports.changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Password lama dan password baru wajib diisi' });
+    }
+    if (String(newPassword).length < 6) {
+      return res.status(400).json({ message: 'Password baru minimal 6 karakter' });
+    }
+
+    const member = await prisma.member.findUnique({ where: { id: req.member.id } });
+    if (!member) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, member.passwordHash);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Password lama salah' });
+    }
+
+    const salt = await bcrypt.genSalt(parseInt(process.env.BCRYPT_SALT_ROUNDS || '10'));
+    const passwordHash = await bcrypt.hash(newPassword, salt);
+
+    await prisma.member.update({
+      where: { id: member.id },
+      data: {
+        passwordHash,
+        mustChangePassword: false,
+      },
+    });
+
+    res.status(200).json({ message: 'Password berhasil diganti' });
   } catch (err) {
     next(err);
   }
