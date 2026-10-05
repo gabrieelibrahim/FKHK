@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 interface Member {
   id: number;
   name: string;
+  nim?: string;
   email: string;
   affiliation: string;
   role: string;
@@ -12,11 +14,13 @@ interface Member {
 }
 
 export default function AdminMembersPage() {
+  const { member } = useAuth();
+  const isSuperadmin = member?.role === "superadmin";
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState({ name: "", email: "", password: "", affiliation: "", role: "member" });
+  const [form, setForm] = useState({ name: "", nim: "", email: "", password: "", affiliation: "", role: "member" });
   const [formError, setFormError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
 
@@ -37,14 +41,14 @@ export default function AdminMembersPage() {
 
   const openCreate = () => {
     setEditingId(null);
-    setForm({ name: "", email: "", password: "", affiliation: "", role: "member" });
+    setForm({ name: "", nim: "", email: "", password: "", affiliation: "", role: "member" });
     setFormError("");
     setShowModal(true);
   };
 
   const openEdit = (m: Member) => {
     setEditingId(m.id);
-    setForm({ name: m.name, email: m.email, password: "", affiliation: m.affiliation || "", role: m.role });
+    setForm({ name: m.name, nim: m.nim || "", email: m.email, password: "", affiliation: m.affiliation || "", role: m.role });
     setFormError("");
     setShowModal(true);
   };
@@ -83,7 +87,7 @@ export default function AdminMembersPage() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/members/${editingId}/admin`, {
           method: "PUT",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
-          body: JSON.stringify({ name: form.name, email: form.email, affiliation: form.affiliation, role: form.role }),
+          body: JSON.stringify({ name: form.name, nim: form.nim, email: form.email, affiliation: form.affiliation, role: form.role, ...(form.password ? { password: form.password } : {}) }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Gagal mengubah anggota");
@@ -98,7 +102,7 @@ export default function AdminMembersPage() {
         if (!res.ok) throw new Error(data.message || "Gagal menambah anggota");
       }
       setShowModal(false);
-      setForm({ name: "", email: "", password: "", affiliation: "", role: "member" });
+      setForm({ name: "", nim: "", email: "", password: "", affiliation: "", role: "member" });
       setEditingId(null);
       fetchMembers();
     } catch (err: any) {
@@ -142,6 +146,7 @@ export default function AdminMembersPage() {
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50/75">
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Nama</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600">NIM</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Email</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Afiliasi</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Role</th>
@@ -160,6 +165,7 @@ export default function AdminMembersPage() {
                           <span className="font-medium text-gray-900">{m.name}</span>
                         </div>
                       </td>
+                      <td className="px-4 py-3 text-gray-600 font-mono text-xs">{m.nim || "-"}</td>
                       <td className="px-4 py-3 text-gray-600">{m.email}</td>
                       <td className="px-4 py-3 text-gray-600">{m.affiliation || "-"}</td>
                       <td className="px-4 py-3">
@@ -170,8 +176,12 @@ export default function AdminMembersPage() {
                       <td className="px-4 py-3 text-gray-500">{new Date(m.createdAt).toLocaleDateString("id-ID")}</td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex justify-end gap-1.5">
-                          <button onClick={() => openEdit(m)} className="min-h-9 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 hover:text-primary lg:min-h-0 lg:px-2.5 lg:py-1">Edit</button>
-                          <button onClick={() => handleDelete(m.id)} className="min-h-9 rounded-lg border border-red-200/60 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-100 lg:min-h-0 lg:px-2.5 lg:py-1">Hapus</button>
+                          {isSuperadmin && (
+                            <button onClick={() => openEdit(m)} className="min-h-9 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 hover:text-primary lg:min-h-0 lg:px-2.5 lg:py-1">Edit</button>
+                          )}
+                          {isSuperadmin && (
+                            <button onClick={() => handleDelete(m.id)} className="min-h-9 rounded-lg border border-red-200/60 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-100 lg:min-h-0 lg:px-2.5 lg:py-1">Hapus</button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -199,17 +209,25 @@ export default function AdminMembersPage() {
                   </div>
                   <dl className="mt-4 grid grid-cols-2 gap-3 text-xs">
                     <div>
+                      <dt className="text-gray-400">NIM</dt>
+                      <dd className="mt-1 truncate font-mono text-gray-700">{m.nim || "-"}</dd>
+                    </div>
+                    <div>
                       <dt className="text-gray-400">Afiliasi</dt>
                       <dd className="mt-1 truncate font-medium text-gray-700">{m.affiliation || "-"}</dd>
                     </div>
-                    <div>
+                    <div className="col-span-2">
                       <dt className="text-gray-400">Bergabung</dt>
                       <dd className="mt-1 font-medium text-gray-700">{new Date(m.createdAt).toLocaleDateString("id-ID")}</dd>
                     </div>
                   </dl>
                   <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:justify-end">
-                    <button onClick={() => openEdit(m)} className="min-h-10 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50 hover:text-primary">Edit</button>
-                    <button onClick={() => handleDelete(m.id)} className="min-h-10 rounded-lg border border-red-200/60 bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-100">Hapus</button>
+                    {isSuperadmin && (
+                      <button onClick={() => openEdit(m)} className="min-h-10 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50 hover:text-primary">Edit</button>
+                    )}
+                    {isSuperadmin && (
+                      <button onClick={() => handleDelete(m.id)} className="min-h-10 rounded-lg border border-red-200/60 bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-100">Hapus</button>
+                    )}
                   </div>
                 </article>
               ))}
@@ -238,6 +256,16 @@ export default function AdminMembersPage() {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">NIM (Nomor Induk Mahasiswa)</label>
+                <input
+                  type="text"
+                  value={form.nim}
+                  onChange={(e) => setForm({ ...form, nim: e.target.value })}
+                  placeholder="Contoh: 21106050012"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono"
+                />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <input
                   type="email"
@@ -247,7 +275,7 @@ export default function AdminMembersPage() {
                   required
                 />
               </div>
-              {!editingId && (
+              {!editingId ? (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                   <input
@@ -255,7 +283,19 @@ export default function AdminMembersPage() {
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                    required={!editingId}
+                    required
+                    minLength={6}
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Password Baru (Opsional)</label>
+                  <input
+                    type="password"
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    placeholder="Kosongkan jika tidak ingin mengganti password"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                     minLength={6}
                   />
                 </div>

@@ -3,7 +3,7 @@ const prisma = require('../lib/prisma');
 
 exports.createMember = async (req, res, next) => {
   try {
-    const { email, password, name, affiliation, phone, role } = req.body;
+    const { email, password, name, nim, affiliation, phone, role } = req.body;
 
     if (!email || !password || !name) {
       return res.status(400).json({ message: 'Email, password, and name are required' });
@@ -17,19 +17,25 @@ exports.createMember = async (req, res, next) => {
     const salt = await bcrypt.genSalt(parseInt(process.env.BCRYPT_SALT_ROUNDS || '10'));
     const passwordHash = await bcrypt.hash(password, salt);
 
+    // Guard: hanya superadmin yang boleh menetapkan role.
+    // Role lain (mis. admin_bph) membuat anggota selalu dengan role 'member'.
+    const assignedRole = req.member.role === 'superadmin' ? (role || 'member') : 'member';
+
     const member = await prisma.member.create({
       data: {
         email,
         passwordHash,
         name,
+        nim: nim || null,
         affiliation: affiliation || null,
         phone: phone || null,
-        role: role || 'member',
+        role: assignedRole,
       },
       select: {
         id: true,
         email: true,
         name: true,
+        nim: true,
         affiliation: true,
         role: true,
         createdAt: true,
@@ -56,6 +62,7 @@ exports.getMembers = async (req, res, next) => {
       select: {
         id: true,
         name: true,
+        nim: true,
         email: true,
         affiliation: true,
         bio: true,
@@ -92,6 +99,7 @@ exports.getMemberById = async (req, res, next) => {
       select: {
         id: true,
         name: true,
+        nim: true,
         email: true,
         affiliation: true,
         bio: true,
@@ -119,10 +127,14 @@ exports.getMemberById = async (req, res, next) => {
 exports.updateMemberByAdmin = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name, email, affiliation, phone, role } = req.body;
+    const { name, email, nim, affiliation, phone, role, password } = req.body;
 
     if (!name || !email) {
       return res.status(400).json({ message: 'Nama dan email wajib diisi' });
+    }
+
+    if (password && String(password).length < 6) {
+      return res.status(400).json({ message: 'Password minimal 6 karakter' });
     }
 
     const existing = await prisma.member.findUnique({ where: { email } });
@@ -130,18 +142,26 @@ exports.updateMemberByAdmin = async (req, res, next) => {
       return res.status(409).json({ message: 'Email sudah digunakan' });
     }
 
+    const data = {
+      name,
+      email,
+      nim: nim || null,
+      affiliation: affiliation || null,
+      phone: phone || null,
+      role: role || 'member',
+    };
+    if (password) {
+      const salt = await bcrypt.genSalt(Number(process.env.BCRYPT_SALT_ROUNDS) || 10);
+      data.passwordHash = await bcrypt.hash(password, salt);
+    }
+
     const updatedMember = await prisma.member.update({
       where: { id: parseInt(id) },
-      data: {
-        name,
-        email,
-        affiliation: affiliation || null,
-        phone: phone || null,
-        role: role || 'member',
-      },
+      data,
       select: {
         id: true,
         name: true,
+        nim: true,
         email: true,
         affiliation: true,
         role: true,
@@ -193,6 +213,7 @@ exports.updateMemberProfile = async (req, res, next) => {
       select: {
         id: true,
         name: true,
+        nim: true,
         email: true,
         affiliation: true,
         bio: true,
