@@ -64,9 +64,11 @@ interface Achievement {
   recipient?: string;
   title: string;
   year: number | string;
+  event?: string | null;
   initials?: string;
   description?: string;
   photo?: string | null;
+  category?: string | null;
 }
 
 export default function PrestasiPage() {
@@ -111,6 +113,10 @@ export default function PrestasiPage() {
   }
 
   function getCategory(item: Achievement): "kompetisi" | "jurnal" | "konferensi" {
+    // Kategori tersimpan dari admin (field eksplisit); fallback deteksi kata kunci untuk data lama
+    if (item.category === "kompetisi" || item.category === "jurnal" || item.category === "konferensi") {
+      return item.category;
+    }
     const t = (item.title + " " + (item.description || "")).toLowerCase();
     if (t.includes("juara") || t.includes("lomba") || t.includes("fest")) {
       return "kompetisi";
@@ -295,6 +301,12 @@ export default function PrestasiPage() {
                               {item.title}
                             </h3>
 
+                            {item.event && (
+                              <p className="text-xs text-[#525252] mb-2">
+                                <span className="font-semibold text-[#2C5857]">Ajang:</span> {item.event}
+                              </p>
+                            )}
+
                             {item.description && (
                               <p className="text-xs sm:text-sm text-[#525252] mb-4 leading-relaxed">
                                 {item.description}
@@ -302,9 +314,13 @@ export default function PrestasiPage() {
                             )}
 
                             <div className="pt-3 border-t border-[#f0ece6] flex items-center gap-2 text-xs">
-                              <div className="w-7 h-7 rounded-full bg-[#f0f7f7] text-[#2C5857] font-bold flex items-center justify-center text-xs border border-[#d1e8e8]">
-                                {getInitials(item)}
-                              </div>
+                              {item.photo ? (
+                                <img src={item.photo} alt={getRecipient(item)} className="w-7 h-7 rounded-full object-cover border border-[#d1e8e8]" />
+                              ) : (
+                                <div className="w-7 h-7 rounded-full bg-[#f0f7f7] text-[#2C5857] font-bold flex items-center justify-center text-xs border border-[#d1e8e8]">
+                                  {getInitials(item)}
+                                </div>
+                              )}
                               <div>
                                 <div className="font-semibold text-[#1a1a1a]">{getRecipient(item)}</div>
                                 <div className="text-[11px] text-[#737373]">Delegasi Mahasiswa FKHK</div>
@@ -353,6 +369,12 @@ export default function PrestasiPage() {
                               {item.title}
                             </h3>
 
+                            {item.event && (
+                              <p className="text-xs text-[#525252] mb-2">
+                                <span className="font-semibold text-[#2C5857]">Ajang:</span> {item.event}
+                              </p>
+                            )}
+
                             {item.description && (
                               <p className="text-xs sm:text-sm text-[#525252] mb-4 leading-relaxed">
                                 {item.description}
@@ -360,9 +382,13 @@ export default function PrestasiPage() {
                             )}
 
                             <div className="pt-3 border-t border-[#f0ece6] flex flex-wrap items-center gap-2.5 text-xs">
-                              <div className="w-8 h-8 rounded-full bg-[#f0f7f7] text-[#2C5857] font-bold flex items-center justify-center text-xs border border-[#d1e8e8]">
-                                {getInitials(item)}
-                              </div>
+                              {item.photo ? (
+                                <img src={item.photo} alt={getRecipient(item)} className="w-8 h-8 rounded-full object-cover border border-[#d1e8e8]" />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-[#f0f7f7] text-[#2C5857] font-bold flex items-center justify-center text-xs border border-[#d1e8e8]">
+                                  {getInitials(item)}
+                                </div>
+                              )}
                               <div>
                                 <div className="font-semibold text-[#1a1a1a]">{getRecipient(item)}</div>
                                 <div className="text-[11px] text-[#737373]">Penulis Utama / Kader Peneliti FKHK</div>
@@ -409,6 +435,12 @@ export default function PrestasiPage() {
                                 {item.title}
                               </h3>
 
+                              {item.event && (
+                                <p className="text-xs text-[#525252] mb-2">
+                                  <span className="font-semibold text-[#2C5857]">Ajang:</span> {item.event}
+                                </p>
+                              )}
+
                               {item.description && (
                                 <p className="text-xs text-[#525252] mb-4 leading-relaxed line-clamp-2">
                                   {item.description}
@@ -417,9 +449,13 @@ export default function PrestasiPage() {
                             </div>
 
                             <div className="pt-3 border-t border-[#f0ece6] flex items-center gap-2 text-xs mt-2">
-                              <div className="w-6 h-6 rounded-full bg-[#f0f7f7] text-[#2C5857] font-bold flex items-center justify-center text-[10px] border border-[#d1e8e8]">
-                                {getInitials(item)}
-                              </div>
+                              {item.photo ? (
+                                <img src={item.photo} alt={getRecipient(item)} className="w-6 h-6 rounded-full object-cover border border-[#d1e8e8]" />
+                              ) : (
+                                <div className="w-6 h-6 rounded-full bg-[#f0f7f7] text-[#2C5857] font-bold flex items-center justify-center text-[10px] border border-[#d1e8e8]">
+                                  {getInitials(item)}
+                                </div>
+                              )}
                               <span className="font-medium text-[#1a1a1a]">{getRecipient(item)}</span>
                             </div>
                           </div>

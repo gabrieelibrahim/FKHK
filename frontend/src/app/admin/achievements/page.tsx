@@ -8,6 +8,7 @@ interface Achievement {
   name: string;
   title: string;
   event: string | null;
+  category?: string | null;
   year: number;
   photo: string | null;
 }
@@ -22,10 +23,17 @@ function getToken() {
   return cookieToken || localStorage.getItem("token") || "";
 }
 
+const CATEGORY_OPTIONS = [
+  { key: "konferensi", label: "Call for Papers" },
+  { key: "jurnal", label: "Publikasi Jurnal" },
+  { key: "kompetisi", label: "Kejuaraan / Lomba" },
+];
+
 const emptyForm = {
   name: "",
   title: "",
   event: "",
+  category: "konferensi",
   year: new Date().getFullYear(),
   photo: "",
 };
@@ -175,6 +183,7 @@ export default function AdminAchievementsPage() {
       name: a.name,
       title: a.title,
       event: a.event || "",
+      category: a.category || "konferensi",
       year: a.year,
       photo: a.photo || "",
     });
@@ -267,6 +276,7 @@ export default function AdminAchievementsPage() {
                     <th className="px-6 py-3.5">Mahasiswa</th>
                     <th className="px-6 py-3.5">Prestasi</th>
                     <th className="px-6 py-3.5">Ajang / Event</th>
+                    <th className="px-6 py-3.5">Kategori</th>
                     <th className="px-6 py-3.5">Tahun</th>
                     <th className="px-6 py-3.5 text-right">Aksi</th>
                   </tr>
@@ -288,6 +298,17 @@ export default function AdminAchievementsPage() {
                       </td>
                       <td className="px-6 py-4 text-gray-900 font-medium">{a.title}</td>
                       <td className="px-6 py-4 text-gray-500">{a.event || "-"}</td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                          a.category === "kompetisi"
+                            ? "bg-amber-50 text-amber-700 border border-amber-200"
+                            : a.category === "jurnal"
+                            ? "bg-sky-50 text-sky-700 border border-sky-200"
+                            : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        }`}>
+                          {a.category === "kompetisi" ? "Kejuaraan" : a.category === "jurnal" ? "Jurnal" : "Call for Papers"}
+                        </span>
+                      </td>
                       <td className="px-6 py-4 text-gray-500">{a.year}</td>
                       <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
                         <button
@@ -440,6 +461,19 @@ export default function AdminAchievementsPage() {
                   placeholder="cth. Pengadilan Agama Sleman"
                   className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Kategori *</label>
+                <select
+                  value={form.category}
+                  onChange={(e) => setForm({ ...form, category: e.target.value })}
+                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white"
+                >
+                  {CATEGORY_OPTIONS.map((opt) => (
+                    <option key={opt.key} value={opt.key}>{opt.label}</option>
+                  ))}
+                </select>
               </div>
 
               <div>
