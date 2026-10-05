@@ -50,7 +50,7 @@ export default function TeamSection() {
                 </Link>
                 <LocaleLink
                   href="/tentang"
-                  className="px-6 py-3 bg-white/20 backdrop-blur-sm text-white font-medium rounded-full text-sm hover:bg-white/30 transition-colors border border-white/30 no-underline"
+                  className="px-6 py-3 bg-[#0e2322]/75 backdrop-blur-sm text-white font-medium rounded-full text-sm hover:bg-[#0e2322]/90 transition-colors border border-white/50 no-underline"
                 >
                   {t("btnLearnMore")}
                 </LocaleLink>
