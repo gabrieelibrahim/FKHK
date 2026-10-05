@@ -103,10 +103,10 @@ export default function Navbar() {
           </ul>
 
           {/* Actions */}
-          <div className="flex items-center gap-2">
-            <div className="hidden lg:block">
-              <LanguageSwitcher />
-            </div>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Language switcher - always visible on desktop and mobile beside hamburger */}
+            <LanguageSwitcher light={isWhiteNav} />
+
             {isAuthenticated ? (
               <>
                 <Link
@@ -202,9 +202,6 @@ export default function Navbar() {
               </LocaleLink>
             );
           })}
-          <div className="px-4 pt-1">
-            <LanguageSwitcher light />
-          </div>
           <hr className="border-gray-200 my-2" />
           {isAuthenticated ? (
             <>
