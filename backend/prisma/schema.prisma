@@ -13,6 +13,7 @@ model Member {
   passwordHash  String
   name          String
   phone         String?
+  nim           String?   @unique
   affiliation   String?
   bio           String?
   avatarUrl     String?
@@ -69,6 +70,7 @@ model Event {
   status        String    @default("upcoming") // "upcoming", "completed", "cancelled"
   imageUrl      String?
   category      String    @default("umum") // "umum", "internal"
+  presensiCode  String? // kode presensi per kegiatan (anti titip absen); null = tanpa kode
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -90,6 +92,7 @@ model Registration {
   nim           String?
   registeredAt  DateTime  @default(now())
   attended      Boolean   @default(false)
+  presensiIp    String? // IP pengirim saat check-in (jejak audit anti-manipulasi)
 
   @@map("registrations")
 }
@@ -126,6 +129,8 @@ model Achievement {
   name      String
   title     String
   year      String
+  event     String?
+  category  String    @default("konferensi") // "kompetisi", "jurnal", "konferensi"
   initials  String
   photo     String?
   createdAt DateTime  @default(now())
@@ -147,4 +152,12 @@ model Officer {
   updatedAt DateTime  @updatedAt
 
   @@map("officers")
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
 }
