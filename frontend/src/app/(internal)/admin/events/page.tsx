@@ -329,7 +329,7 @@ export default function AdminEventsPage() {
               </table>
             </div>
 
-            <div className="grid gap-3 p-3 lg:hidden sm:p-4">
+            <div className="grid grid-cols-1 gap-3 p-3 lg:hidden sm:p-4">
               {events.map((e) => (
                 <article key={e.id} className="rounded-xl border border-gray-200/80 p-4 bg-white shadow-xs">
                   <div className="flex items-start justify-between gap-3">
