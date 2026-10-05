@@ -206,7 +206,13 @@ export default function EventDetailPage() {
               <div className="skeleton h-4 w-2/3" />
             </div>
 
-            <div className="skeleton mt-8 h-11 w-full rounded-xl" />
+            <div className="mt-6 flex flex-col gap-4 border-t border-zinc-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-1.5">
+                <div className="skeleton h-5 w-56 max-w-full" />
+                <div className="skeleton h-3 w-72 max-w-full" />
+              </div>
+              <div className="skeleton h-10 w-32 shrink-0 rounded-xl" />
+            </div>
           </div>
         </div>
       </main>
