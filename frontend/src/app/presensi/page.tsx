@@ -31,7 +31,6 @@ export default function PresensiPage() {
   const [selectedEventId, setSelectedEventId] = useState<number | "">("");
   const [identifier, setIdentifier] = useState("");
   const [fullName, setFullName] = useState("");
-  const [institution, setInstitution] = useState("");
   const [presensiCode, setPresensiCode] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -101,7 +100,6 @@ export default function PresensiPage() {
         eventId: Number(selectedEventId),
         identifier: identifier.trim(),
         name: fullName.trim() || undefined,
-        institution: institution.trim() || undefined,
         code: presensiCode.trim() || undefined,
       };
 
@@ -128,7 +126,6 @@ export default function PresensiPage() {
     setSuccessData(null);
     setIdentifier("");
     setFullName("");
-    setInstitution("");
     setPresensiCode("");
     setErrorMsg("");
   };
@@ -246,15 +243,6 @@ export default function PresensiPage() {
                 </span>
                 <span className="font-medium text-[#2C5857] block">
                   {successData.eventTitle}
-                </span>
-              </div>
-
-              <div>
-                <span className="text-[10px] uppercase font-bold text-[#6B7280] tracking-wider block">
-                  Instansi / Divisi
-                </span>
-                <span className="text-[#374151] block">
-                  {successData.institution || "Forum Kajian Hukum Keluarga"}
                 </span>
               </div>
             </div>
@@ -399,20 +387,6 @@ export default function PresensiPage() {
                   placeholder="Nama lengkap Anda beserta gelar bila ada"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full bg-[#F9FAFB] border border-[#D1D5DB] rounded-xl px-3.5 py-2.5 text-xs text-[#1A1A1A] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2C5857] focus:border-transparent transition"
-                />
-              </div>
-
-              {/* Input Divisi / Instansi */}
-              <div>
-                <label className="block text-xs font-semibold text-[#374151] mb-1.5">
-                  Divisi / Instansi / Angkatan
-                </label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Divisi Kajian / Angkatan 2023"
-                  value={institution}
-                  onChange={(e) => setInstitution(e.target.value)}
                   className="w-full bg-[#F9FAFB] border border-[#D1D5DB] rounded-xl px-3.5 py-2.5 text-xs text-[#1A1A1A] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2C5857] focus:border-transparent transition"
                 />
               </div>
