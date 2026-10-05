@@ -86,11 +86,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("fkhk_member", JSON.stringify(newMember));
     setToken(newToken);
     setMember(newMember);
-    // Akun massal (password default) wajib ganti password sebelum masuk dashboard
-    if (newMember.mustChangePassword) {
-      window.location.href = "/auth/change-password?forced=1";
-      return;
-    }
     window.location.href = isAdminRole(newMember.role) ? "/admin" : "/dashboard";
   };
 
