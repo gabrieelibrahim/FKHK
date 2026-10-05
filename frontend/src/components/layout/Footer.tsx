@@ -3,6 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
+import { Link as LocaleLink } from "@/i18n/navigation";
 import NewsletterSignup from "../NewsletterSignup";
 import Reveal from "../Reveal";
 
@@ -25,6 +27,8 @@ const socialLinks = [
 ];
 
 export default function Footer() {
+  const t = useTranslations("footer");
+
   return (
     <footer className="bg-[#1a2e2e] text-white py-16">
       <div className="container mx-auto px-4 max-w-[1240px]">
@@ -44,8 +48,7 @@ export default function Footer() {
                 </div>
               </div>
               <p className="text-sm text-white/60 leading-relaxed mb-6">
-                Forum Kajian Hukum Keluarga — wadah mahasiswa untuk berkarya,
-                berdiskusi, dan berkontribusi dalam pengembangan Hukum Keluarga Islam.
+                {t("description")}
               </p>
               <div className="flex gap-3">
                 {socialLinks.map((s) => (
@@ -76,7 +79,7 @@ export default function Footer() {
           {/* Col 3: Kontak */}
           <Reveal variant="fade-up" delay={0.2}>
             <div>
-              <h4 className="text-sm font-semibold mb-4">Kontak</h4>
+              <h4 className="text-sm font-semibold mb-4">{t("contact")}</h4>
               <div className="flex items-center gap-3 text-sm text-white/60 mb-3">
                 <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
@@ -88,7 +91,7 @@ export default function Footer() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                 </svg>
-                <span>Fakultas Syariah & Hukum,<br />UIN Sunan Kalijaga, Yogyakarta</span>
+                <span>{t("address")}</span>
               </div>
               <div className="mt-6 rounded-xl overflow-hidden border border-white/10 h-[140px]">
                 <iframe
@@ -98,7 +101,7 @@ export default function Footer() {
                   style={{ border: 0, filter: "grayscale(40%) contrast(1.05) brightness(0.7)" }}
                   allowFullScreen
                   loading="lazy"
-                  title="Peta lokasi FKHK"
+                  title={t("mapTitle")}
                 />
               </div>
             </div>
@@ -107,10 +110,10 @@ export default function Footer() {
 
         <Reveal variant="fade-up" delay={0.3}>
           <div className="mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/40">
-            <p>&copy; 2026 FKHK — Forum Kajian Hukum Keluarga. All rights reserved.</p>
+            <p>{t("copyright")}</p>
             <div className="flex gap-4">
-              <Link href="/privasi" className="hover:text-white/60 transition">Privasi</Link>
-              <Link href="/ketentuan" className="hover:text-white/60 transition">Ketentuan</Link>
+              <LocaleLink href="/privasi" className="hover:text-white/60 transition">{t("privacy")}</LocaleLink>
+              <LocaleLink href="/ketentuan" className="hover:text-white/60 transition">{t("terms")}</LocaleLink>
             </div>
           </div>
         </Reveal>

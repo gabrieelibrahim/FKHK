@@ -1,14 +1,23 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import * as jose from "jose";
+import createIntlMiddleware from "next-intl/middleware";
+import { routing } from "@/i18n/routing";
 
+// ===== Auth (dipertahankan dari middleware lama) =====
 const ADMIN_ROLES = ["admin", "superadmin", "admin_kaset", "admin_psdm", "admin_bph"];
 const isAdminRole = (role?: unknown) => typeof role === "string" && ADMIN_ROLES.includes(role);
 
 const protectedRoutes = ["/dashboard", "/admin", "/profile", "/events/create", "/dashboard/submit", "/dashboard/my-articles"];
 const authRoutes = ["/auth/login"];
 
-export async function middleware(request: NextRequest) {
+// ===== Prefix yang TIDAK ikut multi-bahasa (halaman internal) =====
+const INTERNAL_PREFIXES = ["/admin", "/dashboard", "/auth", "/events/create", "/profile", "/newsletter"];
+
+function isInternal(pathname: string) {
+  return INTERNAL_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
+}
+
+async function handleAuth(request: NextRequest): Promise<NextResponse> {
   const token = request.cookies.get("fkhk_token")?.value;
   const { pathname } = request.nextUrl;
 
@@ -54,6 +63,21 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
+// ===== i18n (halaman publik) =====
+const intlMiddleware = createIntlMiddleware(routing);
+
+export default async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Halaman internal: tanpa prefix locale, langsung logic auth lama
+  if (isInternal(pathname)) {
+    return handleAuth(request);
+  }
+
+  // Halaman publik: routing bahasa (id tanpa prefix, en/ar dengan prefix)
+  return intlMiddleware(request);
+}
+
 export const config = {
-  matcher: ["/dashboard/:path*", "/admin/:path*", "/auth/:path*", "/events/create/:path*"],
+  matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
 };

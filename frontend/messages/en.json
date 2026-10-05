@@ -1,0 +1,26 @@
+{
+  "meta": {
+    "title": "FKHK — Family Law Studies Forum",
+    "description": "The Family Law Studies Forum (FKHK) — A platform for study, research, and academic development in Islamic Family Law at UIN Sunan Kalijaga."
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About Us",
+    "articles": "Articles",
+    "events": "Events",
+    "achievements": "Achievements",
+    "login": "Sign In",
+    "logout": "Sign Out",
+    "admin": "Admin",
+    "dashboard": "Dashboard"
+  },
+  "footer": {
+    "description": "Family Law Studies Forum — a student community for creativity, discussion, and contribution to the development of Islamic Family Law.",
+    "contact": "Contact",
+    "address": "Faculty of Sharia and Law, UIN Sunan Kalijaga, Yogyakarta",
+    "mapTitle": "FKHK location map",
+    "copyright": "© 2026 FKHK — Family Law Studies Forum. All rights reserved.",
+    "privacy": "Privacy",
+    "terms": "Terms"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "meta": {
+    "title": "FKHK — Forum Kajian Hukum Keluarga",
+    "description": "Forum Kajian Hukum Keluarga (FKHK) — Wadah kajian, penelitian, dan pengembangan keilmuan di bidang Hukum Keluarga Islam."
+  },
+  "nav": {
+    "home": "Beranda",
+    "about": "Tentang Kami",
+    "articles": "Artikel",
+    "events": "Kegiatan",
+    "achievements": "Prestasi",
+    "login": "Masuk",
+    "logout": "Keluar",
+    "admin": "Admin",
+    "dashboard": "Dashboard"
+  },
+  "footer": {
+    "description": "Forum Kajian Hukum Keluarga — wadah mahasiswa untuk berkarya, berdiskusi, dan berkontribusi dalam pengembangan Hukum Keluarga Islam.",
+    "contact": "Kontak",
+    "address": "Fakultas Syariah & Hukum, UIN Sunan Kalijaga, Yogyakarta",
+    "mapTitle": "Peta lokasi FKHK",
+    "copyright": "© 2026 FKHK — Forum Kajian Hukum Keluarga. All rights reserved.",
+    "privacy": "Privasi",
+    "terms": "Ketentuan"
+  }
+}
