@@ -161,10 +161,7 @@ export default function AdminPresensiPage() {
       <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
         <label className="mb-1.5 block text-sm font-medium text-gray-700">Pilih Kegiatan</label>
         {loadingEvents ? (
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            Memuat daftar kegiatan...
-          </div>
+          <div className="skeleton h-10 w-full rounded-lg" />
         ) : (
           <select
             value={selectedId ?? ""}
@@ -220,9 +217,17 @@ export default function AdminPresensiPage() {
             </div>
 
             {loadingRows ? (
-              <div className="flex items-center justify-center gap-2 p-10 text-sm text-gray-400">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                Memuat data presensi...
+              <div className="space-y-4 p-6">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-4">
+                    <div className="skeleton h-9 w-9 shrink-0 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <div className="skeleton h-3.5 w-1/3" />
+                      <div className="skeleton h-3 w-1/5" />
+                    </div>
+                    <div className="skeleton h-5 w-14 shrink-0 rounded-full" />
+                  </div>
+                ))}
               </div>
             ) : filteredRows.length === 0 ? (
               <div className="p-10 text-center text-sm text-gray-400">

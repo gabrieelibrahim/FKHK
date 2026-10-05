@@ -128,7 +128,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (authLoading) {
     return (
       <div className="flex min-h-[100dvh] items-center justify-center bg-gray-50 lg:min-h-screen">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <div className="w-full max-w-xs space-y-4 px-4">
+          <div className="skeleton h-10 w-40" />
+          <div className="skeleton h-4 w-full" />
+          <div className="skeleton h-4 w-2/3" />
+        </div>
       </div>
     );
   }

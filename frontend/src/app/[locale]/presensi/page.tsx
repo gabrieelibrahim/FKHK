@@ -255,9 +255,11 @@ export default function PresensiPage() {
       {/* Main Container */}
       <main className="flex-1 max-w-md w-full mx-auto p-4 sm:p-5 flex flex-col justify-center">
         {authLoading || loading ? (
-          <div className="bg-white rounded-2xl p-8 border border-[#E5E7EB] text-center shadow-sm">
-            <div className="w-9 h-9 border-2 border-[#2C5857] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-xs text-[#6B7280] font-medium">{t("submittingBtn")}</p>
+          <div className="space-y-4 rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm sm:p-8">
+            <div className="skeleton h-6 w-2/3" />
+            <div className="skeleton h-4 w-1/2" />
+            <div className="skeleton h-4 w-3/4" />
+            <div className="skeleton mt-2 h-12 w-full rounded-xl" />
           </div>
         ) : !member ? (
           /* ============ KARTU WAJIB LOGIN ============ */

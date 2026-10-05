@@ -103,7 +103,13 @@ export default function AdminSettingsPage() {
           <span>
             Status:{" "}
             <span className={`font-medium ${rateLimitDisabled ? "text-red-600" : "text-emerald-600"}`}>
-              {rateLimitDisabled === null ? "Memuat..." : rateLimitDisabled ? "Nonaktif" : "Aktif"}
+              {rateLimitDisabled === null ? (
+                <span className="skeleton inline-block h-3 w-10 align-middle" />
+              ) : rateLimitDisabled ? (
+                "Nonaktif"
+              ) : (
+                "Aktif"
+              )}
             </span>
           </span>
           {updatedAt && (

@@ -177,12 +177,17 @@ export default function EventDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAF8F5]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-4 border-[#2C5857] border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs text-zinc-500 font-medium">
-            {locale === "en" ? "Loading event agenda..." : locale === "ar" ? "جاري تحميل تفاصيل الفعالية..." : "Memuat agenda kegiatan..."}
-          </p>
+      <div className="min-h-screen bg-[#FAF8F5]">
+        <div className="container mx-auto max-w-3xl px-4 pt-24 pb-12">
+          <div className="skeleton mb-6 h-4 w-24" />
+          <div className="skeleton mb-8 h-56 w-full rounded-2xl" />
+          <div className="skeleton mb-4 h-9 w-2/3" />
+          <div className="skeleton mb-6 h-4 w-1/3" />
+          <div className="space-y-3">
+            <div className="skeleton h-4 w-full" />
+            <div className="skeleton h-4 w-full" />
+            <div className="skeleton h-4 w-2/3" />
+          </div>
         </div>
       </div>
     );

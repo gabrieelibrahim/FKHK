@@ -52,8 +52,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (authLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="w-full max-w-xs space-y-4 px-4">
+          <div className="skeleton h-10 w-40" />
+          <div className="skeleton h-4 w-full" />
+          <div className="skeleton h-4 w-2/3" />
+        </div>
       </div>
     );
   }

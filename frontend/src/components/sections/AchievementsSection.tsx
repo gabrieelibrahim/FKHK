@@ -60,8 +60,15 @@ export default function AchievementsSection() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="rounded-2xl border border-gray-100 bg-white p-5 text-center shadow-sm sm:p-6">
+                <div className="skeleton mx-auto mb-4 h-16 w-16 rounded-full" />
+                <div className="skeleton mx-auto h-4 w-3/4" />
+                <div className="skeleton mx-auto mt-2 h-3 w-1/2" />
+                <div className="skeleton mx-auto mt-4 h-8 w-28 rounded-lg" />
+              </div>
+            ))}
           </div>
         ) : (
           <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5" staggerDelay={0.07}>

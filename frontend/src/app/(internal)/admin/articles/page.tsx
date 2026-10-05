@@ -257,10 +257,43 @@ export default function AdminArticlesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="space-y-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-2">
+          <div className="skeleton h-7 w-40" />
+          <div className="skeleton h-4 w-64 max-w-full" />
+        </div>
+        <div className="skeleton h-10 w-36 rounded-xl" />
       </div>
-    );
+      <div className="overflow-hidden rounded-xl border border-gray-200/80 bg-white shadow-xs">
+        {/* Desktop table skeleton */}
+        <div className="hidden lg:block">
+          <div className="flex gap-8 border-b border-gray-100 bg-gray-50/75 px-4 py-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="skeleton h-4 flex-1" />
+            ))}
+          </div>
+          {Array.from({ length: 6 }).map((_, r) => (
+            <div key={r} className="flex gap-8 border-b border-gray-100 px-4 py-4 last:border-0">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="skeleton h-4 flex-1" />
+              ))}
+            </div>
+          ))}
+        </div>
+        {/* Mobile card skeleton */}
+        <div className="grid grid-cols-1 gap-3 p-3 sm:p-4 lg:hidden">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="rounded-xl border border-gray-200/80 bg-white p-4 shadow-xs">
+              <div className="skeleton mb-3 h-4 w-1/2" />
+              <div className="skeleton mb-2 h-3 w-1/3" />
+              <div className="skeleton h-3 w-2/3" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
   }
 
   return (
@@ -417,7 +450,7 @@ export default function AdminArticlesPage() {
             <div className="px-5 py-4 border-b border-gray-100 flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h2 className="text-lg font-bold text-gray-900 truncate">
-                  {previewLoading ? "Memuat..." : preview?.title}
+                  {previewLoading ? <span className="skeleton inline-block h-5 w-40" /> : preview?.title}
                 </h2>
                 {preview && (
                   <p className="text-xs text-gray-500 mt-1 flex items-center gap-1.5 flex-wrap">
@@ -443,8 +476,12 @@ export default function AdminArticlesPage() {
 
             <div className="px-5 py-4 overflow-y-auto flex-1">
               {previewLoading && (
-                <div className="flex justify-center py-16">
-                  <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                <div className="space-y-4 py-4">
+                  <div className="skeleton h-44 w-full rounded-lg" />
+                  <div className="skeleton h-6 w-2/3" />
+                  <div className="skeleton h-3 w-full" />
+                  <div className="skeleton h-3 w-full" />
+                  <div className="skeleton h-3 w-4/5" />
                 </div>
               )}
               {preview && (

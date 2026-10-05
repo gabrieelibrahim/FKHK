@@ -263,7 +263,18 @@ export default function AdminAchievementsPage() {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400">Memuat data prestasi...</div>
+                    <div className="divide-y divide-gray-100">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 px-4 py-4 sm:px-6">
+                <div className="skeleton h-10 w-10 shrink-0 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <div className="skeleton h-4 w-1/3" />
+                  <div className="skeleton h-3 w-1/5" />
+                </div>
+                <div className="skeleton h-8 w-20 shrink-0 rounded-lg" />
+              </div>
+            ))}
+          </div>
         ) : achievements.length === 0 ? (
           <div className="p-8 text-center text-gray-400">Belum ada data prestasi. Klik &quot;+ Tambah Prestasi&quot; untuk menambahkan.</div>
         ) : (
