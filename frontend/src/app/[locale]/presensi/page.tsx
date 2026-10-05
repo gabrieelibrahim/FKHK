@@ -45,7 +45,7 @@ function getToken(): string | null {
 }
 
 export default function PresensiPage() {
-  const { member, loading: authLoading } = useAuth();
+  const { member, logout, loading: authLoading } = useAuth();
   const router = useRouter();
   const [events, setEvents] = useState<EventItem[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<number | "">("");
@@ -386,13 +386,27 @@ export default function PresensiPage() {
                 <div className="text-xs font-semibold text-[#1A1A1A] truncate">{member.name}</div>
                 <div className="text-[11px] text-[#6B7280] truncate">{member.email}</div>
               </div>
-              <div className="ml-auto shrink-0">
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <div className="ml-auto flex items-center gap-2 shrink-0">
+                <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                   <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                   {L("Terverifikasi", "Verified", "موثّق")}
                 </span>
+                <button
+                  onClick={logout}
+                  title={L("Keluar dari akun", "Log out", "تسجيل الخروج")}
+                  aria-label={L("Keluar dari akun", "Log out", "تسجيل الخروج")}
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-[#6B7280] hover:text-red-600 hover:bg-red-50 transition"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"
+                    />
+                  </svg>
+                </button>
               </div>
             </div>
 
