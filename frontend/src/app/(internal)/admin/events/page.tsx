@@ -177,7 +177,6 @@ export default function AdminEventsPage() {
           onlineUrl: editForm.onlineUrl || null,
           imageUrl: editForm.imageUrl || null,
           capacity: editForm.category === "internal" ? null : (editForm.capacity ? parseInt(editForm.capacity) : null),
-          status: editForm.status,
           presensiCode: editForm.presensiCode.trim() || null,
         }),
       });
@@ -716,18 +715,9 @@ export default function AdminEventsPage() {
                 </div>
               </div>
 
-              {/* Status Kegiatan */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status Kegiatan</label>
-                <select
-                  value={editForm.status}
-                  onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                >
-                  <option value="upcoming">Akan Datang (Upcoming)</option>
-                  <option value="completed">Selesai (Completed)</option>
-                  <option value="cancelled">Dibatalkan (Cancelled)</option>
-                </select>
+              {/* Status Kegiatan — otomatis: lewat 3 jam dari jadwal, kegiatan otomatis "Selesai". */}
+              <div className="rounded-xl border border-gray-200 bg-gray-50/70 px-3 py-2.5 text-[11px] leading-relaxed text-gray-500">
+                Status kegiatan diatur <span className="font-semibold text-gray-700">otomatis</span>: tampil "Akan Datang" sebelum jadwal, dan otomatis menjadi "Selesai" setelah 3 jam dari jadwal mulai. Tidak perlu diubah manual.
               </div>
 
               <div>

@@ -1,8 +1,39 @@
 const prisma = require('../lib/prisma');
 const mailer = require('../utils/mailer');
 
+// Batas waktu kegiatan masih "berlangsung" setelah jadwal (detik).
+// Sama dengan window presensi (3 jam setelah mulai) supaya konsisten.
+const EVENT_END_OFFSET_MS = 3 * 60 * 60 * 1000;
+
+// Status efektif kegiatan: upcoming yang sudah lewat 3 jam otomatis dianggap completed.
+// cancelled tidak pernah di-override.
+function effectiveStatus(event, now = Date.now()) {
+  if (event.status === 'cancelled') return 'cancelled';
+  if (event.status === 'upcoming' && event.dateTime && (now - new Date(event.dateTime).getTime()) > EVENT_END_OFFSET_MS) {
+    return 'completed';
+  }
+  return event.status;
+}
+
+// Sinkronisasi status di DB (best-effort, tidak boleh menggagalkan request).
+async function syncExpiredEvents() {
+  try {
+    const cutoff = new Date(Date.now() - EVENT_END_OFFSET_MS);
+    const res = await prisma.event.updateMany({
+      where: { status: 'upcoming', dateTime: { lt: cutoff } },
+      data: { status: 'completed' },
+    });
+    return res.count;
+  } catch (err) {
+    return 0;
+  }
+}
+
 exports.getEvents = async (req, res, next) => {
   try {
+    // Biar status di DB selalu segar: upcoming yang udah lewat auto jadi completed
+    await syncExpiredEvents();
+
     const { page = 1, limit = 10, status, search, category } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const where = {};
@@ -59,6 +90,9 @@ exports.getEvents = async (req, res, next) => {
 
 exports.getEventBySlug = async (req, res, next) => {
   try {
+    // Pastikan kegiatan yang sudah lewat tidak tampil "Akan Datang"
+    await syncExpiredEvents();
+
     const event = await prisma.event.findUnique({
       where: { slug: req.params.slug },
       include: {
@@ -84,7 +118,7 @@ exports.getEventBySlug = async (req, res, next) => {
       isRegistered = !!reg;
     }
 
-    res.json({ ...safeEvent, isRegistered });
+    res.json({ ...safeEvent, status: effectiveStatus(event), isRegistered });
   } catch (err) {
     next(err);
   }
