@@ -65,13 +65,12 @@ export default function AchievementsSection() {
               <div key={i} className="rounded-2xl border border-gray-100 bg-white p-5 text-center shadow-sm sm:p-6">
                 <div className="skeleton mx-auto mb-4 h-16 w-16 rounded-full" />
                 <div className="skeleton mx-auto h-4 w-3/4" />
-                <div className="skeleton mx-auto mt-2 h-3 w-1/2" />
-                <div className="skeleton mx-auto mt-4 h-8 w-28 rounded-lg" />
+                <div className="skeleton mx-auto mt-1.5 h-3 w-1/2" />
+                <div className="skeleton mx-auto mt-2 h-3 w-16" />
               </div>
             ))}
           </div>
-        ) : (
-          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5" staggerDelay={0.07}>
+        ) : (          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5" staggerDelay={0.07}>
             {achievements.map((a) => (
               <div
                 key={a.id}

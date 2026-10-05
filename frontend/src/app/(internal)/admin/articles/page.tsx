@@ -257,38 +257,54 @@ export default function AdminArticlesPage() {
 
   if (loading) {
     return (
-      <div className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="space-y-5 sm:space-y-6 lg:space-y-0">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:mb-6 lg:flex-row lg:gap-0">
         <div className="space-y-2">
           <div className="skeleton h-7 w-40" />
           <div className="skeleton h-4 w-64 max-w-full" />
         </div>
-        <div className="skeleton h-10 w-36 rounded-xl" />
+        <div className="skeleton h-10 w-36 rounded-lg" />
       </div>
       <div className="overflow-hidden rounded-xl border border-gray-200/80 bg-white shadow-xs">
         {/* Desktop table skeleton */}
         <div className="hidden lg:block">
-          <div className="flex gap-8 border-b border-gray-100 bg-gray-50/75 px-4 py-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="skeleton h-4 flex-1" />
-            ))}
+          <div className="flex items-center gap-8 border-b border-gray-100 bg-gray-50/75 px-4 py-3">
+            <div className="skeleton h-4 flex-[2.5]" />
+            <div className="skeleton h-4 flex-[1.2]" />
+            <div className="skeleton h-4 flex-1" />
+            <div className="skeleton h-5 flex-1 rounded-full" />
+            <div className="skeleton h-4 flex-[1.2]" />
           </div>
           {Array.from({ length: 6 }).map((_, r) => (
-            <div key={r} className="flex gap-8 border-b border-gray-100 px-4 py-4 last:border-0">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="skeleton h-4 flex-1" />
-              ))}
+            <div key={r} className="flex items-center gap-8 border-b border-gray-100 px-4 py-3.5 last:border-0">
+              <div className="skeleton h-4 flex-[2.5]" />
+              <div className="skeleton h-4 flex-[1.2]" />
+              <div className="skeleton h-4 flex-1" />
+              <div className="skeleton h-5 flex-1 rounded-full" />
+              <div className="flex flex-[1.2] justify-end gap-1.5">
+                <div className="skeleton h-6 w-12 rounded-lg" />
+                <div className="skeleton h-6 w-14 rounded-lg" />
+              </div>
             </div>
           ))}
         </div>
         {/* Mobile card skeleton */}
-        <div className="grid grid-cols-1 gap-3 p-3 sm:p-4 lg:hidden">
+        <div className="grid grid-cols-1 gap-3 p-3 lg:hidden sm:p-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="rounded-xl border border-gray-200/80 bg-white p-4 shadow-xs">
-              <div className="skeleton mb-3 h-4 w-1/2" />
-              <div className="skeleton mb-2 h-3 w-1/3" />
-              <div className="skeleton h-3 w-2/3" />
-            </div>
+            <article key={i} className="rounded-xl border border-gray-200/80 p-4 bg-white shadow-xs">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <div className="skeleton h-4 w-2/3" />
+                  <div className="skeleton h-3 w-24" />
+                </div>
+                <div className="skeleton h-5 w-16 shrink-0 rounded-full" />
+              </div>
+              <div className="skeleton mt-3 h-3 w-28" />
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:justify-end">
+                <div className="skeleton h-10 rounded-lg" />
+                <div className="skeleton h-10 rounded-lg" />
+              </div>
+            </article>
           ))}
         </div>
       </div>

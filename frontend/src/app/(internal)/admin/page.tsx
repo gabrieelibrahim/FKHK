@@ -80,37 +80,34 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-2">
-          <div className="skeleton h-7 w-40" />
-          <div className="skeleton h-4 w-64 max-w-full" />
-        </div>
-        <div className="skeleton h-10 w-36 rounded-xl" />
+      <div className="space-y-6 sm:space-y-8 lg:space-y-0">
+      <div>
+        <div className="skeleton h-7 w-40" />
+        <div className="skeleton mt-1.5 h-4 w-64 max-w-full lg:mb-6" />
       </div>
-      <div className="overflow-hidden rounded-xl border border-gray-200/80 bg-white shadow-xs">
-        {/* Desktop table skeleton */}
-        <div className="hidden lg:block">
-          <div className="flex gap-8 border-b border-gray-100 bg-gray-50/75 px-4 py-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="skeleton h-4 flex-1" />
-            ))}
-          </div>
-          {Array.from({ length: 6 }).map((_, r) => (
-            <div key={r} className="flex gap-8 border-b border-gray-100 px-4 py-4 last:border-0">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="skeleton h-4 flex-1" />
-              ))}
+
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:mb-8">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="rounded-xl border border-gray-200/80 bg-white p-4 shadow-xs sm:p-5">
+            <div className="mb-3 flex items-center justify-between">
+              <div className="skeleton h-3 w-20" />
+              <div className="skeleton h-8 w-8 rounded-lg" />
             </div>
-          ))}
-        </div>
-        {/* Mobile card skeleton */}
-        <div className="grid grid-cols-1 gap-3 p-3 sm:p-4 lg:hidden">
+            <div className="skeleton h-8 w-14" />
+          </div>
+        ))}
+      </div>
+
+      <div className="rounded-xl border border-gray-200/80 bg-white p-4 shadow-xs sm:p-6">
+        <div className="mb-4 skeleton h-5 w-28" />
+        <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="rounded-xl border border-gray-200/80 bg-white p-4 shadow-xs">
-              <div className="skeleton mb-3 h-4 w-1/2" />
-              <div className="skeleton mb-2 h-3 w-1/3" />
-              <div className="skeleton h-3 w-2/3" />
+            <div key={i} className="flex min-h-16 items-center gap-3.5 rounded-xl border border-gray-200/80 bg-white p-3.5 sm:p-4">
+              <div className="skeleton h-10 w-10 shrink-0 rounded-lg" />
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <div className="skeleton h-3.5 w-24" />
+                <div className="skeleton h-3 w-32 max-w-full" />
+              </div>
             </div>
           ))}
         </div>

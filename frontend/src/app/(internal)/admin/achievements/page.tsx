@@ -263,20 +263,56 @@ export default function AdminAchievementsPage() {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {loading ? (
-                    <div className="divide-y divide-gray-100">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 px-4 py-4 sm:px-6">
-                <div className="skeleton h-10 w-10 shrink-0 rounded-full" />
-                <div className="flex-1 space-y-2">
-                  <div className="skeleton h-4 w-1/3" />
-                  <div className="skeleton h-3 w-1/5" />
+          <>
+            {/* Desktop Table Skeleton */}
+            <div className="hidden md:block">
+              <div className="flex items-center border-b border-gray-100 bg-gray-50/75 text-xs font-semibold uppercase tracking-wider">
+                <div className="flex flex-[1.4] items-center px-6 py-3.5">
+                  <div className="skeleton h-8 w-8 shrink-0 rounded-full" />
+                  <div className="ml-3 skeleton h-4 w-28" />
                 </div>
-                <div className="skeleton h-8 w-20 shrink-0 rounded-lg" />
+                <div className="px-6 py-3.5 flex-[1.6]"><div className="skeleton h-4 w-32" /></div>
+                <div className="px-6 py-3.5 flex-1"><div className="skeleton h-4 w-24" /></div>
+                <div className="px-6 py-3.5"><div className="skeleton h-5 w-24 rounded-full" /></div>
+                <div className="px-6 py-3.5 text-center"><div className="mx-auto skeleton h-4 w-10" /></div>
+                <div className="px-6 py-3.5 flex-[0.8]"><div className="ml-auto skeleton h-6 w-24 rounded-md" /></div>
               </div>
-            ))}
-          </div>
-        ) : achievements.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">Belum ada data prestasi. Klik &quot;+ Tambah Prestasi&quot; untuk menambahkan.</div>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex items-center border-b border-gray-100 last:border-0">
+                  <div className="flex flex-[1.4] items-center gap-3 px-6 py-4">
+                    <div className="skeleton h-8 w-8 shrink-0 rounded-full" />
+                    <div className="skeleton h-4 w-28" />
+                  </div>
+                  <div className="px-6 py-4 flex-[1.6]"><div className="skeleton h-4 w-40" /></div>
+                  <div className="px-6 py-4 flex-1"><div className="skeleton h-4 w-24" /></div>
+                  <div className="px-6 py-4"><div className="skeleton h-5 w-24 rounded-full" /></div>
+                  <div className="px-6 py-4 text-center"><div className="mx-auto skeleton h-4 w-10" /></div>
+                  <div className="flex flex-[0.8] justify-end px-6 py-4">
+                    <div className="skeleton h-6 w-24 rounded-md" />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Mobile Card Skeleton */}
+            <div className="md:hidden divide-y divide-gray-100">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="p-4 flex items-start gap-3.5">
+                  <div className="skeleton h-10 w-10 shrink-0 rounded-full" />
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="skeleton h-4 w-24" />
+                    <div className="skeleton h-3.5 w-40 max-w-full" />
+                    <div className="skeleton h-3 w-32" />
+                    <div className="flex items-center gap-2 mt-3">
+                      <div className="skeleton h-6 w-16 rounded-md" />
+                      <div className="skeleton h-6 w-16 rounded-md" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : achievements.length === 0 ? (          <div className="p-8 text-center text-gray-400">Belum ada data prestasi. Klik &quot;+ Tambah Prestasi&quot; untuk menambahkan.</div>
         ) : (
           <>
             {/* Desktop Table View */}

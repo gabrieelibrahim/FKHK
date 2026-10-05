@@ -177,19 +177,39 @@ export default function EventDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FAF8F5]">
-        <div className="container mx-auto max-w-3xl px-4 pt-24 pb-12">
-          <div className="skeleton mb-6 h-4 w-24" />
-          <div className="skeleton mb-8 h-56 w-full rounded-2xl" />
-          <div className="skeleton mb-4 h-9 w-2/3" />
-          <div className="skeleton mb-6 h-4 w-1/3" />
-          <div className="space-y-3">
-            <div className="skeleton h-4 w-full" />
-            <div className="skeleton h-4 w-full" />
-            <div className="skeleton h-4 w-2/3" />
+      <main className="min-h-screen bg-[#FAF8F5] pt-[80px] pb-16 text-zinc-900">
+        <div className="container mx-auto px-4 max-w-3xl">
+          <div className="skeleton mb-6 h-4 w-40" />
+
+          <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-xs border border-zinc-200/80">
+            <div className="skeleton -mx-6 -mt-6 mb-6 h-56 w-[calc(100%+3rem)] rounded-t-2xl sm:-mx-8 sm:w-[calc(100%+4rem)]" />
+
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <div className="skeleton h-6 w-36 rounded-full" />
+              <div className="skeleton h-6 w-24 rounded-full" />
+            </div>
+
+            <div className="skeleton mb-6 h-8 w-2/3" />
+
+            <div className="rounded-xl border border-zinc-200/70 bg-[#FCFAF8] p-4 sm:p-5 mb-8 space-y-2.5">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-start gap-2.5">
+                  <div className="skeleton h-3.5 w-20 shrink-0" />
+                  <div className="skeleton h-3.5 flex-1" />
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3">
+              <div className="skeleton h-4 w-full" />
+              <div className="skeleton h-4 w-full" />
+              <div className="skeleton h-4 w-2/3" />
+            </div>
+
+            <div className="skeleton mt-8 h-11 w-full rounded-xl" />
           </div>
         </div>
-      </div>
+      </main>
     );
   }
 

@@ -218,19 +218,45 @@ export default function AdminPresensiPage() {
 
             {loadingRows ? (
               <div className="space-y-4 p-6">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-4">
-                    <div className="skeleton h-9 w-9 shrink-0 rounded-full" />
-                    <div className="flex-1 space-y-2">
-                      <div className="skeleton h-3.5 w-1/3" />
-                      <div className="skeleton h-3 w-1/5" />
-                    </div>
-                    <div className="skeleton h-5 w-14 shrink-0 rounded-full" />
+                <div className="hidden sm:block">
+                  <div className="flex items-center gap-4 border-b border-gray-100 bg-gray-50 px-4 py-3">
+                    <div className="skeleton h-3 w-6" />
+                    <div className="skeleton h-3.5 flex-[1.6]" />
+                    <div className="skeleton hidden h-3 flex-1 md:block" />
+                    <div className="skeleton hidden h-3 flex-1 lg:block" />
+                    <div className="skeleton hidden h-3 flex-1 lg:block" />
+                    <div className="skeleton hidden h-3 flex-1 sm:block" />
+                    <div className="skeleton h-5 w-16 shrink-0 rounded-full" />
                   </div>
-                ))}
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-4 border-b border-gray-50 px-4 py-3 last:border-0">
+                      <div className="skeleton h-3 w-6" />
+                      <div className="flex flex-[1.6] items-center gap-2">
+                        <div className="skeleton h-9 w-9 shrink-0 rounded-full" />
+                        <div className="skeleton h-3.5 w-24" />
+                      </div>
+                      <div className="skeleton hidden h-3 flex-1 md:block" />
+                      <div className="skeleton hidden h-3 flex-1 lg:block" />
+                      <div className="skeleton hidden h-3 flex-1 lg:block" />
+                      <div className="skeleton hidden h-3 flex-1 sm:block" />
+                      <div className="skeleton h-5 w-16 shrink-0 rounded-full" />
+                    </div>
+                  ))}
+                </div>
+                <div className="space-y-5 sm:hidden">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <div className="skeleton h-9 w-9 shrink-0 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <div className="skeleton h-3.5 w-1/2" />
+                        <div className="skeleton h-3 w-1/3" />
+                      </div>
+                      <div className="skeleton h-5 w-16 shrink-0 rounded-full" />
+                    </div>
+                  ))}
+                </div>
               </div>
-            ) : filteredRows.length === 0 ? (
-              <div className="p-10 text-center text-sm text-gray-400">
+            ) : filteredRows.length === 0 ? (              <div className="p-10 text-center text-sm text-gray-400">
                 {rows.length === 0 ? "Belum ada peserta terdaftar untuk kegiatan ini." : "Tidak ada hasil untuk pencarian ini."}
               </div>
             ) : (

@@ -255,14 +255,41 @@ export default function PresensiPage() {
       {/* Main Container */}
       <main className="flex-1 max-w-md w-full mx-auto p-4 sm:p-5 flex flex-col justify-center">
         {authLoading || loading ? (
-          <div className="space-y-4 rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm sm:p-8">
-            <div className="skeleton h-6 w-2/3" />
-            <div className="skeleton h-4 w-1/2" />
-            <div className="skeleton h-4 w-3/4" />
-            <div className="skeleton mt-2 h-12 w-full rounded-xl" />
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-[#E5E7EB] shadow-sm">
+            <div className="mb-5">
+              <div className="skeleton h-4 w-24 rounded" />
+              <div className="skeleton mt-2 h-5 w-2/3" />
+              <div className="skeleton mt-1.5 h-3 w-1/2" />
+            </div>
+
+            {/* Kartu identitas anggota */}
+            <div className="mb-4 p-3 bg-[#2C5857]/5 border border-[#2C5857]/15 rounded-xl flex items-center gap-3">
+              <div className="skeleton h-9 w-9 rounded-full shrink-0" />
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <div className="skeleton h-3.5 w-28 max-w-full" />
+                <div className="skeleton h-3 w-40 max-w-full" />
+              </div>
+              <div className="ml-auto flex items-center gap-2 shrink-0">
+                <div className="skeleton hidden sm:block h-5 w-20 rounded-full" />
+                <div className="skeleton h-8 w-8 rounded-lg" />
+              </div>
+            </div>
+
+            {/* Form */}
+            <div className="space-y-4">
+              <div>
+                <div className="skeleton mb-1.5 h-3 w-24" />
+                <div className="skeleton h-10 w-full rounded-xl" />
+              </div>
+              <div className="p-3 bg-[#F0FDF4] border border-[#BBF7D0] rounded-xl space-y-1.5">
+                <div className="skeleton h-3 w-2/3" />
+                <div className="skeleton h-2.5 w-1/2" />
+                <div className="skeleton h-2.5 w-2/5" />
+              </div>
+              <div className="skeleton h-12 w-full rounded-xl" />
+            </div>
           </div>
-        ) : !member ? (
-          /* ============ KARTU WAJIB LOGIN ============ */
+        ) : !member ? (          /* ============ KARTU WAJIB LOGIN ============ */
           <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[#E5E7EB] shadow-sm text-center">
             <div className="w-14 h-14 bg-[#2C5857]/10 text-[#2C5857] rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>

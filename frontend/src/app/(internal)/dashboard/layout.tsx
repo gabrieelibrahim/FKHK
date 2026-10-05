@@ -52,11 +52,62 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="w-full max-w-xs space-y-4 px-4">
-          <div className="skeleton h-10 w-40" />
-          <div className="skeleton h-4 w-full" />
-          <div className="skeleton h-4 w-2/3" />
+      <div className="flex h-screen bg-gray-50 overflow-hidden">
+        {/* Sidebar skeleton */}
+        <aside className="hidden w-[min(84vw,18rem)] shrink-0 flex-col border-r border-gray-200 bg-white lg:flex lg:w-64">
+          <div className="flex h-16 shrink-0 items-center gap-3 border-b border-gray-200 px-6">
+            <div className="skeleton h-9 w-9 rounded-lg" />
+            <div className="skeleton h-4 w-32" />
+          </div>
+          <nav className="space-y-6 p-4">
+            {Array.from({ length: 2 }).map((_, s) => (
+              <div key={s} className="space-y-1">
+                <div className="skeleton mx-3 mb-2 h-3 w-16" />
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <div key={i} className="skeleton mb-1 h-10 rounded-lg" />
+                ))}
+              </div>
+            ))}
+          </nav>
+        </aside>
+
+        <div className="flex-1 flex flex-col min-w-0">
+          <header className="flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6">
+            <div className="flex items-center gap-3">
+              <div className="skeleton h-11 w-11 rounded-xl lg:hidden" />
+              <div className="lg:hidden space-y-1">
+                <div className="skeleton h-4 w-36" />
+                <div className="skeleton h-3 w-20" />
+              </div>
+            </div>
+            <div className="flex items-center gap-3 ml-auto">
+              <div className="hidden sm:flex items-center gap-2">
+                <div className="skeleton h-8 w-8 rounded-full" />
+                <div className="space-y-1">
+                  <div className="skeleton h-3 w-24" />
+                  <div className="skeleton h-2.5 w-16" />
+                </div>
+              </div>
+              <div className="skeleton h-9 w-20 rounded-xl" />
+            </div>
+          </header>
+
+          <main className="min-w-0 flex-1 overflow-y-auto p-4 lg:p-6">
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <div className="skeleton h-7 w-40" />
+                <div className="skeleton h-4 w-64 max-w-full" />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <div key={i} className="rounded-xl border border-gray-200/80 bg-white p-4 shadow-xs sm:p-5">
+                    <div className="skeleton h-3 w-24" />
+                    <div className="skeleton mt-2 h-8 w-14" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </main>
         </div>
       </div>
     );
