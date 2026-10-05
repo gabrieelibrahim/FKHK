@@ -22,7 +22,7 @@ export default function TeamSection() {
         {/* Fade ke background section (atas terang, bawah gelap) */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#fcfaf8] via-transparent to-[#1a2e2e]" />
         {/* Scrim gelap merata supaya teks putih selalu kontras di semua area foto */}
-        <div className="absolute inset-0 bg-[#122a29]/55" />
+        <div className="absolute inset-0 bg-[#122a29]/70" />
         {/* Gradient ekstra dari kiri (belakang blok teks) */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#0e2322]/85 via-[#0e2322]/35 to-transparent" />
         <div className="absolute inset-0 flex items-center">
@@ -44,7 +44,7 @@ export default function TeamSection() {
               <div className="flex flex-wrap gap-3">
                 <Link
                   href="/auth/login"
-                  className="px-6 py-3 bg-[#E8A33D] text-white font-medium rounded-full text-sm hover:bg-[#d4922f] transition-colors shadow-lg no-underline"
+                  className="px-6 py-3 bg-[#E8A33D] text-[#1a2e2e] font-semibold rounded-full text-sm hover:bg-[#f0b355] transition-colors shadow-lg no-underline"
                 >
                   {t("btnRegister")}
                 </Link>
