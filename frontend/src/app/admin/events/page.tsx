@@ -16,6 +16,7 @@ interface EventItem {
   imageUrl: string | null;
   _count: { registrations: number };
   capacity: number | null;
+  presensiCode: string | null;
 }
 
 export default function AdminEventsPage() {
@@ -36,6 +37,7 @@ export default function AdminEventsPage() {
     onlineUrl: "",
     capacity: "",
     imageUrl: "",
+    presensiCode: "",
   });
 
   // Edit Form State
@@ -50,6 +52,7 @@ export default function AdminEventsPage() {
     capacity: "",
     status: "upcoming",
     imageUrl: "",
+    presensiCode: "",
   });
 
   const [formError, setFormError] = useState("");
@@ -99,6 +102,7 @@ export default function AdminEventsPage() {
           location: createForm.location || null,
           onlineUrl: createForm.onlineUrl || null,
           imageUrl: createForm.imageUrl || null,
+          presensiCode: createForm.presensiCode.trim() || null,
           capacity: createForm.category === "internal" ? null : (createForm.capacity ? parseInt(createForm.capacity) : null),
         }),
       });
@@ -114,6 +118,7 @@ export default function AdminEventsPage() {
         onlineUrl: "",
         capacity: "",
         imageUrl: "",
+        presensiCode: "",
       });
       fetchEvents();
     } catch (err: any) {
@@ -144,6 +149,7 @@ export default function AdminEventsPage() {
       capacity: e.capacity ? String(e.capacity) : "",
       status: e.status || "upcoming",
       imageUrl: e.imageUrl || "",
+      presensiCode: e.presensiCode || "",
     });
     setFormError("");
     setShowEditModal(true);
@@ -172,6 +178,7 @@ export default function AdminEventsPage() {
           imageUrl: editForm.imageUrl || null,
           capacity: editForm.category === "internal" ? null : (editForm.capacity ? parseInt(editForm.capacity) : null),
           status: editForm.status,
+          presensiCode: editForm.presensiCode.trim() || null,
         }),
       });
       const data = await res.json();
@@ -542,6 +549,21 @@ export default function AdminEventsPage() {
                 </div>
               )}
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Kode Presensi (opsional, anti titip absen)</label>
+                <input
+                  type="text"
+                  value={createForm.presensiCode}
+                  onChange={(e) => setCreateForm({ ...createForm, presensiCode: e.target.value.toUpperCase() })}
+                  maxLength={12}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  placeholder="Misal: RK2026 — kosongkan jika tidak perlu kode"
+                />
+                <p className="mt-1 text-[11px] text-gray-500">
+                  Jika diisi, peserta wajib memasukkan kode ini untuk konfirmasi kehadiran. Umumkan kode hanya di lokasi kegiatan.
+                </p>
+              </div>
+
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
@@ -739,6 +761,21 @@ export default function AdminEventsPage() {
                   />
                 </div>
               )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Kode Presensi (opsional, anti titip absen)</label>
+                <input
+                  type="text"
+                  value={editForm.presensiCode}
+                  onChange={(e) => setEditForm({ ...editForm, presensiCode: e.target.value.toUpperCase() })}
+                  maxLength={12}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  placeholder="Kosongkan untuk menonaktifkan kode"
+                />
+                <p className="mt-1 text-[11px] text-gray-500">
+                  Jika diisi, peserta wajib memasukkan kode ini untuk konfirmasi kehadiran. Umumkan kode hanya di lokasi kegiatan.
+                </p>
+              </div>
 
               <div className="flex gap-3 pt-2">
                 <button

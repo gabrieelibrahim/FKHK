@@ -32,7 +32,7 @@ services:
       JWT_SECRET: "${JWT_SECRET:-fkhk_jwt_super_secret_2026}"
       BCRYPT_SALT_ROUNDS: 10
       NODE_ENV: production
-      CORS_ORIGINS: "https://fkhk-uinsuka.web.id,https://www.fkhk-uinsuka.web.id,http://43.159.34.55"
+      CORS_ORIGINS: "https://fkhk-uinsuka.web.id,https://www.fkhk-uinsuka.web.id,https://presensi.fkhk-uinsuka.web.id,http://43.159.34.55"
     volumes:
       - uploads:/app/uploads
     ports:

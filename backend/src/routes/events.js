@@ -6,7 +6,9 @@ const { protect, optionalProtect, authorize } = require('../middleware/auth');
 const ADMIN_ROLES = ['superadmin', 'admin_kaset', 'admin_psdm', 'admin_bph', 'admin'];
 
 // Public
-router.get('/', eventController.getEvents);
+router.get('/', optionalProtect, eventController.getEvents);
+router.get('/presensi/active', eventController.getActiveEventsForPresensi);
+router.post('/presensi/record', eventController.recordPresensi);
 router.get('/:slug', optionalProtect, eventController.getEventBySlug);
 
 // Protected (Admin)

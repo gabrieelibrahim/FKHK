@@ -8,6 +8,7 @@ export default function FooterWrapper() {
   const hide =
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/admin") ||
+    pathname.startsWith("/presensi") ||
     pathname.startsWith("/auth");
   if (hide) return null;
   return <Footer />;

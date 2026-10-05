@@ -17,6 +17,8 @@ exports.getEvents = async (req, res, next) => {
       ];
     }
 
+    const isAdmin = req.member && ['superadmin', 'admin_kaset', 'admin_psdm', 'admin_bph', 'admin'].includes(req.member.role);
+
     const events = await prisma.event.findMany({
       where,
       skip,
@@ -34,6 +36,7 @@ exports.getEvents = async (req, res, next) => {
         status: true,
         category: true,
         imageUrl: true,
+        presensiCode: isAdmin ? true : false,
         createdAt: true,
         createdBy: { select: { id: true, name: true } },
         _count: { select: { registrations: true } },
@@ -66,6 +69,9 @@ exports.getEventBySlug = async (req, res, next) => {
 
     if (!event) return res.status(404).json({ message: 'Event not found' });
 
+    // Jangan bocorkan kode presensi ke publik
+    const { presensiCode, ...safeEvent } = event;
+
     // Check if current user is registered
     let isRegistered = false;
     if (req.member) {
@@ -78,7 +84,7 @@ exports.getEventBySlug = async (req, res, next) => {
       isRegistered = !!reg;
     }
 
-    res.json({ ...event, isRegistered });
+    res.json({ ...safeEvent, isRegistered });
   } catch (err) {
     next(err);
   }
@@ -86,7 +92,7 @@ exports.getEventBySlug = async (req, res, next) => {
 
 exports.createEvent = async (req, res, next) => {
   try {
-    const { title, description, dateTime, location, onlineUrl, capacity, imageUrl, category } = req.body;
+    const { title, description, dateTime, location, onlineUrl, capacity, imageUrl, category, presensiCode } = req.body;
     if (!title || !description || !dateTime) {
       return res.status(400).json({ message: 'Title, description, and dateTime are required' });
     }
@@ -107,6 +113,7 @@ exports.createEvent = async (req, res, next) => {
         imageUrl: imageUrl || null,
         capacity: capacity ? parseInt(capacity) : null,
         category: category === 'internal' ? 'internal' : 'umum',
+        presensiCode: presensiCode ? presensiCode.trim().toUpperCase() : null,
         createdById: req.member.id,
         status: 'upcoming',
       },
@@ -129,7 +136,7 @@ exports.updateEvent = async (req, res, next) => {
     const event = await prisma.event.findUnique({ where: { id: parseInt(id) } });
     if (!event) return res.status(404).json({ message: 'Event not found' });
 
-    const { title, description, dateTime, location, onlineUrl, capacity, status, imageUrl, category } = req.body;
+    const { title, description, dateTime, location, onlineUrl, capacity, status, imageUrl, category, presensiCode } = req.body;
     const data = {};
     if (title !== undefined) data.title = title;
     if (description !== undefined) data.description = description;
@@ -140,6 +147,7 @@ exports.updateEvent = async (req, res, next) => {
     if (imageUrl !== undefined) data.imageUrl = imageUrl || null;
     if (status !== undefined) data.status = status;
     if (category !== undefined) data.category = category === 'internal' ? 'internal' : 'umum';
+    if (presensiCode !== undefined) data.presensiCode = presensiCode ? presensiCode.trim().toUpperCase() : null;
 
     const updated = await prisma.event.update({
       where: { id: parseInt(id) },
@@ -267,6 +275,210 @@ exports.getRegistrations = async (req, res, next) => {
     }));
 
     res.json({ data, total: data.length });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+exports.getActiveEventsForPresensi = async (req, res, next) => {
+  try {
+    const events = await prisma.event.findMany({
+      where: {
+        status: { in: ["upcoming", "ongoing"] }
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        category: true,
+        dateTime: true,
+        location: true,
+        status: true,
+        presensiCode: true,
+        _count: {
+          select: { registrations: true }
+        }
+      },
+      orderBy: { dateTime: "desc" },
+      take: 10
+    });
+
+    // Flag butuh-kode tanpa membocorkan kodenya ke publik
+    const eventsWithFlag = events.map((ev) => {
+      const hasCode = Boolean(ev.presensiCode);
+      const { presensiCode, ...safeEvent } = ev;
+      return { ...safeEvent, requiresCode: hasCode };
+    });
+
+    res.json({ success: true, data: eventsWithFlag });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.recordPresensi = async (req, res, next) => {
+  try {
+    const { eventId, identifier, name, institution, phone, code } = req.body;
+
+    if (!eventId || (!identifier && !name)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Kegiatan dan NIM atau Nama wajib diisi" 
+      });
+    }
+
+    const event = await prisma.event.findUnique({
+      where: { id: parseInt(eventId) },
+      include: { _count: { select: { registrations: true } } }
+    });
+
+    if (!event) {
+      return res.status(404).json({ success: false, message: "Kegiatan tidak ditemukan" });
+    }
+
+    // === Anti-manipulasi 1: jendela waktu presensi (hari-H saja, WIB) ===
+    const now = new Date();
+    const eventDate = new Date(event.dateTime);
+    // hari kegiatan dalam zona WIB (UTC+7)
+    const wibOffsetMs = 7 * 60 * 60 * 1000;
+    const nowWibDay = new Date(now.getTime() + wibOffsetMs).toISOString().slice(0, 10);
+    const eventWibDay = new Date(eventDate.getTime() + wibOffsetMs).toISOString().slice(0, 10);
+    if (nowWibDay !== eventWibDay) {
+      return res.status(400).json({
+        success: false,
+        message: "Presensi hanya bisa diisi pada hari kegiatan berlangsung."
+      });
+    }
+
+    // === Anti-manipulasi 2: kode presensi dari panitia (anti titip absen) ===
+    if (event.presensiCode) {
+      const submittedCode = (code || "").trim().toUpperCase();
+      if (!submittedCode) {
+        return res.status(400).json({
+          success: false,
+          message: "Kode presensi wajib diisi. Minta kode kepada panitia di lokasi kegiatan."
+        });
+      }
+      if (submittedCode !== event.presensiCode) {
+        return res.status(403).json({
+          success: false,
+          message: "Kode presensi salah. Minta kode yang sah kepada panitia."
+        });
+      }
+    }
+
+    // === Anti-manipulasi 3: jejak audit IP ===
+    const clientIp =
+      (req.headers["x-forwarded-for"] || "").split(",")[0].trim() ||
+      req.socket.remoteAddress ||
+      null;
+
+    const cleanInput = (identifier || name || "").trim();
+    const isEmail = cleanInput.includes("@");
+    const isDigitOnly = /^[0-9]+$/.test(cleanInput);
+
+    let matchedMember = null;
+    if (isDigitOnly && cleanInput.length >= 7) {
+      matchedMember = await prisma.member.findFirst({
+        where: { nim: cleanInput }
+      });
+    } else if (isEmail) {
+      matchedMember = await prisma.member.findFirst({
+        where: { email: cleanInput.toLowerCase() }
+      });
+    }
+
+    let registration = null;
+
+    if (matchedMember) {
+      registration = await prisma.registration.findFirst({
+        where: { eventId: event.id, memberId: matchedMember.id }
+      });
+    }
+
+    if (!registration) {
+      if (isDigitOnly && cleanInput.length >= 7) {
+        registration = await prisma.registration.findFirst({
+          where: { eventId: event.id, nim: cleanInput }
+        });
+      } else if (isEmail) {
+        registration = await prisma.registration.findFirst({
+          where: { eventId: event.id, email: cleanInput.toLowerCase() }
+        });
+      } else {
+        registration = await prisma.registration.findFirst({
+          where: { eventId: event.id, name: { equals: cleanInput, mode: "insensitive" } }
+        });
+      }
+    }
+
+    if (registration) {
+      if (registration.attended) {
+        return res.status(200).json({
+          success: true,
+          alreadyAttended: true,
+          message: "Presensi sudah tercatat sebelumnya.",
+          data: {
+            name: registration.name || (matchedMember ? matchedMember.name : cleanInput),
+            nim: registration.nim || (matchedMember ? matchedMember.nim : null),
+            institution: registration.institution || (matchedMember ? matchedMember.affiliation : "FKHK"),
+            eventTitle: event.title,
+            attended: true,
+            registeredAt: registration.registeredAt
+          }
+        });
+      }
+
+      const updated = await prisma.registration.update({
+        where: { id: registration.id },
+        data: { attended: true, presensiIp: clientIp }
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "Presensi berhasil dicatat!",
+        data: {
+          name: updated.name || (matchedMember ? matchedMember.name : cleanInput),
+          nim: updated.nim || (matchedMember ? matchedMember.nim : null),
+          institution: updated.institution || (matchedMember ? matchedMember.affiliation : "FKHK"),
+          eventTitle: event.title,
+          attended: true,
+          registeredAt: updated.registeredAt
+        }
+      });
+    }
+
+    const resolvedName = matchedMember ? matchedMember.name : (name ? name.trim() : (isDigitOnly ? "Anggota (" + cleanInput + ")" : cleanInput));
+    const resolvedEmail = matchedMember ? matchedMember.email : (isEmail ? cleanInput.toLowerCase() : cleanInput.toLowerCase().replace(/[^a-z0-9]/g, "") + "@presensi.fkhk.id");
+    const resolvedNim = matchedMember ? matchedMember.nim : (isDigitOnly ? cleanInput : null);
+
+    const newReg = await prisma.registration.create({
+      data: {
+        eventId: event.id,
+        memberId: matchedMember ? matchedMember.id : null,
+        name: resolvedName,
+        email: resolvedEmail,
+        nim: resolvedNim,
+        phone: phone ? phone.trim() : (matchedMember ? matchedMember.phone : null),
+        institution: institution ? institution.trim() : (matchedMember ? matchedMember.affiliation : (event.category === "internal" ? "Internal FKHK" : "Umum")),
+        attended: true,
+        presensiIp: clientIp
+      }
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Presensi kehadiran baru berhasil dicatat!",
+      data: {
+        name: newReg.name,
+        nim: newReg.nim,
+        institution: newReg.institution,
+        eventTitle: event.title,
+        attended: true,
+        registeredAt: newReg.registeredAt
+      }
+    });
   } catch (err) {
     next(err);
   }
