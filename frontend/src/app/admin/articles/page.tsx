@@ -46,6 +46,21 @@ export default function AdminArticlesPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // create article state
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createError, setCreateError] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    title: "",
+    topic: "General",
+    tags: "",
+    excerpt: "",
+    content: "",
+    imageUrl: "",
+    publishNow: true,
+  });
+
   const loadArticles = () => {
     const token = getToken();
     setLoading(true);
@@ -123,6 +138,87 @@ export default function AdminArticlesPage() {
     }
   };
 
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreateError("");
+    if (!createForm.title.trim() || !createForm.content.trim()) {
+      setCreateError("Judul dan konten wajib diisi");
+      return;
+    }
+    setCreateLoading(true);
+    try {
+      const token = getToken();
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articles`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: createForm.title,
+          content: createForm.content,
+          excerpt: createForm.excerpt,
+          topic: createForm.topic,
+          imageUrl: createForm.imageUrl || null,
+          tags: createForm.tags
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Gagal membuat artikel");
+
+      // Auto-publish jika dicentang (admin kaset / superadmin)
+      if (createForm.publishNow && data.id) {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articles/${data.id}/publish`, {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => {});
+      }
+
+      setCreateOpen(false);
+      setCreateForm({
+        title: "",
+        topic: "General",
+        tags: "",
+        excerpt: "",
+        content: "",
+        imageUrl: "",
+        publishNow: true,
+      });
+      loadArticles();
+    } catch (err: any) {
+      setCreateError(err.message);
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleCreateImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    setCreateError("");
+    try {
+      const token = getToken();
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Gagal upload");
+      setCreateForm((prev) => ({ ...prev, imageUrl: data.url }));
+    } catch (err: any) {
+      setCreateError(err.message);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -136,8 +232,18 @@ export default function AdminArticlesPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:mb-6 lg:flex-row lg:gap-0">
         <div>
           <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">Artikel</h1>
-          <p className="mt-1 text-sm text-gray-500">Baca dulu isi artikel, baru publish</p>
+          <p className="mt-1 text-sm text-gray-500">Kelola, tulis, dan publish artikel</p>
         </div>
+        <button
+          type="button"
+          onClick={() => {
+            setCreateError("");
+            setCreateOpen(true);
+          }}
+          className="min-h-10 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-primary-dark"
+        >
+          + Tulis Artikel
+        </button>
       </div>
 
       {error && (
@@ -364,6 +470,168 @@ export default function AdminArticlesPage() {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Create Article Modal */}
+      {createOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4"
+          onClick={() => !createLoading && setCreateOpen(false)}
+        >
+          <div
+            className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-xl flex flex-col border border-gray-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900">Tulis Artikel Baru</h2>
+              <button
+                type="button"
+                onClick={() => setCreateOpen(false)}
+                disabled={createLoading}
+                className="text-gray-400 hover:text-gray-600 text-sm shrink-0"
+              >
+                Tutup
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateSubmit} className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
+              {createError && (
+                <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{createError}</div>
+              )}
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Judul *</label>
+                <input
+                  type="text"
+                  required
+                  value={createForm.title}
+                  onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
+                  placeholder="Judul artikel"
+                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Topik</label>
+                  <select
+                    value={createForm.topic}
+                    onChange={(e) => setCreateForm({ ...createForm, topic: e.target.value })}
+                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                  >
+                    <option value="General">General</option>
+                    <option value="Pernikahan">Pernikahan</option>
+                    <option value="Hukum Waris">Hukum Waris</option>
+                    <option value="Perlindungan Anak">Perlindungan Anak</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Tags</label>
+                  <input
+                    type="text"
+                    value={createForm.tags}
+                    onChange={(e) => setCreateForm({ ...createForm, tags: e.target.value })}
+                    placeholder="hukum-keluarga, islam"
+                    className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Thumbnail</label>
+                <div className="flex items-center gap-3">
+                  {createForm.imageUrl ? (
+                    <img
+                      src={`${process.env.NEXT_PUBLIC_API_URL}${createForm.imageUrl}`}
+                      alt="preview"
+                      className="h-14 w-20 rounded-lg border border-gray-200 object-cover"
+                    />
+                  ) : (
+                    <div className="h-14 w-20 rounded-lg border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center text-[10px] text-gray-400">
+                      No Foto
+                    </div>
+                  )}
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      id="create-article-image"
+                      onChange={handleCreateImageUpload}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById("create-article-image")?.click()}
+                      disabled={uploadingImage}
+                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
+                    >
+                      {uploadingImage ? "Mengunggah..." : createForm.imageUrl ? "Ganti Foto" : "Pilih Foto"}
+                    </button>
+                    {createForm.imageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setCreateForm({ ...createForm, imageUrl: "" })}
+                        className="ml-2 text-xs text-red-500 hover:underline"
+                      >
+                        Hapus
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Excerpt (ringkasan)</label>
+                <textarea
+                  rows={2}
+                  value={createForm.excerpt}
+                  onChange={(e) => setCreateForm({ ...createForm, excerpt: e.target.value })}
+                  placeholder="Ringkasan singkat artikel"
+                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Konten *</label>
+                <textarea
+                  rows={10}
+                  required
+                  value={createForm.content}
+                  onChange={(e) => setCreateForm({ ...createForm, content: e.target.value })}
+                  placeholder="Tulis isi artikel di sini..."
+                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none font-mono leading-relaxed"
+                />
+              </div>
+
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={createForm.publishNow}
+                  onChange={(e) => setCreateForm({ ...createForm, publishNow: e.target.checked })}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                Langsung publish setelah disimpan
+              </label>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setCreateOpen(false)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={createLoading || uploadingImage}
+                  className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition disabled:opacity-50"
+                >
+                  {createLoading ? "Menyimpan..." : "Simpan Artikel"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
