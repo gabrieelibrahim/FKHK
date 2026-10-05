@@ -88,14 +88,14 @@ export default function FeaturesSection() {
                     href={f.link}
                     className="inline-flex items-center text-sm font-semibold text-primary hover:text-primary-dark transition no-underline mt-auto"
                   >
-                    {f.linkLabel} &rarr;
+                    {f.linkLabel}
                   </Link>
                 ) : (
                   <LocaleLink
                     href={f.link}
                     className="inline-flex items-center text-sm font-semibold text-primary hover:text-primary-dark transition no-underline mt-auto"
                   >
-                    {f.linkLabel} &rarr;
+                    {f.linkLabel}
                   </LocaleLink>
                 )}
               </motion.div>

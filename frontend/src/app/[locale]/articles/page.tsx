@@ -251,7 +251,7 @@ export default async function ArticlesPage({ params: { locale }, searchParams }:
                           href={`/articles/${a.slug}`}
                           className="font-medium text-[#2C5857] hover:underline inline-flex items-center gap-1 no-underline"
                         >
-                          {t("readMore")} &rarr;
+                          {t("readMore")}
                         </Link>
                       </div>
                     </div>
@@ -288,7 +288,7 @@ export default async function ArticlesPage({ params: { locale }, searchParams }:
                 }).toString()}`}
                 className="px-3 py-1.5 border border-zinc-300 bg-white rounded-md text-xs font-medium text-zinc-700 hover:bg-zinc-50 transition no-underline"
               >
-                &larr;
+                {locale === "en" ? "Previous" : locale === "ar" ? "السابق" : "Sebelumnya"}
               </Link>
             )}
             <span className="text-xs text-zinc-500">
@@ -303,7 +303,7 @@ export default async function ArticlesPage({ params: { locale }, searchParams }:
                 }).toString()}`}
                 className="px-3 py-1.5 border border-zinc-300 bg-white rounded-md text-xs font-medium text-zinc-700 hover:bg-zinc-50 transition no-underline"
               >
-                &rarr;
+                {locale === "en" ? "Next" : locale === "ar" ? "التالي" : "Selanjutnya"}
               </Link>
             )}
           </div>

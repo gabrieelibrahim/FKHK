@@ -356,7 +356,7 @@ export default function EventsPage() {
                           href={`/events/${e.slug}`}
                           className="self-end sm:self-auto font-medium text-[#2C5857] hover:underline inline-flex items-center text-xs shrink-0 no-underline"
                         >
-                          {t("detailTitle")} &rarr;
+                          {t("detailTitle")}
                         </Link>
                       </div>
                     </div>
@@ -375,7 +375,7 @@ export default function EventsPage() {
                 onClick={() => setPage((p) => p - 1)}
                 className="px-3 py-1.5 border border-zinc-300 bg-white rounded-md text-xs font-medium text-zinc-700 hover:bg-zinc-50 transition"
               >
-                &larr;
+                {locale === "en" ? "Previous" : locale === "ar" ? "السابق" : "Sebelumnya"}
               </button>
             )}
             <span className="text-xs text-zinc-500">
@@ -386,7 +386,7 @@ export default function EventsPage() {
                 onClick={() => setPage((p) => p + 1)}
                 className="px-3 py-1.5 border border-zinc-300 bg-white rounded-md text-xs font-medium text-zinc-700 hover:bg-zinc-50 transition"
               >
-                &rarr;
+                {locale === "en" ? "Next" : locale === "ar" ? "التالي" : "Selanjutnya"}
               </button>
             )}
           </div>

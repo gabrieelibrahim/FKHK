@@ -205,7 +205,7 @@ export default function EventDetailPage() {
           href="/events"
           className="inline-flex items-center px-4 py-2 rounded-lg bg-[#2C5857] text-white text-xs font-medium hover:bg-[#234544] transition no-underline"
         >
-          &larr; {locale === "en" ? "Back to Agendas" : locale === "ar" ? "العودة للفعاليات" : "Kembali ke Daftar Agenda"}
+          {locale === "en" ? "Back to Agendas" : locale === "ar" ? "العودة للفعاليات" : "Kembali ke Daftar Agenda"}
         </Link>
       </div>
     );
