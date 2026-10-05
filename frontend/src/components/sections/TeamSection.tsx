@@ -19,7 +19,12 @@ export default function TeamSection() {
           sizes="100vw"
           className="w-full h-full object-cover object-center"
         />
+        {/* Fade ke background section (atas terang, bawah gelap) */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#fcfaf8] via-transparent to-[#1a2e2e]" />
+        {/* Scrim gelap merata supaya teks putih selalu kontras di semua area foto */}
+        <div className="absolute inset-0 bg-[#122a29]/55" />
+        {/* Gradient ekstra dari kiri (belakang blok teks) */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0e2322]/85 via-[#0e2322]/35 to-transparent" />
         <div className="absolute inset-0 flex items-center">
           <div className="container mx-auto px-4 max-w-[1240px]">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
@@ -31,7 +36,7 @@ export default function TeamSection() {
                   {t("heading")}<br />
                   <em className="not-italic">{t("headingItalic")}</em>
                 </h2>
-                <p className="text-sm sm:text-base text-white/80 mt-3 leading-relaxed [text-shadow:0_1px_4px_rgba(0,0,0,0.8)]">
+                <p className="text-sm sm:text-base text-white/95 mt-3 leading-relaxed [text-shadow:0_1px_4px_rgba(0,0,0,0.8)]">
                   {t("desc")}
                 </p>
               </div>
@@ -39,7 +44,7 @@ export default function TeamSection() {
               <div className="flex flex-wrap gap-3">
                 <Link
                   href="/auth/login"
-                  className="px-6 py-3 bg-[#2C5857] text-white font-medium rounded-full text-sm hover:bg-[#1a2e2e] transition-colors shadow-lg no-underline"
+                  className="px-6 py-3 bg-[#E8A33D] text-white font-medium rounded-full text-sm hover:bg-[#d4922f] transition-colors shadow-lg no-underline"
                 >
                   {t("btnRegister")}
                 </Link>
