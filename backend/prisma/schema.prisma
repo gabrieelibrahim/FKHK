@@ -30,6 +30,7 @@ model Member {
   eventsCreated Event[]   @relation("EventCreator")
   registrations Registration[]
   comments      Comment[]
+  officialLetters OfficialLetter[] @relation("LetterCreator")
 
   @@map("members")
 }
@@ -162,4 +163,42 @@ model Setting {
   updatedAt DateTime @updatedAt
 
   @@map("settings")
+}
+
+model OfficialLetter {
+  id              String         @id @default(uuid())
+  letterNumber    String         @unique
+  sequenceNumber  Int
+  subjectCode     String         // Kode perihal: 01 s.d. 11
+  scope           String         // PUSAT, DIVISI, KEPANITIAAN
+  divisionCode    String?        // KR, AD, PD, PR
+  committeeCode   String?        // PTA-UPGR, etc.
+  subject         String         // Perihal surat
+  recipientName   String         // Nama Penerima
+  recipientOrg    String?        // Instansi / Lembaga
+  eventDate       DateTime?
+  contentData     Json?          // payload dinamis (daftar mahasiswa, detail agenda)
+  withSignature   Boolean        @default(true)
+  withStamp       Boolean        @default(true)
+  status          String         @default("ISSUED") // DRAFT, ISSUED, VOID
+  filePdfUrl      String?
+  issuedAt        DateTime       @default(now())
+  createdById     Int
+  createdBy       Member         @relation("LetterCreator", fields: [createdById], references: [id])
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([letterNumber])
+  @@index([subjectCode])
+  @@index([issuedAt])
+  @@map("official_letters")
+}
+
+model LetterSequence {
+  year      Int
+  scopeKey  String         @default("GLOBAL") // Identifier scope counter
+  lastSeq   Int            @default(0)
+
+  @@id([year, scopeKey])
+  @@map("letter_sequences")
 }

@@ -118,6 +118,7 @@ const achievementRoutes = require('./routes/achievements');
 const officerRoutes = require('./routes/officers');
 const uploadRoutes = require('./routes/upload');
 const settingsRoutes = require('./controllers/settingsController').router;
+const letterRoutes = require('./routes/letters');
 
 app.use('/api', apiLimiter);
 app.use('/api/auth', authLimiter);
@@ -144,6 +145,7 @@ app.use('/api/achievements', achievementRoutes);
 app.use('/api/officers', officerRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/letters', letterRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'FKHK Backend API is running!', version: '1.0.0' });

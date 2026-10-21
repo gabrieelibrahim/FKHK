@@ -100,7 +100,7 @@ export default function ChangePasswordPage() {
               </p>
               <button
                 onClick={() => {
-                  window.location.href = member && (member.role === "admin" || member.role === "superadmin" || member.role === "admin_kaset" || member.role === "admin_psdm" || member.role === "admin_bph")
+                  window.location.href = member && (member.role === "admin" || member.role === "superadmin" || member.role === "admin_kaset" || member.role === "admin_psdm" || member.role === "admin_bph" || member.role === "sekretaris")
                     ? "/admin"
                     : "/dashboard";
                 }}

@@ -4,7 +4,7 @@ import createIntlMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";
 
 // ===== Auth (dipertahankan dari middleware lama) =====
-const ADMIN_ROLES = ["admin", "superadmin", "admin_kaset", "admin_psdm", "admin_bph"];
+const ADMIN_ROLES = ["admin", "superadmin", "admin_kaset", "admin_psdm", "admin_bph", "sekretaris"];
 const isAdminRole = (role?: unknown) => typeof role === "string" && ADMIN_ROLES.includes(role);
 
 const protectedRoutes = ["/dashboard", "/admin", "/profile", "/events/create", "/dashboard/submit", "/dashboard/my-articles"];
