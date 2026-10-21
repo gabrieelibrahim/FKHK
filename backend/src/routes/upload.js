@@ -64,6 +64,33 @@ async function decodeHeicToJpegBuffer(inputBuffer) {
   }
 }
 
+// pdf-parse (pdf.js 2018) gagal membaca sebagian PDF valid ("bad XRef entry"),
+// jadi kalau gagal/kosong dicoba lagi dengan pdftotext (poppler).
+async function extractPdfText(buffer) {
+  try {
+    const pdfParse = require("pdf-parse");
+    const pdfData = await pdfParse(buffer);
+    const text = (pdfData.text || "").trim();
+    if (text) return text;
+  } catch (err) {
+    console.warn("pdf-parse gagal, coba pdftotext:", err.message);
+  }
+
+  const tmpInput = path.join("/tmp", `pdf-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.pdf`);
+  try {
+    await fs.promises.writeFile(tmpInput, buffer);
+    const { stdout } = await execFileAsync("pdftotext", ["-enc", "UTF-8", tmpInput, "-"], {
+      maxBuffer: 20 * 1024 * 1024,
+      timeout: 30000,
+    });
+    return (stdout || "").trim();
+  } catch (err) {
+    throw new Error("PDF tidak bisa dibaca. Coba simpan ulang sebagai PDF atau upload versi Word (.docx).");
+  } finally {
+    fs.promises.unlink(tmpInput).catch(() => {});
+  }
+}
+
 // Single image upload route with automatic WebP conversion
 router.post("/", protect, (req, res) => {
   upload.single("file")(req, res, async (err) => {
@@ -155,9 +182,7 @@ router.post("/extract-text", protect, authorize("superadmin", "admin_kaset"), (r
       if (ext === ".txt") {
         text = req.file.buffer.toString("utf8");
       } else if (ext === ".pdf") {
-        const pdfParse = require("pdf-parse");
-        const pdfData = await pdfParse(req.file.buffer);
-        text = (pdfData.text || "").trim();
+        text = await extractPdfText(req.file.buffer);
       } else {
         const result = await mammoth.extractRawText({ buffer: req.file.buffer });
         text = (result.value || "").trim();
