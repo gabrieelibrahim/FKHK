@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import type { MetadataRoute } from "next";
 import { fetchPublishedSlugs } from "@/lib/articles";
+import { getAchievements, achievementSlug } from "@/lib/achievements";
 import { getSiteUrl } from "@/lib/site";
 import { routing } from "@/i18n/routing";
 
@@ -16,7 +17,10 @@ function localeUrl(site: string, path: string, locale: string) {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const site = getSiteUrl();
-  const articles = await fetchPublishedSlugs(1000);
+  const [articles, achievements] = await Promise.all([
+    fetchPublishedSlugs(1000),
+    getAchievements(),
+  ]);
 
   const staticPaths: { path: string; changeFrequency: "daily" | "weekly" | "monthly"; priority: number }[] = [
     { path: "", changeFrequency: "weekly", priority: 1 },
@@ -46,5 +50,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticRoutes, ...articleRoutes];
+  // Prestasi: halaman detail per-achievement (hanya versi Indonesia,
+  // nama orang & judul kompetisi dari DB — konten sama untuk semua locale)
+  const achievementRoutes: MetadataRoute.Sitemap = achievements.map((a) => ({
+    url: `${site}/prestasi/${achievementSlug(a)}`,
+    lastModified: new Date(a.updatedAt || a.createdAt || Date.now()),
+    changeFrequency: "monthly",
+    priority: 0.6,
+  }));
+
+  return [...staticRoutes, ...articleRoutes, ...achievementRoutes];
 }
