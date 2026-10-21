@@ -7,6 +7,12 @@ const path = require('path');
 
 dotenv.config();
 
+// Fail-fast: JWT_SECRET wajib di-set di environment (tidak ada fallback yang bisa ditebak)
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET belum di-set. Set env var JWT_SECRET (cek .env / docker-compose) sebelum menjalankan server.');
+  process.exit(1);
+}
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -27,10 +33,17 @@ app.use(
     origin(origin, callback) {
       // izinkan request tanpa origin (curl, server-to-server, same-origin)
       if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
-      return callback(new Error(`Origin tidak diizinkan oleh CORS: ${origin}`));
+      // Tolak origin asing tanpa error (no CORS headers, bukan 500)
+      return callback(null, false);
     },
   })
 );
+// Vary: Origin — bikin cache (nginx proxy_cache / CDN / browser) menyimpan varian respons
+// terpisah per Origin, supaya respons tanpa header CORS tidak tersaji ke origin legit
+app.use((req, res, next) => {
+  res.setHeader('Vary', 'Origin');
+  next();
+});
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));

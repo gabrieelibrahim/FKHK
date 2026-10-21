@@ -262,6 +262,22 @@ exports.registerForEvent = async (req, res, next) => {
       return res.status(400).json({ message: 'Nama lengkap dan email wajib diisi' });
     }
 
+    if (typeof name !== 'string' || name.length > 100) {
+      return res.status(400).json({ message: 'Nama terlalu panjang (maksimal 100 karakter).' });
+    }
+    if (typeof email !== 'string' || email.length > 254) {
+      return res.status(400).json({ message: 'Email tidak valid atau terlalu panjang.' });
+    }
+    if (phone && (typeof phone !== 'string' || phone.length > 30)) {
+      return res.status(400).json({ message: 'Nomor telepon tidak valid.' });
+    }
+    if (institution && (typeof institution !== 'string' || institution.length > 150)) {
+      return res.status(400).json({ message: 'Nama institusi terlalu panjang (maksimal 150 karakter).' });
+    }
+    if (nim && (typeof nim !== 'string' || nim.length > 30)) {
+      return res.status(400).json({ message: 'NIM tidak valid.' });
+    }
+
     const cleanEmail = email.trim().toLowerCase();
     const existing = await prisma.registration.findFirst({
       where: {
