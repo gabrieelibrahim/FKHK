@@ -130,13 +130,13 @@ export default function ArticlesSlider() {
                             : ""}
                         </span>
                       </div>
-                      <h3 className="min-h-[2.5rem] text-xs sm:text-sm font-semibold text-gray-900 mb-2 line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                      <h3 className="text-xs sm:text-sm font-semibold text-gray-900 mb-2 leading-snug break-words group-hover:text-primary transition-colors">
                         {a.title}
                       </h3>
-                      <p className="text-xs text-gray-500 mb-3 line-clamp-2 leading-relaxed flex-1">
+                      <p className="text-xs text-gray-500 mb-3 line-clamp-2 leading-relaxed">
                         {a.excerpt}
                       </p>
-                      <div className="flex items-center gap-2">
+                      <div className="mt-auto flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[0.6rem] font-semibold text-primary">
                           {a.author.name.split(" ").map((n) => n[0]).join("").substring(0, 2)}
                         </div>
