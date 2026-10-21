@@ -20,6 +20,7 @@ interface Article {
 
 interface ArticleDetail extends Article {
   content: string;
+  references?: string | null;
   excerpt?: string;
   imageUrl?: string;
   tags?: string[];
@@ -66,6 +67,7 @@ export default function AdminArticlesPage() {
     tags: "",
     excerpt: "",
     content: "",
+    references: "",
     imageUrl: "",
     authorId: "",
     publishNow: true,
@@ -194,6 +196,7 @@ export default function AdminArticlesPage() {
         body: JSON.stringify({
           title: createForm.title,
           content: createForm.content,
+          references: createForm.references,
           excerpt: createForm.excerpt,
           topic: createForm.topic,
           imageUrl: createForm.imageUrl || null,
@@ -222,10 +225,12 @@ export default function AdminArticlesPage() {
         tags: "",
         excerpt: "",
         content: "",
+        references: "",
         imageUrl: "",
         authorId: "",
         publishNow: true,
       });
+      setUploadedDocName("");
       loadArticles();
     } catch (err: any) {
       setCreateError(err.message);
@@ -275,14 +280,24 @@ export default function AdminArticlesPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Gagal mengekstrak teks");
       if (!data.text || !data.text.trim()) throw new Error("Tidak ada teks yang bisa diekstrak dari file");
-      setCreateForm((prev) => ({ ...prev, content: data.text.trim() }));
       setUploadedDocName(data.filename || file.name);
-      if (!file.name) setUploadedDocName(file.name);
-      // Isi judul otomatis dari nama file jika masih kosong
+      // Backend sudah merapikan: isi per paragraf, daftar pustaka terpisah, judul & "Oleh:" terdeteksi
+      const byline = String(data.byline || "").toLowerCase();
+      const matchedAuthor = byline
+        ? authors.find((m) => {
+            const name = m.name.toLowerCase();
+            return byline.includes(name) || name.includes(byline.split(",")[0].trim());
+          })
+        : undefined;
       setCreateForm((prev) => {
-        if (prev.title.trim()) return prev;
         const baseName = (data.filename || file.name || "").replace(/\.(docx|pdf|txt)$/i, "").replace(/[-_]+/g, " ").trim();
-        return baseName ? { ...prev, title: baseName } : prev;
+        return {
+          ...prev,
+          content: data.text.trim(),
+          references: data.references || "",
+          title: prev.title.trim() ? prev.title : data.title || baseName,
+          authorId: prev.authorId || (matchedAuthor ? String(matchedAuthor.id) : ""),
+        };
       });
     } catch (err: any) {
       setCreateError(err.message);
@@ -573,6 +588,16 @@ export default function AdminArticlesPage() {
                   <div className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
                     {preview.content}
                   </div>
+                  {preview.references && (
+                    <div className="mt-6 border-t border-gray-100 pt-4">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Daftar Pustaka</p>
+                      <ol className="list-none space-y-1.5 text-xs text-gray-600 leading-relaxed">
+                        {preview.references.split("\n").filter(Boolean).map((r, i) => (
+                          <li key={i} className="break-words pl-4 -indent-4">{r}</li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -787,8 +812,20 @@ export default function AdminArticlesPage() {
                   className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none font-mono leading-relaxed"
                 />
                 <p className="text-[11px] text-gray-500 mt-1">
-                  Upload .docx/.pdf/.txt — teksnya otomatis masuk ke kolom konten, lalu bisa diedit. File tidak disimpan di server.
+                  Upload .docx/.pdf/.txt — teks otomatis dirapikan: judul &amp; penulis (&quot;Oleh: ...&quot;) terisi, isi per paragraf, dan daftar pustaka dipindah ke kolom Referensi. Cek lagi sebelum disimpan. File tidak disimpan di server.
                 </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Referensi / Daftar Pustaka</label>
+                <textarea
+                  rows={5}
+                  value={createForm.references}
+                  onChange={(e) => setCreateForm({ ...createForm, references: e.target.value })}
+                  placeholder="Satu sumber per baris"
+                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none leading-relaxed"
+                />
+                <p className="text-[11px] text-gray-500 mt-1">Opsional. Satu sumber per baris, tampil di bawah artikel sebagai Daftar Pustaka.</p>
               </div>
 
               <label className="flex items-center gap-2 text-sm text-gray-700">

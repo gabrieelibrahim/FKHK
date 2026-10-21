@@ -8,6 +8,11 @@ import CommentSection from "@/components/CommentSection";
 
 type Props = { params: { locale: string; slug: string } };
 
+// Baris pendek tanpa tanda baca akhir (mis. "Pendahuluan", "A. Latar Belakang") = subjudul
+function isSubheading(p: string) {
+  return !p.includes("\n") && p.length <= 80 && !/[.,;:!?"”)]$/.test(p) && /^[A-Z0-9]/.test(p);
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = await fetchArticleBySlug(params.slug);
   if (!article || article.status !== "published") {
@@ -210,9 +215,42 @@ export default async function ArticleDetailPage({ params }: Props) {
                 </div>
               )}
 
-              <div className="prose prose-gray max-w-none leading-relaxed whitespace-pre-wrap text-sm sm:text-base text-zinc-800">
-                {article.content}
+              <div className="max-w-none text-sm sm:text-base leading-relaxed text-zinc-800">
+                {article.content
+                  .split(/\n{2,}/)
+                  .map((p) => p.trim())
+                  .filter(Boolean)
+                  .map((p, i) =>
+                    isSubheading(p) ? (
+                      <h2 key={i} className="mt-8 mb-3 text-lg sm:text-xl font-bold text-gray-900 font-serif first:mt-0">
+                        {p}
+                      </h2>
+                    ) : (
+                      <p key={i} className="mb-4 whitespace-pre-line break-words last:mb-0">
+                        {p}
+                      </p>
+                    )
+                  )}
               </div>
+
+              {article.references && article.references.trim() && (
+                <section className="mt-10 pt-6 border-t border-gray-200">
+                  <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3 font-serif">
+                    {locale === "en" ? "References" : locale === "ar" ? "المراجع" : "Daftar Pustaka"}
+                  </h2>
+                  <ul className="space-y-2 text-xs sm:text-sm text-zinc-600 leading-relaxed">
+                    {article.references
+                      .split("\n")
+                      .map((r) => r.trim())
+                      .filter(Boolean)
+                      .map((r, i) => (
+                        <li key={i} className="pl-6 -indent-6 break-words">
+                          {r}
+                        </li>
+                      ))}
+                  </ul>
+                </section>
+              )}
 
               {article.tags && article.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-8 pt-8 border-t border-gray-200">

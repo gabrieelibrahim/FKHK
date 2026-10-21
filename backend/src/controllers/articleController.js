@@ -5,6 +5,13 @@ const ADMIN_ROLES = ['superadmin', 'admin_kaset', 'admin_psdm', 'admin_bph', 'ad
 const isAnyAdmin = (role) => ADMIN_ROLES.includes(role);
 const canManageArticles = (role) => ['superadmin', 'admin_kaset'].includes(role);
 
+// Ringkasan dari paragraf isi pertama, dipotong di batas kata
+const autoExcerpt = (content) => {
+  const first = content.split(/\n{2,}/).map((p) => p.trim()).find((p) => p.length > 60) || content.trim();
+  if (first.length <= 200) return first;
+  return first.slice(0, 200).replace(/\s+\S*$/, '') + '…';
+};
+
 // Penulis yang boleh dipilih admin artikel: anggota FKHK aktif (bukan akun admin divisi)
 const resolveAuthorId = async (authorId) => {
   const id = parseInt(authorId);
@@ -172,7 +179,8 @@ exports.createArticle = async (req, res, next) => {
         title,
         slug,
         content,
-        excerpt: excerpt || content.substring(0, 200),
+        excerpt: excerpt || autoExcerpt(content),
+        references: (req.body.references || '').trim() || null,
         imageUrl: req.body.imageUrl || null,
         topic: topic || 'General',
         tags: tags || [],
@@ -203,6 +211,7 @@ exports.updateArticle = async (req, res, next) => {
     if (title !== undefined) data.title = title;
     if (content !== undefined) data.content = content;
     if (excerpt !== undefined) data.excerpt = excerpt;
+    if (req.body.references !== undefined) data.references = (req.body.references || '').trim() || null;
     if (topic !== undefined) data.topic = topic;
     if (tags !== undefined) data.tags = { set: tags };
     if (imageUrl !== undefined) data.imageUrl = imageUrl;

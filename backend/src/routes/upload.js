@@ -9,6 +9,7 @@ const { execFile } = require("child_process");
 const { promisify } = require("util");
 const execFileAsync = promisify(execFile);
 const { protect, authorize } = require("../middleware/auth");
+const { tidyArticleText } = require("../utils/articleText");
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -166,7 +167,15 @@ router.post("/extract-text", protect, authorize("superadmin", "admin_kaset"), (r
         return res.status(400).json({ message: "Tidak ada teks yang bisa diekstrak dari file" });
       }
 
-      res.json({ text, filename: req.file.originalname });
+      // Dirapikan: judul, penulis, isi per paragraf, daftar pustaka dipisah
+      const tidy = tidyArticleText(text);
+      res.json({
+        text: tidy.content || text,
+        title: tidy.title,
+        byline: tidy.byline,
+        references: tidy.references,
+        filename: req.file.originalname,
+      });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: error.message || "Gagal mengekstrak teks" });

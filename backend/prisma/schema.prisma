@@ -39,6 +39,7 @@ model Article {
   title         String
   slug          String    @unique
   content       String
+  references    String?   // daftar pustaka, satu entri per baris
   excerpt       String?
   imageUrl      String?
   authorId      Int
