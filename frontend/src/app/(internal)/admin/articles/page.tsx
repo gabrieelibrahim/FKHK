@@ -31,6 +31,7 @@ function statusLabel(status: string) {
   if (status === "published") return "Dipublish";
   if (status === "submitted") return "Menunggu publish";
   if (status === "draft") return "Ditolak / draft";
+  if (status === "archived") return "Diarsip";
   return status;
 }
 
@@ -53,6 +54,9 @@ export default function AdminArticlesPage() {
   const [error, setError] = useState("");
   const [authors, setAuthors] = useState<AuthorOption[]>([]);
   const [authorSaving, setAuthorSaving] = useState(false);
+  const [view, setView] = useState<"active" | "archived">("active");
+  // null = tulis artikel baru, angka = edit artikel dengan id tsb
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   // create article state
   const [createOpen, setCreateOpen] = useState(false);
@@ -73,10 +77,22 @@ export default function AdminArticlesPage() {
     publishNow: true,
   });
 
-  const loadArticles = () => {
+  const emptyForm = {
+    title: "",
+    topic: "General",
+    tags: "",
+    excerpt: "",
+    content: "",
+    references: "",
+    imageUrl: "",
+    authorId: "",
+    publishNow: true,
+  };
+
+  const loadArticles = (which: "active" | "archived" = view) => {
     const token = getToken();
     setLoading(true);
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articles?limit=100`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articles?limit=100${which === "archived" ? "&status=archived" : ""}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -134,8 +150,45 @@ export default function AdminArticlesPage() {
     }
   };
 
-  const handleAction = async (id: number, action: "approve" | "reject" | "delete") => {
-    if (action === "delete" && !confirm("Hapus artikel ini?")) return;
+  const switchView = (next: "active" | "archived") => {
+    if (next === view) return;
+    setView(next);
+    setPreview(null);
+    loadArticles(next);
+  };
+
+  const openEdit = async (slug: string) => {
+    setError("");
+    setCreateError("");
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articles/${slug}`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      const data: ArticleDetail = await res.json();
+      if (!res.ok) throw new Error((data as any).message || "Gagal memuat artikel");
+      setCreateForm({
+        title: data.title,
+        topic: data.topic || "General",
+        tags: (data.tags || []).join(", "),
+        excerpt: data.excerpt || "",
+        content: data.content || "",
+        references: data.references || "",
+        imageUrl: data.imageUrl || "",
+        authorId: authors.some((m) => m.id === data.author?.id) ? String(data.author?.id) : "",
+        publishNow: false,
+      });
+      setUploadedDocName("");
+      setEditingId(data.id);
+      setPreview(null);
+      setCreateOpen(true);
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleAction = async (id: number, action: "approve" | "reject" | "archive" | "restore" | "purge") => {
+    if (action === "archive" && !confirm("Arsipkan artikel ini? Artikel hilang dari website, tapi bisa dipulihkan dari tab Arsip.")) return;
+    if (action === "purge" && !confirm("Hapus PERMANEN artikel ini? Tindakan ini tidak bisa dibatalkan.")) return;
     const token = getToken();
     setActionLoading(true);
     setError("");
@@ -159,14 +212,21 @@ export default function AdminArticlesPage() {
         setArticles((prev) => prev.map((a) => (a.id === id ? { ...a, status: "draft" } : a)));
         setPreview((p) => (p && p.id === id ? { ...p, status: "draft" } : p));
       } else {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articles/${id}`, {
-          method: "DELETE",
+        const url =
+          action === "restore"
+            ? `${process.env.NEXT_PUBLIC_API_URL}/api/articles/${id}/restore`
+            : `${process.env.NEXT_PUBLIC_API_URL}/api/articles/${id}${action === "purge" ? "?permanent=true" : ""}`;
+        const res = await fetch(url, {
+          method: action === "restore" ? "PUT" : "DELETE",
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          throw new Error(data.message || "Gagal menghapus");
+          throw new Error(
+            data.message || (action === "restore" ? "Gagal memulihkan" : action === "purge" ? "Gagal menghapus" : "Gagal mengarsipkan")
+          );
         }
+        // Artikel pindah tab (aktif <-> arsip) atau hilang, jadi keluarkan dari daftar ini
         setArticles((prev) => prev.filter((a) => a.id !== id));
         setPreview(null);
       }
@@ -187,8 +247,8 @@ export default function AdminArticlesPage() {
     setCreateLoading(true);
     try {
       const token = getToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articles`, {
-        method: "POST",
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articles${editingId ? `/${editingId}` : ""}`, {
+        method: editingId ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -210,8 +270,8 @@ export default function AdminArticlesPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Gagal membuat artikel");
 
-      // Auto-publish jika dicentang (admin kaset / superadmin)
-      if (createForm.publishNow && data.id) {
+      // Auto-publish jika dicentang (admin kaset / superadmin), hanya untuk artikel baru
+      if (!editingId && createForm.publishNow && data.id) {
         await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articles/${data.id}/publish`, {
           method: "PUT",
           headers: { Authorization: `Bearer ${token}` },
@@ -219,17 +279,8 @@ export default function AdminArticlesPage() {
       }
 
       setCreateOpen(false);
-      setCreateForm({
-        title: "",
-        topic: "General",
-        tags: "",
-        excerpt: "",
-        content: "",
-        references: "",
-        imageUrl: "",
-        authorId: "",
-        publishNow: true,
-      });
+      setCreateForm(emptyForm);
+      setEditingId(null);
       setUploadedDocName("");
       loadArticles();
     } catch (err: any) {
@@ -375,6 +426,9 @@ export default function AdminArticlesPage() {
           type="button"
           onClick={() => {
             setCreateError("");
+            setEditingId(null);
+            setCreateForm(emptyForm);
+            setUploadedDocName("");
             setCreateOpen(true);
           }}
           className="min-h-10 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-primary-dark"
@@ -383,13 +437,32 @@ export default function AdminArticlesPage() {
         </button>
       </div>
 
+      <div className="flex gap-1 rounded-lg bg-gray-100 p-1 w-fit lg:mb-4" role="tablist">
+        {(["active", "archived"] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            role="tab"
+            aria-selected={view === v}
+            onClick={() => switchView(v)}
+            className={`min-h-9 rounded-md px-3 py-1.5 text-sm font-medium transition ${
+              view === v ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-800"
+            }`}
+          >
+            {v === "active" ? "Aktif" : "Arsip"}
+          </button>
+        ))}
+      </div>
+
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 lg:mb-4">{error}</div>
       )}
 
       <div className="overflow-hidden rounded-xl border border-gray-200/80 bg-white shadow-xs">
         {articles.length === 0 ? (
-          <div className="px-4 py-16 text-center text-gray-500">Belum ada artikel.</div>
+          <div className="px-4 py-16 text-center text-gray-500">
+            {view === "archived" ? "Arsip kosong. Artikel yang diarsipkan muncul di sini dan bisa dipulihkan." : "Belum ada artikel."}
+          </div>
         ) : (
           <>
             <div className="hidden overflow-x-auto lg:block">
@@ -440,13 +513,43 @@ export default function AdminArticlesPage() {
                               Review
                             </button>
                           )}
-                          <button
-                            type="button"
-                            onClick={() => handleAction(a.id, "delete")}
-                            className="min-h-9 rounded-lg border border-red-200/60 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-100 lg:min-h-0 lg:px-2.5 lg:py-1"
-                          >
-                            Hapus
-                          </button>
+                          {view === "active" ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => openEdit(a.slug)}
+                                className="min-h-9 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 hover:text-gray-900 lg:min-h-0 lg:px-2.5 lg:py-1"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleAction(a.id, "archive")}
+                                className="min-h-9 rounded-lg border border-red-200/60 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-100 lg:min-h-0 lg:px-2.5 lg:py-1"
+                              >
+                                Arsipkan
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                disabled={actionLoading}
+                                onClick={() => handleAction(a.id, "restore")}
+                                className="min-h-9 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white shadow-xs transition hover:bg-primary-dark disabled:opacity-50 lg:min-h-0 lg:px-2.5 lg:py-1"
+                              >
+                                Pulihkan
+                              </button>
+                              <button
+                                type="button"
+                                disabled={actionLoading}
+                                onClick={() => handleAction(a.id, "purge")}
+                                className="min-h-9 rounded-lg border border-red-200/60 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-100 disabled:opacity-50 lg:min-h-0 lg:px-2.5 lg:py-1"
+                              >
+                                Hapus permanen
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -463,7 +566,7 @@ export default function AdminArticlesPage() {
                       <button
                         type="button"
                         onClick={() => openPreview(a)}
-                        className="line-clamp-2 min-h-11 text-left text-sm font-semibold leading-5 text-gray-900 hover:text-primary transition-colors"
+                        className="min-h-11 text-left text-sm font-semibold leading-5 text-gray-900 break-words hover:text-primary transition-colors"
                       >
                         {a.title}
                       </button>
@@ -491,13 +594,43 @@ export default function AdminArticlesPage() {
                         Review
                       </button>
                     )}
-                    <button
-                      type="button"
-                      onClick={() => handleAction(a.id, "delete")}
-                      className="min-h-10 rounded-lg border border-red-200/60 bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-100"
-                    >
-                      Hapus
-                    </button>
+                    {view === "active" ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => openEdit(a.slug)}
+                          className="min-h-10 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50 hover:text-gray-900"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleAction(a.id, "archive")}
+                          className="min-h-10 rounded-lg border border-red-200/60 bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-100"
+                        >
+                          Arsipkan
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          disabled={actionLoading}
+                          onClick={() => handleAction(a.id, "restore")}
+                          className="min-h-10 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white shadow-xs transition hover:bg-primary-dark disabled:opacity-50"
+                        >
+                          Pulihkan
+                        </button>
+                        <button
+                          type="button"
+                          disabled={actionLoading}
+                          onClick={() => handleAction(a.id, "purge")}
+                          className="min-h-10 rounded-lg border border-red-200/60 bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-100 disabled:opacity-50"
+                        >
+                          Hapus permanen
+                        </button>
+                      </>
+                    )}
                   </div>
                 </article>
               ))}
@@ -630,6 +763,38 @@ export default function AdminArticlesPage() {
                 {preview.status === "draft" && (
                   <p className="text-sm text-gray-600 font-medium self-center mr-auto">Artikel ditolak / draft.</p>
                 )}
+                {preview.status === "archived" ? (
+                  <>
+                    <p className="text-sm text-gray-600 font-medium self-center mr-auto">Artikel diarsip, tidak tampil di website.</p>
+                    <button
+                      type="button"
+                      disabled={actionLoading}
+                      onClick={() => handleAction(preview.id, "restore")}
+                      className="px-3.5 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark shadow-xs transition disabled:opacity-50"
+                    >
+                      Pulihkan
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      disabled={actionLoading}
+                      onClick={() => handleAction(preview.id, "archive")}
+                      className="px-3.5 py-2 text-sm font-medium border border-red-200/60 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition disabled:opacity-50"
+                    >
+                      Arsipkan
+                    </button>
+                    <button
+                      type="button"
+                      disabled={actionLoading}
+                      onClick={() => openEdit(preview.slug)}
+                      className="px-3.5 py-2 text-sm font-medium bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+                    >
+                      Edit
+                    </button>
+                  </>
+                )}
                 <button
                   type="button"
                   disabled={actionLoading}
@@ -655,7 +820,7 @@ export default function AdminArticlesPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-gray-900">Tulis Artikel Baru</h2>
+              <h2 className="text-lg font-bold text-gray-900">{editingId ? "Edit Artikel" : "Tulis Artikel Baru"}</h2>
               <button
                 type="button"
                 onClick={() => setCreateOpen(false)}
@@ -711,6 +876,9 @@ export default function AdminArticlesPage() {
                     <option value="Pernikahan">Pernikahan</option>
                     <option value="Hukum Waris">Hukum Waris</option>
                     <option value="Perlindungan Anak">Perlindungan Anak</option>
+                    {!["General", "Pernikahan", "Hukum Waris", "Perlindungan Anak"].includes(createForm.topic) && (
+                      <option value={createForm.topic}>{createForm.topic}</option>
+                    )}
                   </select>
                 </div>
                 <div>
@@ -828,15 +996,17 @@ export default function AdminArticlesPage() {
                 <p className="text-[11px] text-gray-500 mt-1">Opsional. Satu sumber per baris, tampil di bawah artikel sebagai Daftar Pustaka.</p>
               </div>
 
-              <label className="flex items-center gap-2 text-sm text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={createForm.publishNow}
-                  onChange={(e) => setCreateForm({ ...createForm, publishNow: e.target.checked })}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                />
-                Langsung publish setelah disimpan
-              </label>
+              {!editingId && (
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={createForm.publishNow}
+                    onChange={(e) => setCreateForm({ ...createForm, publishNow: e.target.checked })}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  Langsung publish setelah disimpan
+                </label>
+              )}
 
               <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
                 <button
@@ -851,7 +1021,7 @@ export default function AdminArticlesPage() {
                   disabled={createLoading || uploadingImage}
                   className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition disabled:opacity-50"
                 >
-                  {createLoading ? "Menyimpan..." : "Simpan Artikel"}
+                  {createLoading ? "Menyimpan..." : editingId ? "Simpan Perubahan" : "Simpan Artikel"}
                 </button>
               </div>
             </form>

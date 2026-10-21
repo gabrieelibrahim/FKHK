@@ -44,8 +44,10 @@ exports.getArticles = async (req, res, next) => {
 
     if (mine === 'true' && req.member) {
       where.authorId = req.member.id;
+      where.status = { not: 'archived' };
     } else if (isAnyAdmin(req.member?.role)) {
-      if (status) where.status = status;
+      // Arsip hanya tampil kalau diminta (?status=archived)
+      where.status = status || { not: 'archived' };
     } else {
       where.status = 'published';
     }
@@ -243,8 +245,40 @@ exports.deleteArticle = async (req, res, next) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    await prisma.article.delete({ where: { id: parseInt(id) } });
-    res.json({ message: 'Article deleted' });
+    // Hapus = arsipkan (bisa dipulihkan). Hapus permanen hanya untuk artikel yang
+    // sudah diarsip, oleh admin artikel, dengan ?permanent=true.
+    if (article.status !== 'archived') {
+      const archived = await prisma.article.update({
+        where: { id: article.id },
+        data: { status: 'archived', isFeatured: false },
+      });
+      return res.json({ message: 'Artikel diarsipkan', status: archived.status });
+    }
+
+    if (req.query.permanent !== 'true' || !canManageArticles(req.member.role)) {
+      return res.status(400).json({ message: 'Artikel sudah diarsip. Hapus permanen hanya oleh admin artikel.' });
+    }
+
+    await prisma.article.delete({ where: { id: article.id } });
+    res.json({ message: 'Artikel dihapus permanen' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.restoreArticle = async (req, res, next) => {
+  try {
+    const article = await prisma.article.findUnique({ where: { id: parseInt(req.params.id) } });
+    if (!article) return res.status(404).json({ message: 'Article not found' });
+    if (article.status !== 'archived') {
+      return res.status(400).json({ message: 'Hanya artikel di arsip yang bisa dipulihkan' });
+    }
+    // Yang pernah terbit kembali terbit; sisanya kembali jadi draft
+    const updated = await prisma.article.update({
+      where: { id: article.id },
+      data: { status: article.publishedAt ? 'published' : 'draft' },
+    });
+    res.json(updated);
   } catch (err) {
     next(err);
   }

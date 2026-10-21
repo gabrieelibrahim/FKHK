@@ -20,5 +20,6 @@ router.put('/:id/submit', protect, articleController.submitArticle);
 // Admin: approve / reject (superadmin & admin_kaset)
 router.put('/:id/publish', protect, authorize('superadmin', 'admin_kaset'), articleController.approveArticle);
 router.put('/:id/reject', protect, authorize('superadmin', 'admin_kaset'), articleController.rejectArticle);
+router.put('/:id/restore', protect, authorize('superadmin', 'admin_kaset'), articleController.restoreArticle);
 
 module.exports = router;
