@@ -18,6 +18,53 @@ const BYLINE = /^(?:oleh|penulis|ditulis\s+oleh|by|written\s+by)\s*:?\s+/i;
 
 const isAllCaps = (line) => /[A-Z]/.test(line) && line === line.toUpperCase() && line.length <= 200;
 
+// Kata tugas yang tetap huruf kecil di tengah judul (EYD)
+const SMALL_WORDS = new Set([
+  'dan', 'di', 'ke', 'dari', 'yang', 'untuk', 'dalam', 'atau', 'pada', 'dengan', 'antara',
+  'terhadap', 'sebagai', 'oleh', 'tentang', 'bagi', 'akan', 'atas', 'serta', 'para', 'si',
+  'sang', 'kepada', 'menurut', 'tanpa', 'hingga', 'sampai', 'per', 'tetapi', 'namun', 'agar',
+  'karena', 'secara', 'melalui', 'versus', 'vs', 'the', 'of', 'and', 'in', 'on', 'for', 'to', 'a', 'an',
+]);
+
+// Singkatan yang tetap kapital
+const ACRONYMS = new Set([
+  'FKHK', 'UIN', 'IAIN', 'STAIN', 'KHI', 'UU', 'UUD', 'UUP', 'PP', 'PERMA', 'SEMA', 'KUHP',
+  'KUHAP', 'KDRT', 'PA', 'MA', 'MK', 'MUI', 'HAM', 'DPR', 'MPR', 'BPS', 'KPAI', 'PBB', 'RI',
+  'NKRI', 'KB', 'KUA', 'BKKBN', 'LGBT', 'LGBTQ', 'AI', 'ITE', 'BPJS', 'SDGS', 'CEDAW', 'UNICEF',
+  'WHO', 'PKK', 'TPKS', 'PPPA', 'KEMENPPPA', 'LBH', 'NU', 'PBNU', 'PTA', 'PN', 'HKI', 'HTN',
+  'SAW', 'SWT', 'AS', 'RA', 'COVID',
+]);
+const ROMAN = /^(?=[IVXLC]+$)M{0,3}(C[MD]|D?C{0,3})(X[CL]|L?X{0,3})(I[XV]|V?I{0,3})$/;
+
+// "KELUARGA BERENCANA DAN KEADILAN GENDER" -> "Keluarga Berencana dan Keadilan Gender"
+function toTitleCase(title) {
+  let startOfClause = true;
+  return title
+    .split(/(\s+)/)
+    .map((token) => {
+      if (/^\s+$/.test(token) || !token) return token;
+      const m = token.match(/^([^A-Za-z0-9]*)(.*?)([^A-Za-z0-9]*)$/);
+      const [, pre, core, post] = m;
+      let out;
+      if (!core) out = token;
+      else {
+        const parts = core.split('-').map((part, idx) => {
+          const bare = part.replace(/[^A-Za-z]/g, '');
+          if (ACRONYMS.has(bare) || (ROMAN.test(bare) && bare.length > 0 && !/^(DI|MI|LI|DC)$/.test(bare)) || /\d/.test(part)) {
+            return part;
+          }
+          const lower = part.toLowerCase();
+          if (idx === 0 && !startOfClause && SMALL_WORDS.has(lower) && !/[(“"]/.test(pre)) return lower;
+          return lower.charAt(0).toUpperCase() + lower.slice(1);
+        });
+        out = pre + parts.join('-') + post;
+      }
+      startOfClause = /[:.?!—–]$/.test(token);
+      return out;
+    })
+    .join('');
+}
+
 function normalize(raw) {
   return raw
     .replace(/\r\n?/g, '\n')
@@ -167,12 +214,15 @@ function tidyArticleText(raw) {
     title = paragraphs.shift();
   }
 
+  title = title.replace(/ {2,}/g, ' ').trim();
+  if (isAllCaps(title) && /[A-Z]{2}/.test(title)) title = toTitleCase(title);
+
   return {
-    title: title.replace(/ {2,}/g, ' ').trim(),
+    title,
     byline,
     content: paragraphs.join('\n\n'),
     references: references.join('\n'),
   };
 }
 
-module.exports = { tidyArticleText };
+module.exports = { tidyArticleText, toTitleCase };
