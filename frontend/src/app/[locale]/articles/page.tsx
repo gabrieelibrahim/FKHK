@@ -259,13 +259,14 @@ export default async function ArticlesPage({ params: { locale }, searchParams }:
                     {image && (
                       <Link
                         href={`/articles/${a.slug}`}
-                        className="sm:w-44 sm:h-28 shrink-0 overflow-hidden rounded-md bg-zinc-100 border border-zinc-200"
+                        className="w-full sm:w-44 h-48 sm:h-28 shrink-0 overflow-hidden rounded-md bg-zinc-100 border border-zinc-200 block"
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={image}
                           alt={a.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
                         />
                       </Link>
                     )}
