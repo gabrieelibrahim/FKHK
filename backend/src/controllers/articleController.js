@@ -5,6 +5,30 @@ const ADMIN_ROLES = ['superadmin', 'admin_kaset', 'admin_psdm', 'admin_bph', 'ad
 const isAnyAdmin = (role) => ADMIN_ROLES.includes(role);
 const canManageArticles = (role) => ['superadmin', 'admin_kaset'].includes(role);
 
+// Penulis yang boleh dipilih admin artikel: anggota FKHK aktif (bukan akun admin divisi)
+const resolveAuthorId = async (authorId) => {
+  const id = parseInt(authorId);
+  if (!id) return null;
+  const member = await prisma.member.findFirst({
+    where: { id, role: 'member', isActive: true },
+    select: { id: true },
+  });
+  return member ? member.id : null;
+};
+
+exports.getAuthorOptions = async (req, res, next) => {
+  try {
+    const members = await prisma.member.findMany({
+      where: { role: 'member', isActive: true },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true },
+    });
+    res.json({ data: members });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.getArticles = async (req, res, next) => {
   try {
     const { page = 1, limit = 10, topic, search, status, mine } = req.query;
@@ -137,6 +161,12 @@ exports.createArticle = async (req, res, next) => {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '') + '-' + Date.now();
 
+    let authorId = req.member.id;
+    if (req.body.authorId && canManageArticles(req.member.role)) {
+      authorId = await resolveAuthorId(req.body.authorId);
+      if (!authorId) return res.status(400).json({ message: 'Penulis harus anggota FKHK yang aktif' });
+    }
+
     const article = await prisma.article.create({
       data: {
         title,
@@ -146,7 +176,7 @@ exports.createArticle = async (req, res, next) => {
         imageUrl: req.body.imageUrl || null,
         topic: topic || 'General',
         tags: tags || [],
-        authorId: req.member.id,
+        authorId,
         status: 'submitted', // langsung antre publish admin
       },
     });
@@ -176,10 +206,16 @@ exports.updateArticle = async (req, res, next) => {
     if (topic !== undefined) data.topic = topic;
     if (tags !== undefined) data.tags = { set: tags };
     if (imageUrl !== undefined) data.imageUrl = imageUrl;
+    if (req.body.authorId !== undefined && canManageArticles(req.member.role)) {
+      const authorId = await resolveAuthorId(req.body.authorId);
+      if (!authorId) return res.status(400).json({ message: 'Penulis harus anggota FKHK yang aktif' });
+      data.authorId = authorId;
+    }
 
     const updated = await prisma.article.update({
       where: { id: parseInt(id) },
       data,
+      include: { author: { select: { id: true, name: true } } },
     });
 
     res.json(updated);

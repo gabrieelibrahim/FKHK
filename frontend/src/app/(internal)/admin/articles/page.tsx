@@ -2,11 +2,16 @@
 
 import { useEffect, useState } from "react";
 
+interface AuthorOption {
+  id: number;
+  name: string;
+}
+
 interface Article {
   id: number;
   title: string;
   slug: string;
-  author: { name: string };
+  author: { id?: number; name: string };
   status: string;
   topic: string;
   viewCount: number;
@@ -45,6 +50,8 @@ export default function AdminArticlesPage() {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState("");
+  const [authors, setAuthors] = useState<AuthorOption[]>([]);
+  const [authorSaving, setAuthorSaving] = useState(false);
 
   // create article state
   const [createOpen, setCreateOpen] = useState(false);
@@ -60,6 +67,7 @@ export default function AdminArticlesPage() {
     excerpt: "",
     content: "",
     imageUrl: "",
+    authorId: "",
     publishNow: true,
   });
 
@@ -76,7 +84,34 @@ export default function AdminArticlesPage() {
 
   useEffect(() => {
     loadArticles();
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articles/authors`, {
+      headers: { Authorization: `Bearer ${getToken()}` },
+    })
+      .then((r) => (r.ok ? r.json() : { data: [] }))
+      .then((d) => setAuthors(d.data || []))
+      .catch(() => {});
   }, []);
+
+  const changeAuthor = async (articleId: number, authorId: string) => {
+    if (!authorId) return;
+    setAuthorSaving(true);
+    setError("");
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articles/${articleId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ authorId: parseInt(authorId) }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || "Gagal mengganti penulis");
+      setArticles((prev) => prev.map((a) => (a.id === articleId ? { ...a, author: data.author } : a)));
+      setPreview((p) => (p && p.id === articleId ? { ...p, author: data.author } : p));
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setAuthorSaving(false);
+    }
+  };
 
   const openPreview = async (a: Article) => {
     setError("");
@@ -162,6 +197,7 @@ export default function AdminArticlesPage() {
           excerpt: createForm.excerpt,
           topic: createForm.topic,
           imageUrl: createForm.imageUrl || null,
+          authorId: createForm.authorId ? parseInt(createForm.authorId) : undefined,
           tags: createForm.tags
             .split(",")
             .map((t) => t.trim())
@@ -187,6 +223,7 @@ export default function AdminArticlesPage() {
         excerpt: "",
         content: "",
         imageUrl: "",
+        authorId: "",
         publishNow: true,
       });
       loadArticles();
@@ -479,6 +516,25 @@ export default function AdminArticlesPage() {
                     </span>
                   </p>
                 )}
+                {preview && authors.length > 0 && (
+                  <label className="mt-2 flex items-center gap-2 text-xs text-gray-600">
+                    <span className="shrink-0">Penulis (tampil &quot;Oleh&quot;):</span>
+                    <select
+                      value={authors.some((m) => m.id === preview.author?.id) ? String(preview.author?.id) : ""}
+                      disabled={authorSaving || actionLoading}
+                      onChange={(e) => changeAuthor(preview.id, e.target.value)}
+                      className="min-w-0 max-w-[16rem] text-xs px-2 py-1 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none disabled:opacity-50"
+                    >
+                      <option value="">{preview.author?.name} (akun admin)</option>
+                      {authors.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name}
+                        </option>
+                      ))}
+                    </select>
+                    {authorSaving && <span className="text-gray-400">Menyimpan...</span>}
+                  </label>
+                )}
               </div>
               <button
                 type="button"
@@ -600,6 +656,22 @@ export default function AdminArticlesPage() {
                   placeholder="Judul artikel"
                   className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Penulis (tampil &quot;Oleh&quot;)</label>
+                <select
+                  value={createForm.authorId}
+                  onChange={(e) => setCreateForm({ ...createForm, authorId: e.target.value })}
+                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                >
+                  <option value="">Akun saya (admin)</option>
+                  {authors.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
