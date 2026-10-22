@@ -6,6 +6,7 @@ const passwordController = require('../controllers/passwordController');
 const { protect } = require('../middleware/auth');
 
 router.post('/login', authController.login);
+router.post('/refresh', protect, authController.refresh);
 router.get('/me', protect, authController.me);
 router.post('/change-password', protect, authController.changePassword);
 

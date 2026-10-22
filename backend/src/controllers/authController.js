@@ -46,6 +46,16 @@ exports.login = async (req, res, next) => {
   }
 };
 
+// POST /api/auth/refresh — perpanjang sesi selama token lama masih berlaku.
+// Role diambil ulang dari DB (lewat protect), jadi perubahan role ikut terbawa.
+exports.refresh = async (req, res, next) => {
+  try {
+    res.json({ token: generateToken(req.member) });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.me = async (req, res, next) => {
   try {
     const member = await prisma.member.findUnique({

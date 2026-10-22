@@ -12,8 +12,13 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [expired, setExpired] = useState(false);
   const { login, member } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    setExpired(new URLSearchParams(window.location.search).get("expired") === "1");
+  }, []);
 
   useEffect(() => {
     if (member) {
@@ -88,6 +93,12 @@ export default function LoginPage() {
               Forum Kajian Hukum Keluarga
             </p>
           </div>
+
+          {expired && !error && (
+            <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+              Sesi Anda sudah habis. Silakan masuk lagi untuk melanjutkan.
+            </div>
+          )}
 
           {error && (
             <motion.div
