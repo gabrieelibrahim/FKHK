@@ -13,6 +13,13 @@ function isSubheading(p: string) {
   return !p.includes("\n") && p.length <= 80 && !/[.,;:!?"”)]$/.test(p) && /^[A-Z0-9]/.test(p);
 }
 
+// Paragraf yang mayoritas huruf Arab (ayat/hadis) ditulis kanan-ke-kiri
+function isArabicParagraph(p: string) {
+  const arabic = (p.match(/[\u0600-\u06FF]/g) || []).length;
+  const latin = (p.match(/[A-Za-z]/g) || []).length;
+  return arabic > 0 && arabic > latin * 2;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = await fetchArticleBySlug(params.slug);
   if (!article || article.status !== "published") {
@@ -221,7 +228,17 @@ export default async function ArticleDetailPage({ params }: Props) {
                   .map((p) => p.trim())
                   .filter(Boolean)
                   .map((p, i) =>
-                    isSubheading(p) ? (
+                    isArabicParagraph(p) ? (
+                      <p
+                        key={i}
+                        dir="rtl"
+                        lang="ar"
+                        className="mb-4 text-right text-xl sm:text-2xl leading-loose text-gray-900 break-words last:mb-0"
+                        style={{ fontFamily: "'Amiri', 'Scheherazade New', 'Noto Naskh Arabic', 'Traditional Arabic', 'Times New Roman', serif" }}
+                      >
+                        {p}
+                      </p>
+                    ) : isSubheading(p) ? (
                       <h2 key={i} className="mt-8 mb-3 text-lg sm:text-xl font-bold text-gray-900 font-serif first:mt-0">
                         {p}
                       </h2>

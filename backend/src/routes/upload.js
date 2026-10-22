@@ -9,7 +9,7 @@ const { execFile } = require("child_process");
 const { promisify } = require("util");
 const execFileAsync = promisify(execFile);
 const { protect, authorize } = require("../middleware/auth");
-const { tidyArticleText } = require("../utils/articleText");
+const { tidyArticleText, fixPdfArabic, hasArabic } = require("../utils/articleText");
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -66,16 +66,9 @@ async function decodeHeicToJpegBuffer(inputBuffer) {
 
 // pdf-parse (pdf.js 2018) gagal membaca sebagian PDF valid ("bad XRef entry"),
 // jadi kalau gagal/kosong dicoba lagi dengan pdftotext (poppler).
+// pdftotext (poppler) dipakai lebih dulu: urutan huruf Arab/RTL tetap utuh, sedangkan
+// pdf-parse memecah teks Arab per huruf dengan urutan terbalik. pdf-parse jadi cadangan.
 async function extractPdfText(buffer) {
-  try {
-    const pdfParse = require("pdf-parse");
-    const pdfData = await pdfParse(buffer);
-    const text = (pdfData.text || "").trim();
-    if (text) return text;
-  } catch (err) {
-    console.warn("pdf-parse gagal, coba pdftotext:", err.message);
-  }
-
   const tmpInput = path.join("/tmp", `pdf-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.pdf`);
   try {
     await fs.promises.writeFile(tmpInput, buffer);
@@ -83,11 +76,20 @@ async function extractPdfText(buffer) {
       maxBuffer: 20 * 1024 * 1024,
       timeout: 30000,
     });
-    return (stdout || "").trim();
+    const text = fixPdfArabic(stdout || "").trim();
+    if (text) return text;
   } catch (err) {
-    throw new Error("PDF tidak bisa dibaca. Coba simpan ulang sebagai PDF atau upload versi Word (.docx).");
+    console.warn("pdftotext gagal, coba pdf-parse:", err.message);
   } finally {
     fs.promises.unlink(tmpInput).catch(() => {});
+  }
+
+  try {
+    const pdfParse = require("pdf-parse");
+    const pdfData = await pdfParse(buffer);
+    return (pdfData.text || "").trim();
+  } catch (err) {
+    throw new Error("PDF tidak bisa dibaca. Coba simpan ulang sebagai PDF atau upload versi Word (.docx).");
   }
 }
 
@@ -200,6 +202,10 @@ router.post("/extract-text", protect, authorize("superadmin", "admin_kaset"), (r
         byline: tidy.byline,
         references: tidy.references,
         filename: req.file.originalname,
+        notice:
+          ext === ".pdf" && hasArabic(tidy.content)
+            ? "Ada teks Arab dari PDF. Cek ulang ayat/hadis: PDF kadang menyisipkan spasi di tengah kata Arab. Kalau ada versi Word (.docx), hasilnya lebih akurat."
+            : "",
       });
     } catch (error) {
       console.error(error);

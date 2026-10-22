@@ -65,8 +65,33 @@ function toTitleCase(title) {
     .join('');
 }
 
+// Tanda arah teks (RLE/PDF/isolate) dari ekstrak PDF tidak terlihat tapi mengacaukan teks
+const BIDI_CONTROLS = /[\u200E\u200F\u202A-\u202E\u2066-\u2069]/g;
+
+// Harakat & tanda Al-Qur'an (fathah, kasrah, syaddah, alif khanjariyah, tanda waqaf, dst.)
+const AR_MARK = '\\u064B-\\u065F\\u0670\\u06D6-\\u06DC\\u06DF-\\u06E4\\u06E7\\u06E8\\u06EA-\\u06ED';
+const AR_BASE = '\\u0621-\\u064A\\u0671-\\u06D3\\u06D5\\u06FA-\\u06FF';
+const MARKS_BEFORE_BASE = new RegExp(`([${AR_MARK}]+)([${AR_BASE}])`, 'g');
+const WORD_STARTS_WITH_MARK = new RegExp(`(?:^|\\s)[${AR_MARK}]`, 'gm');
+const AR_WORD = new RegExp(`[${AR_BASE}][${AR_BASE}${AR_MARK}]*`, 'g');
+
+// pdftotext pada sebagian PDF menaruh harakat SEBELUM hurufnya ("ِاَّنا" untuk "اِنَّا").
+// Teks Arab yang benar tidak pernah diawali harakat, jadi kalau pola itu dominan,
+// pindahkan setiap harakat ke belakang huruf yang mengikutinya.
+function fixPdfArabic(text) {
+  const clean = text.replace(BIDI_CONTROLS, '');
+  const words = (clean.match(AR_WORD) || []).length;
+  const markFirst = (clean.match(WORD_STARTS_WITH_MARK) || []).length;
+  const ordered = words && markFirst / words >= 0.2 ? clean.replace(MARKS_BEFORE_BASE, '$2$1') : clean;
+  // Nomor ayat (۝١٣) kadang terbaca di awal baris, padahal penutup ayat
+  return ordered.replace(/^(\u06DD\s*[\u0660-\u06690-9]+) +(.*[\u0600-\u06FF].*)$/gm, '$2 $1');
+}
+
+const hasArabic = (text) => /[\u0600-\u06FF]/.test(text || '');
+
 function normalize(raw) {
   return raw
+    .replace(BIDI_CONTROLS, '')
     .replace(/\r\n?/g, '\n')
     .replace(/\f/g, '\n\n')
     .replace(/­/g, '') // soft hyphen
@@ -225,4 +250,4 @@ function tidyArticleText(raw) {
   };
 }
 
-module.exports = { tidyArticleText, toTitleCase };
+module.exports = { tidyArticleText, toTitleCase, fixPdfArabic, hasArabic };

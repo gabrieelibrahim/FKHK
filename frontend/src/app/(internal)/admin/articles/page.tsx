@@ -65,6 +65,7 @@ export default function AdminArticlesPage() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const [uploadedDocName, setUploadedDocName] = useState("");
+  const [docNotice, setDocNotice] = useState("");
   const [createForm, setCreateForm] = useState({
     title: "",
     topic: "General",
@@ -319,6 +320,7 @@ export default function AdminArticlesPage() {
     if (!file) return;
     setUploadingDoc(true);
     setCreateError("");
+    setDocNotice("");
     try {
       const token = getToken();
       const fd = new FormData();
@@ -332,6 +334,7 @@ export default function AdminArticlesPage() {
       if (!res.ok) throw new Error(data.message || "Gagal mengekstrak teks");
       if (!data.text || !data.text.trim()) throw new Error("Tidak ada teks yang bisa diekstrak dari file");
       setUploadedDocName(data.filename || file.name);
+      setDocNotice(data.notice || "");
       // Backend sudah merapikan: isi per paragraf, daftar pustaka terpisah, judul & "Oleh:" terdeteksi
       const byline = String(data.byline || "").toLowerCase();
       const matchedAuthor = byline
@@ -971,6 +974,11 @@ export default function AdminArticlesPage() {
                     </span>
                   )}
                 </div>
+                {docNotice && (
+                  <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2">
+                    {docNotice}
+                  </p>
+                )}
                 <textarea
                   rows={10}
                   required
