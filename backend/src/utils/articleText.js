@@ -14,6 +14,10 @@ const ENTRY_START =
 
 const SENTENCE_END = /[.!?:;"”'’)\]]$/;
 
+// Judul bagian pembuka artikel; tidak pernah bagian dari judul artikel
+const SECTION_HEADING =
+  /^(?:[IVXLC]+\.|\d+\.|[A-Z]\.|bab\s+[IVXLC\d]+\.?)?\s*(pendahuluan|abstrak|abstract|latar\s+belakang|introduction|pembahasan|kata\s+pengantar|ringkasan)\s*:?$/i;
+
 const BYLINE = /^(?:oleh|penulis|ditulis\s+oleh|by|written\s+by)\s*:?\s+/i;
 
 const isAllCaps = (line) => /[A-Z]/.test(line) && line === line.toUpperCase() && line.length <= 200;
@@ -215,7 +219,11 @@ function tidyArticleText(raw) {
     byline = bodyLines[head[bylineAt]].replace(BYLINE, '').trim();
     drop.add(head[bylineAt]);
     const before = head.slice(0, bylineAt);
-    if (before.length && before.length <= 4 && before.every((i) => !/[.!?]$/.test(bodyLines[i]))) {
+    if (
+      before.length &&
+      before.length <= 4 &&
+      before.every((i) => !/[.!]$/.test(bodyLines[i]) && !SECTION_HEADING.test(bodyLines[i]))
+    ) {
       title = before.map((i) => bodyLines[i]).join(' ');
       before.forEach((i) => drop.add(i));
     }
@@ -223,7 +231,7 @@ function tidyArticleText(raw) {
   if (!title) {
     const caps = [];
     for (const i of head) {
-      if (!isAllCaps(bodyLines[i]) || caps.length >= 4) break;
+      if (!isAllCaps(bodyLines[i]) || SECTION_HEADING.test(bodyLines[i]) || caps.length >= 4) break;
       caps.push(i);
     }
     if (caps.length && caps.length < head.length) {
@@ -235,7 +243,13 @@ function tidyArticleText(raw) {
   const paragraphs = toParagraphs(bodyLines.filter((_, i) => !drop.has(i)).join('\n'));
 
   // Tanpa judul kapital/byline: paragraf pertama yang pendek dan tidak diakhiri titik
-  if (!title && paragraphs.length > 1 && paragraphs[0].length <= 200 && !/[.!?:]$/.test(paragraphs[0])) {
+  if (
+    !title &&
+    paragraphs.length > 1 &&
+    paragraphs[0].length <= 200 &&
+    !/[.!?:]$/.test(paragraphs[0]) &&
+    !SECTION_HEADING.test(paragraphs[0])
+  ) {
     title = paragraphs.shift();
   }
 

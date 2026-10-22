@@ -10,6 +10,7 @@ const { promisify } = require("util");
 const execFileAsync = promisify(execFile);
 const { protect, authorize } = require("../middleware/auth");
 const { tidyArticleText, fixPdfArabic, hasArabic } = require("../utils/articleText");
+const { restoreQuranInContent } = require("../utils/quranMatch");
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -196,16 +197,30 @@ router.post("/extract-text", protect, authorize("superadmin", "admin_kaset"), (r
 
       // Dirapikan: judul, penulis, isi per paragraf, daftar pustaka dipisah
       const tidy = tidyArticleText(text);
+      let content = tidy.content || text;
+
+      // Teks Arab dari PDF tidak bisa dipercaya; ayat Al-Qur'an diganti teks standar Kemenag
+      const notices = [];
+      if (ext === ".pdf" && hasArabic(content)) {
+        const quran = restoreQuranInContent(content);
+        content = quran.content;
+        if (quran.refs.length) {
+          notices.push(`Ayat dicocokkan otomatis dengan teks Al-Qur'an standar Kemenag: ${quran.refs.join(", ")}.`);
+        }
+        if (quran.unmatched) {
+          notices.push(
+            `${quran.unmatched} paragraf Arab bukan ayat Al-Qur'an (mis. hadis/doa) dan tidak bisa dicocokkan. Cek ulang: PDF kadang menyisipkan spasi di tengah kata Arab. Versi Word (.docx) lebih akurat.`
+          );
+        }
+      }
+
       res.json({
-        text: tidy.content || text,
+        text: content,
         title: tidy.title,
         byline: tidy.byline,
         references: tidy.references,
         filename: req.file.originalname,
-        notice:
-          ext === ".pdf" && hasArabic(tidy.content)
-            ? "Ada teks Arab dari PDF. Cek ulang ayat/hadis: PDF kadang menyisipkan spasi di tengah kata Arab. Kalau ada versi Word (.docx), hasilnya lebih akurat."
-            : "",
+        notice: notices.join(" "),
       });
     } catch (error) {
       console.error(error);
