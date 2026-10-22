@@ -1,11 +1,13 @@
+import createNextIntlPlugin from "next-intl/plugin";
+
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   output: "standalone",
-  
+
   // Performance optimizations
   compress: true,
   poweredByHeader: false,
-  
+
   // Image optimization
   images: {
     formats: ["image/webp", "image/avif"],
@@ -31,14 +33,16 @@ const nextConfig = {
       },
     ],
   },
-  
+
   // Experimental features for better performance
   experimental: {
     optimizePackageImports: ["framer-motion"],
   },
-  
+
   // React strict mode
   reactStrictMode: true,
 };
 
-export default nextConfig;
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
+
+export default withNextIntl(nextConfig);

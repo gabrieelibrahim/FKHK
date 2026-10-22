@@ -6,6 +6,7 @@ const { protect, optionalProtect, authorize } = require('../middleware/auth');
 // Public (with optional auth for draft detection)
 router.get('/', optionalProtect, articleController.getArticles);
 router.get('/featured', articleController.getFeatured);
+router.get('/authors', protect, authorize('superadmin', 'admin_kaset'), articleController.getAuthorOptions);
 router.get('/:slug', optionalProtect, articleController.getArticleBySlug);
 
 // Protected (members)
@@ -19,5 +20,6 @@ router.put('/:id/submit', protect, articleController.submitArticle);
 // Admin: approve / reject (superadmin & admin_kaset)
 router.put('/:id/publish', protect, authorize('superadmin', 'admin_kaset'), articleController.approveArticle);
 router.put('/:id/reject', protect, authorize('superadmin', 'admin_kaset'), articleController.rejectArticle);
+router.put('/:id/restore', protect, authorize('superadmin', 'admin_kaset'), articleController.restoreArticle);
 
 module.exports = router;

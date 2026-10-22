@@ -27,6 +27,7 @@ export type ArticleListItem = {
 
 export type Article = ArticleListItem & {
   content: string;
+  references?: string | null;
 };
 
 type ArticlesResponse = {

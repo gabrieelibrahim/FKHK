@@ -8,6 +8,18 @@ exports.subscribe = async (req, res, next) => {
       return res.status(400).json({ message: 'Email is required' });
     }
 
+    if (typeof email !== 'string' || email.length > 254) {
+      return res.status(400).json({ message: 'Email terlalu panjang (maksimal 254 karakter).' });
+    }
+
+    if (name && (typeof name !== 'string' || name.length > 100)) {
+      return res.status(400).json({ message: 'Nama terlalu panjang (maksimal 100 karakter).' });
+    }
+
+    if (interestedTopics && (!Array.isArray(interestedTopics) || interestedTopics.length > 10 || interestedTopics.some(t => typeof t !== 'string' || t.length > 50))) {
+      return res.status(400).json({ message: 'Topik minat tidak valid atau melebihi batas.' });
+    }
+
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {

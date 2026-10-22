@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "../context/AuthContext";
-import NavbarWrapper from "../components/layout/NavbarWrapper";
-import FooterWrapper from "../components/layout/FooterWrapper";
-import PageTransition from "../components/PageTransition";
 import { Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 
@@ -14,6 +11,12 @@ const bricolageGrotesque = Bricolage_Grotesque({
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://fkhk-uinsuka.web.id";
 
+/**
+ * Root layout — global untuk SEMUA halaman (publik + internal).
+ * Metadata global (Indonesia) diwariskan ke halaman internal
+ * (admin/dashboard/auth); halaman publik di-override oleh
+ * [locale]/layout.tsx sesuai bahasa aktif.
+ */
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
@@ -32,9 +35,6 @@ export const metadata: Metadata = {
     "Keluarga Islam",
     "UIN Sunan Kalijaga",
   ],
-  alternates: {
-    canonical: "./",
-  },
   robots: {
     index: true,
     follow: true,
@@ -47,7 +47,9 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "googlee18fa4eec80fdf6b",
+    google:
+      process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ||
+      "googlee18fa4eec80fdf6b",
   },
   openGraph: {
     title: "FKHK — Forum Kajian Hukum Keluarga",
@@ -112,7 +114,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id">
+    <html lang="id" suppressHydrationWarning>
       <head>
         <link rel="image_src" href="https://fkhk-uinsuka.web.id/og-image.jpg" />
         <script
@@ -121,11 +123,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${bricolageGrotesque.variable} font-body bg-[#fcfaf8] text-[#1a1a1a] overflow-x-hidden`}>
-        <AuthProvider>
-          <NavbarWrapper />
-          <main><PageTransition>{children}</PageTransition></main>
-          <FooterWrapper />
-        </AuthProvider>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

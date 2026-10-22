@@ -1,19 +1,21 @@
-import Image from "next/image";
-
 export default function Loading() {
   return (
-    <div className="min-h-[70vh] w-full flex flex-col items-center justify-center bg-[#fcfaf8]">
-      <div className="relative h-20 w-20">
-        <div className="absolute inset-0 rounded-full border-4 border-[#d1e8e8]" />
-        <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#2C5857] animate-spin" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Image
-            src="/assets/logo/logo-fkhk-hijau.webp"
-            alt="FKHK"
-            width={44}
-            height={44}
-            className="h-11 w-11 rounded-full object-contain"
-          />
+    <div className="min-h-[70vh] w-full bg-[#fcfaf8]">
+      <div className="container mx-auto max-w-5xl px-4 pt-24 pb-12">
+        <div className="skeleton mb-8 h-10 w-56" />
+        <div className="skeleton mb-10 h-4 w-96 max-w-full" />
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+              <div className="skeleton h-40 rounded-none" />
+              <div className="space-y-3 p-6">
+                <div className="skeleton h-3 w-1/3" />
+                <div className="skeleton h-5 w-3/4" />
+                <div className="skeleton h-3 w-full" />
+                <div className="skeleton h-3 w-2/3" />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

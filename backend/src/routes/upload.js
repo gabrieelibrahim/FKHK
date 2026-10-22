@@ -8,7 +8,9 @@ const mammoth = require("mammoth");
 const { execFile } = require("child_process");
 const { promisify } = require("util");
 const execFileAsync = promisify(execFile);
-const { protect } = require("../middleware/auth");
+const { protect, authorize } = require("../middleware/auth");
+const { tidyArticleText, fixPdfArabic, hasArabic } = require("../utils/articleText");
+const { restoreQuranInContent } = require("../utils/quranMatch");
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -35,12 +37,13 @@ const docUpload = multer({
     const allowedMimes = [
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "text/plain",
-      "application/msword"
+      "application/msword",
+      "application/pdf"
     ];
-    if ((ext === ".docx" || ext === ".txt") && (allowedMimes.includes(file.mimetype) || file.mimetype === "application/octet-stream")) {
+    if ((ext === ".docx" || ext === ".txt" || ext === ".pdf") && (allowedMimes.includes(file.mimetype) || file.mimetype === "application/octet-stream")) {
       cb(null, true);
     } else {
-      cb(new Error("Hanya file .docx atau .txt yang diizinkan"));
+      cb(new Error("Hanya file .docx, .txt, atau .pdf yang diizinkan"));
     }
   },
 });
@@ -59,6 +62,35 @@ async function decodeHeicToJpegBuffer(inputBuffer) {
   } finally {
     fs.promises.unlink(tmpInput).catch(() => {});
     fs.promises.unlink(tmpOutput).catch(() => {});
+  }
+}
+
+// pdf-parse (pdf.js 2018) gagal membaca sebagian PDF valid ("bad XRef entry"),
+// jadi kalau gagal/kosong dicoba lagi dengan pdftotext (poppler).
+// pdftotext (poppler) dipakai lebih dulu: urutan huruf Arab/RTL tetap utuh, sedangkan
+// pdf-parse memecah teks Arab per huruf dengan urutan terbalik. pdf-parse jadi cadangan.
+async function extractPdfText(buffer) {
+  const tmpInput = path.join("/tmp", `pdf-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.pdf`);
+  try {
+    await fs.promises.writeFile(tmpInput, buffer);
+    const { stdout } = await execFileAsync("pdftotext", ["-enc", "UTF-8", tmpInput, "-"], {
+      maxBuffer: 20 * 1024 * 1024,
+      timeout: 30000,
+    });
+    const text = fixPdfArabic(stdout || "").trim();
+    if (text) return text;
+  } catch (err) {
+    console.warn("pdftotext gagal, coba pdf-parse:", err.message);
+  } finally {
+    fs.promises.unlink(tmpInput).catch(() => {});
+  }
+
+  try {
+    const pdfParse = require("pdf-parse");
+    const pdfData = await pdfParse(buffer);
+    return (pdfData.text || "").trim();
+  } catch (err) {
+    throw new Error("PDF tidak bisa dibaca. Coba simpan ulang sebagai PDF atau upload versi Word (.docx).");
   }
 }
 
@@ -139,8 +171,9 @@ router.post("/convert-heic", protect, (req, res) => {
   });
 });
 
-// Extract plain text from Word (.docx) or .txt for article content
-router.post("/extract-text", protect, (req, res) => {
+// Extract plain text from Word (.docx), .txt, or PDF for article content
+// File diproses di memori dan TIDAK disimpan ke disk — hemat storage server.
+router.post("/extract-text", protect, authorize("superadmin", "admin_kaset"), (req, res) => {
   docUpload.single("file")(req, res, async (err) => {
     if (err) return res.status(400).json({ message: err.message });
     try {
@@ -151,6 +184,8 @@ router.post("/extract-text", protect, (req, res) => {
 
       if (ext === ".txt") {
         text = req.file.buffer.toString("utf8");
+      } else if (ext === ".pdf") {
+        text = await extractPdfText(req.file.buffer);
       } else {
         const result = await mammoth.extractRawText({ buffer: req.file.buffer });
         text = (result.value || "").trim();
@@ -160,7 +195,33 @@ router.post("/extract-text", protect, (req, res) => {
         return res.status(400).json({ message: "Tidak ada teks yang bisa diekstrak dari file" });
       }
 
-      res.json({ text, filename: req.file.originalname });
+      // Dirapikan: judul, penulis, isi per paragraf, daftar pustaka dipisah
+      const tidy = tidyArticleText(text);
+      let content = tidy.content || text;
+
+      // Teks Arab dari PDF tidak bisa dipercaya; ayat Al-Qur'an diganti teks standar Kemenag
+      const notices = [];
+      if (ext === ".pdf" && hasArabic(content)) {
+        const quran = restoreQuranInContent(content);
+        content = quran.content;
+        if (quran.refs.length) {
+          notices.push(`Ayat dicocokkan otomatis dengan teks Al-Qur'an standar Kemenag: ${quran.refs.join(", ")}.`);
+        }
+        if (quran.unmatched) {
+          notices.push(
+            `${quran.unmatched} paragraf Arab bukan ayat Al-Qur'an (mis. hadis/doa) dan tidak bisa dicocokkan. Cek ulang: PDF kadang menyisipkan spasi di tengah kata Arab. Versi Word (.docx) lebih akurat.`
+          );
+        }
+      }
+
+      res.json({
+        text: content,
+        title: tidy.title,
+        byline: tidy.byline,
+        references: tidy.references,
+        filename: req.file.originalname,
+        notice: notices.join(" "),
+      });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: error.message || "Gagal mengekstrak teks" });

@@ -1,118 +1,148 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import Reveal from "../Reveal";
+import { useState } from 'react';
+import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 export default function AboutSection() {
+  const [activeTab, setActiveTab] = useState<'visi' | 'misi'>('visi');
+  const t = useTranslations('home.about');
+
+  const checklist = [
+    t('check1'),
+    t('check2'),
+    t('check3'),
+    t('check4'),
+  ];
+
+  const misiList = [
+    t('misi1'),
+    t('misi2'),
+    t('misi3'),
+    t('misi4'),
+    t('misi5'),
+  ];
+
   return (
-    <section className="py-16 sm:py-24 bg-[#f7f2ed]" id="tentang">
-      <div className="container mx-auto px-4 max-w-[1240px]">
-        {/* Latar Belakang */}
-        <div className="grid md:grid-cols-2 gap-8 sm:gap-12 items-center mb-20">
-          <Reveal variant="fade-left">
-            <div className="relative">
-              <div className="relative rounded-2xl overflow-hidden shadow-lg h-[280px] sm:h-[400px]">
+    <section id="tentang" className="relative w-full overflow-hidden bg-[#f7f2ed]">
+      <div className="relative z-10 pt-20 md:pt-28 pb-16 sm:pb-24">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 space-y-10 md:space-y-14">
+
+          {/* Latar Belakang */}
+          <div className="bg-white/80 rounded-3xl p-6 sm:p-8 md:p-12 shadow-xl border border-white/60">
+            <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+              <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-md">
                 <Image
                   src="/assets/images/about-fkhk.webp"
-                  alt="Anggota FKHK berdiskusi"
+                  alt="Dokumentasi Forum Kajian Hukum Keluarga"
                   fill
-                  sizes="(max-width: 768px) 100vw, 600px"
-                  className="object-cover transition-transform duration-500 hover:scale-105"
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  priority
                 />
               </div>
-              <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-accent/10 rounded-2xl -z-10" />
-            </div>
-          </Reveal>
-
-          <Reveal variant="fade-right">
-            <span className="text-xs font-semibold uppercase tracking-[0.15em] text-accent mb-3 block">
-              Latar Belakang
-            </span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mb-5 leading-tight">
-              Wadah Pengembangan{" "}
-              <em className="text-primary not-italic">Hukum Keluarga Islam</em>
-            </h2>
-            <blockquote className="border-l-4 border-accent pl-4 italic text-sm sm:text-base text-gray-600 mb-5">
-              &ldquo;Memastikan cinta, keadilan, dan tanggung jawab berjalan beriringan melalui penguatan keilmuan dan kemaslahatan keluarga.&rdquo;
-            </blockquote>
-            <p className="text-gray-600 leading-relaxed mb-6 text-sm sm:text-base">
-              Forum Kajian Hukum Keluarga (FKHK) hadir sebagai ruang kolaboratif mahasiswa untuk mengkaji isu-isu kontemporer hukum keluarga, mengasah kecakapan advokasi dan mediasi, serta mendorong riset aplikatif yang solutif bagi masyarakat.
-            </p>
-            <ul className="space-y-2.5 mb-7">
-              {[
-                "Kajian mendalam isu Hukum Keluarga Islam kontemporer",
-                "Publikasi karya ilmiah dan opini hukum berkala",
-                "Program reguler: seminar, diskusi publik, dan workshop mediasi",
-                "Jejaring akademik dan praktisi hukum nasional",
-              ].map((item) => (
-                <li key={item} className="flex items-start gap-2.5 text-sm text-gray-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="#2C5857" className="w-4 h-4 shrink-0 mt-0.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                  </svg>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-            <a
-              href="#visi-misi"
-              className="inline-flex items-center px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary-dark transition no-underline"
-            >
-              Visi & Misi FKHK
-            </a>
-          </Reveal>
-        </div>
-
-        {/* Visi & Misi */}
-        <div className="grid md:grid-cols-2 gap-8 sm:gap-12" id="visi-misi">
-          {/* Visi */}
-          <Reveal variant="fade-up">
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 h-full">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="#D99B00" className="w-5 h-5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
+              <div>
+                <span className="text-xs font-bold tracking-widest text-[#D99B00] uppercase">
+                  {t('badge')}
+                </span>
+                <h2 className="mt-2 text-2xl sm:text-3xl md:text-4xl font-extrabold text-stone-900 leading-tight">
+                  {t('title')}{' '}
+                  <span className="text-[#2C5857] italic">{t('titleHighlight')}</span>
+                </h2>
+                <blockquote className="mt-4 pl-4 border-l-4 border-[#D99B00] text-sm sm:text-base italic text-stone-800">
+                  &ldquo;{t('quote')}&rdquo;
+                </blockquote>
+                <p className="mt-4 text-sm sm:text-base text-stone-700 leading-relaxed">
+                  {t('desc')}
+                </p>
+                <ul className="mt-6 space-y-2.5">
+                  {checklist.map((item, i) => (
+                    <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-stone-800">
+                      <span className="text-[#2C5857] font-bold text-base mt-[-2px]">&#10003;</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-8 flex flex-wrap gap-4 items-center">
+                  <a
+                    href="#visi-misi"
+                    className="inline-flex items-center px-6 py-3 rounded-xl bg-[#2C5857] text-white font-semibold text-sm hover:bg-[#1e3e3d] transition-colors shadow-sm"
+                  >
+                    {t('btnVisiMisi')}
+                  </a>
+                  <span className="text-xs text-stone-600 font-medium">
+                    {t('faculty')}
+                  </span>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900">Visi FKHK</h3>
               </div>
-              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
-                Menjadi forum keilmuan yang unggul dalam pengembangan wawasan,
-                pengetahuan, dan keterampilan mahasiswa Hukum Keluarga Islam, untuk
-                mewujudkan peradaban yang berlandaskan ilmu integratif dan aplikatif.
-              </p>
             </div>
-          </Reveal>
+          </div>
 
-          {/* Misi */}
-          <Reveal variant="fade-up" delay={0.1}>
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 h-full">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="#D99B00" className="w-5 h-5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">Misi FKHK</h3>
+          {/* Visi & Misi */}
+          <div id="visi-misi" className="bg-white/80 rounded-3xl p-6 sm:p-8 md:p-12 shadow-xl border border-white/60">
+            <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10">
+              <span className="text-xs font-bold tracking-widest text-[#D99B00] uppercase">
+                {t('btnVisiMisi')}
+              </span>
+              <h3 className="mt-2 text-2xl sm:text-3xl font-extrabold text-stone-900">
+                {t('visiTitle')} &amp; {t('misiTitle')}
+              </h3>
+              <div className="inline-flex mt-6 p-1.5 rounded-2xl bg-white/70 border border-white/50 shadow-sm">
+                <button
+                  onClick={() => setActiveTab('visi')}
+                  className={`px-6 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                    activeTab === 'visi'
+                      ? 'bg-[#2C5857] text-white shadow-sm'
+                      : 'text-stone-700 hover:text-stone-900'
+                  }`}
+                >
+                  {t('visiTitle')}
+                </button>
+                <button
+                  onClick={() => setActiveTab('misi')}
+                  className={`px-6 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                    activeTab === 'misi'
+                      ? 'bg-[#2C5857] text-white shadow-sm'
+                      : 'text-stone-700 hover:text-stone-900'
+                  }`}
+                >
+                  {t('misiTitle')}
+                </button>
               </div>
-              <ul className="space-y-3">
-                {[
-                  "Meningkatkan pemahaman mahasiswa melalui pendidikan, pelatihan, dan diskusi yang bersifat integratif dan interkonektif.",
-                  "Mendorong budaya riset dan kajian ilmiah multidisipliner dan aplikatif.",
-                  "Memberdayakan mahasiswa untuk berperan aktif dalam pengabdian masyarakat berbasis Hukum Keluarga Islam.",
-                  "Mengembangkan jejaring kerja sama dengan akademisi, praktisi, dan lembaga terkait untuk Tri Dharma Perguruan Tinggi.",
-                  "Mewujudkan forum sebagai wadah aspirasi dan pengembangan keterampilan praktis mahasiswa.",
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-gray-600">
-                    <span className="text-accent font-bold text-xs mt-1 shrink-0">{i + 1}.</span>
-                    <span>{item}</span>
-                  </li>
+            </div>
+
+            {activeTab === 'visi' ? (
+              <div className="max-w-3xl mx-auto p-6 sm:p-8 rounded-2xl bg-white/70 border border-white/50 shadow-sm text-center">
+                <div className="inline-block px-3 py-1 rounded-full bg-[#2C5857]/10 text-[#2C5857] text-xs font-bold uppercase tracking-wider mb-4">
+                  {t('visiTitle')}
+                </div>
+                <p className="text-base sm:text-lg md:text-xl font-semibold text-stone-900 leading-relaxed italic">
+                  &ldquo;{t('visiText')}&rdquo;
+                </p>
+              </div>
+            ) : (
+              <div className="max-w-3xl mx-auto space-y-3">
+                {misiList.map((m, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start gap-4 p-4 sm:p-5 rounded-2xl bg-white/70 border border-white/50 shadow-sm"
+                  >
+                    <span className="flex-shrink-0 w-8 h-8 rounded-xl bg-[#2C5857] text-white font-bold text-sm flex items-center justify-center">
+                      {idx + 1}
+                    </span>
+                    <p className="text-xs sm:text-sm text-stone-800 leading-relaxed pt-1">
+                      {m}
+                    </p>
+                  </div>
                 ))}
-              </ul>
-            </div>
-          </Reveal>
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
+
+      <div className="relative z-10 w-full bg-[#FCFAF8] border-t border-stone-200 py-4" />
     </section>
   );
 }

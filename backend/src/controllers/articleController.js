@@ -5,6 +5,37 @@ const ADMIN_ROLES = ['superadmin', 'admin_kaset', 'admin_psdm', 'admin_bph', 'ad
 const isAnyAdmin = (role) => ADMIN_ROLES.includes(role);
 const canManageArticles = (role) => ['superadmin', 'admin_kaset'].includes(role);
 
+// Ringkasan dari paragraf isi pertama, dipotong di batas kata
+const autoExcerpt = (content) => {
+  const first = content.split(/\n{2,}/).map((p) => p.trim()).find((p) => p.length > 60) || content.trim();
+  if (first.length <= 200) return first;
+  return first.slice(0, 200).replace(/\s+\S*$/, '') + '…';
+};
+
+// Penulis yang boleh dipilih admin artikel: anggota FKHK aktif (bukan akun admin divisi)
+const resolveAuthorId = async (authorId) => {
+  const id = parseInt(authorId);
+  if (!id) return null;
+  const member = await prisma.member.findFirst({
+    where: { id, role: 'member', isActive: true },
+    select: { id: true },
+  });
+  return member ? member.id : null;
+};
+
+exports.getAuthorOptions = async (req, res, next) => {
+  try {
+    const members = await prisma.member.findMany({
+      where: { role: 'member', isActive: true },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true },
+    });
+    res.json({ data: members });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.getArticles = async (req, res, next) => {
   try {
     const { page = 1, limit = 10, topic, search, status, mine } = req.query;
@@ -13,8 +44,10 @@ exports.getArticles = async (req, res, next) => {
 
     if (mine === 'true' && req.member) {
       where.authorId = req.member.id;
+      where.status = { not: 'archived' };
     } else if (isAnyAdmin(req.member?.role)) {
-      if (status) where.status = status;
+      // Arsip hanya tampil kalau diminta (?status=archived)
+      where.status = status || { not: 'archived' };
     } else {
       where.status = 'published';
     }
@@ -137,16 +170,23 @@ exports.createArticle = async (req, res, next) => {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '') + '-' + Date.now();
 
+    let authorId = req.member.id;
+    if (req.body.authorId && canManageArticles(req.member.role)) {
+      authorId = await resolveAuthorId(req.body.authorId);
+      if (!authorId) return res.status(400).json({ message: 'Penulis harus anggota FKHK yang aktif' });
+    }
+
     const article = await prisma.article.create({
       data: {
         title,
         slug,
         content,
-        excerpt: excerpt || content.substring(0, 200),
+        excerpt: excerpt || autoExcerpt(content),
+        references: (req.body.references || '').trim() || null,
         imageUrl: req.body.imageUrl || null,
         topic: topic || 'General',
         tags: tags || [],
-        authorId: req.member.id,
+        authorId,
         status: 'submitted', // langsung antre publish admin
       },
     });
@@ -173,13 +213,20 @@ exports.updateArticle = async (req, res, next) => {
     if (title !== undefined) data.title = title;
     if (content !== undefined) data.content = content;
     if (excerpt !== undefined) data.excerpt = excerpt;
+    if (req.body.references !== undefined) data.references = (req.body.references || '').trim() || null;
     if (topic !== undefined) data.topic = topic;
     if (tags !== undefined) data.tags = { set: tags };
     if (imageUrl !== undefined) data.imageUrl = imageUrl;
+    if (req.body.authorId !== undefined && canManageArticles(req.member.role)) {
+      const authorId = await resolveAuthorId(req.body.authorId);
+      if (!authorId) return res.status(400).json({ message: 'Penulis harus anggota FKHK yang aktif' });
+      data.authorId = authorId;
+    }
 
     const updated = await prisma.article.update({
       where: { id: parseInt(id) },
       data,
+      include: { author: { select: { id: true, name: true } } },
     });
 
     res.json(updated);
@@ -198,8 +245,40 @@ exports.deleteArticle = async (req, res, next) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    await prisma.article.delete({ where: { id: parseInt(id) } });
-    res.json({ message: 'Article deleted' });
+    // Hapus = arsipkan (bisa dipulihkan). Hapus permanen hanya untuk artikel yang
+    // sudah diarsip, oleh admin artikel, dengan ?permanent=true.
+    if (article.status !== 'archived') {
+      const archived = await prisma.article.update({
+        where: { id: article.id },
+        data: { status: 'archived', isFeatured: false },
+      });
+      return res.json({ message: 'Artikel diarsipkan', status: archived.status });
+    }
+
+    if (req.query.permanent !== 'true' || !canManageArticles(req.member.role)) {
+      return res.status(400).json({ message: 'Artikel sudah diarsip. Hapus permanen hanya oleh admin artikel.' });
+    }
+
+    await prisma.article.delete({ where: { id: article.id } });
+    res.json({ message: 'Artikel dihapus permanen' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.restoreArticle = async (req, res, next) => {
+  try {
+    const article = await prisma.article.findUnique({ where: { id: parseInt(req.params.id) } });
+    if (!article) return res.status(404).json({ message: 'Article not found' });
+    if (article.status !== 'archived') {
+      return res.status(400).json({ message: 'Hanya artikel di arsip yang bisa dipulihkan' });
+    }
+    // Yang pernah terbit kembali terbit; sisanya kembali jadi draft
+    const updated = await prisma.article.update({
+      where: { id: article.id },
+      data: { status: article.publishedAt ? 'published' : 'draft' },
+    });
+    res.json(updated);
   } catch (err) {
     next(err);
   }

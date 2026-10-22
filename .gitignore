@@ -7,3 +7,9 @@ node_modules/
 coverage/
 backend/uploads/
 dist/
+
+# File backup dari konflik merge
+*.orig
+
+# Backup manual di server
+backups/

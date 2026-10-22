@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import Reveal from "../Reveal";
 import StaggerContainer from "../StaggerContainer";
 
@@ -16,6 +18,7 @@ interface Achievement {
 export default function AchievementsSection() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
+  const t = useTranslations("home.achievements");
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -23,7 +26,6 @@ export default function AchievementsSection() {
       .then((r) => r.json())
       .then((res) => {
         if (res?.data) {
-          // Ambil 3 prestasi terbaru (ID terbesar = terbaru di-insert)
           const newest = [...res.data]
             .sort((a, b) => b.id - a.id)
             .slice(0, 3);
@@ -41,28 +43,34 @@ export default function AchievementsSection() {
         <div className="flex items-end justify-between mb-10">
           <Reveal variant="fade-left">
             <span className="text-xs font-semibold uppercase tracking-[0.15em] text-accent">
-              Prestasi
+              {t("badge")}
             </span>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mt-2">
-              Kebanggaan Anggota<br />FKHK
+              {t("heading")}
             </h2>
           </Reveal>
           <Reveal variant="fade-right">
-            <a
+            <Link
               href="/prestasi"
               className="inline-flex px-5 py-2.5 border border-gray-300 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition no-underline"
             >
-              Lihat Semua
-            </a>
+              {t("viewAll")}
+            </Link>
           </Reveal>
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="rounded-2xl border border-gray-100 bg-white p-5 text-center shadow-sm sm:p-6">
+                <div className="skeleton mx-auto mb-4 h-16 w-16 rounded-full" />
+                <div className="skeleton mx-auto h-4 w-3/4" />
+                <div className="skeleton mx-auto mt-1.5 h-3 w-1/2" />
+                <div className="skeleton mx-auto mt-2 h-3 w-16" />
+              </div>
+            ))}
           </div>
-        ) : (
-          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5" staggerDelay={0.07}>
+        ) : (          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5" staggerDelay={0.07}>
             {achievements.map((a) => (
               <div
                 key={a.id}
@@ -70,7 +78,11 @@ export default function AchievementsSection() {
               >
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4 overflow-hidden">
                   {a.photo ? (
-                    <img src={`${process.env.NEXT_PUBLIC_API_URL}${a.photo}`} alt={a.name} className="w-16 h-16 rounded-full object-cover" />
+                    <img
+                      src={`${process.env.NEXT_PUBLIC_API_URL}${a.photo}`}
+                      alt={a.name}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
                   ) : (
                     <span className="text-lg font-bold text-primary">{a.initials}</span>
                   )}

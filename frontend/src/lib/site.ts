@@ -14,7 +14,12 @@ export function getSiteUrl() {
 }
 
 export function mediaUrl(path?: string | null) {
-  if (!path) return undefined;
+  if (!path || !path.trim()) return undefined;
   if (path.startsWith("http://") || path.startsWith("https://")) return path;
-  return `${getApiUrl()}${path.startsWith("/") ? path : `/${path}`}`;
+  if (path.startsWith("//")) return `https:${path}`;
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  const siteUrl = getSiteUrl();
+  return siteUrl.startsWith("http://") || siteUrl.startsWith("https://")
+    ? `${siteUrl}${cleanPath}`
+    : cleanPath;
 }

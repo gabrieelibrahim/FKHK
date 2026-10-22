@@ -1,0 +1,319 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { useAuth, isAdminRole } from "@/context/AuthContext";
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: string;
+  allowedRoles: string[];
+}
+
+interface NavSection {
+  section: string;
+  items: NavItem[];
+}
+
+const navSections: NavSection[] = [
+  {
+    section: "Menu Utama",
+    items: [
+      {
+        href: "/admin",
+        label: "Dashboard",
+        icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
+        allowedRoles: ["superadmin", "admin", "admin_kaset", "admin_psdm", "admin_bph", "sekretaris"],
+      },
+      {
+        href: "/admin/articles",
+        label: "Artikel",
+        icon: "M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z",
+        allowedRoles: ["superadmin", "admin_kaset"],
+      },
+      {
+        href: "/admin/letters",
+        label: "Persuratan",
+        icon: "M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z",
+        allowedRoles: ["superadmin", "sekretaris", "admin_kaset"],
+      },
+      {
+        href: "/admin/events",
+        label: "Kegiatan",
+        icon: "M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5",
+        allowedRoles: ["superadmin", "admin", "admin_kaset", "admin_psdm", "admin_bph", "sekretaris"],
+      },
+      {
+        href: "/admin/presensi",
+        label: "Rekap Presensi",
+        icon: "M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3 1.5 1.5 3-3.75",
+        allowedRoles: ["superadmin", "admin", "admin_kaset", "admin_psdm", "admin_bph", "sekretaris"],
+      },
+      {
+        href: "/admin/achievements",
+        label: "Prestasi",
+        icon: "M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.563.563 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z",
+        allowedRoles: ["superadmin", "admin_psdm"],
+      },
+      {
+        href: "/admin/officers",
+        label: "Pengurus",
+        icon: "M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z",
+        allowedRoles: ["superadmin", "admin_bph"],
+      },
+      {
+        href: "/admin/members",
+        label: "Anggota",
+        icon: "M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z",
+        allowedRoles: ["superadmin", "admin_bph"],
+      },
+      {
+        href: "/admin/comments",
+        label: "Komentar",
+        icon: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM8 9h8m-8 4h5",
+        allowedRoles: ["superadmin", "admin", "admin_kaset", "admin_psdm", "admin_bph", "sekretaris"],
+      },
+    ],
+  },
+  {
+    section: "Lainnya",
+    items: [
+      {
+        href: "/admin/settings",
+        label: "Pengaturan",
+        icon: "M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.27 1.47l-1.005.816c-.291.235-.44.616-.428.995.002.085.002.17 0 .254-.013.38.137.76.428.995l1.005.816c.448.365.557 1.014.27 1.47l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.217-.456a1.125 1.125 0 00-1.075.124 5.77 5.77 0 01-.22.127c-.332.183-.582.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a5.767 5.767 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.27-1.47l1.006-.816c.29-.235.44-.616.427-.995a6.793 6.793 0 010-.254c.013-.38-.136-.76-.427-.995l-1.006-.816a1.125 1.125 0 01-.27-1.47l1.297-2.247a1.125 1.125 0 011.37-.49l1.217.456c.355.133.75.072 1.075-.124.073-.044.146-.087.22-.127.332-.183.582-.495.644-.869l.213-1.281z",
+        allowedRoles: ["superadmin"],
+      },
+      {
+        href: "/",
+        label: "Lihat Website",
+        icon: "M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14",
+        allowedRoles: ["superadmin", "admin", "admin_kaset", "admin_psdm", "admin_bph", "sekretaris"],
+      },
+    ],
+  },
+];
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, loading: authLoading, member, logout } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!isAuthenticated || !isAdminRole(member?.role)) {
+      router.push("/auth/login");
+      return;
+    }
+
+    // Role-based route guard for admin sub-paths
+    const currentItem = navSections
+      .flatMap((s) => s.items)
+      .find((item) => pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href + "/")));
+
+    if (currentItem && currentItem.allowedRoles && !currentItem.allowedRoles.includes(member?.role || "")) {
+      router.push("/admin");
+    }
+  }, [authLoading, isAuthenticated, member, pathname, router]);
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileMenuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-[100dvh] bg-gray-50 lg:h-screen">
+        {/* Sidebar skeleton */}
+        <aside className="hidden w-64 shrink-0 flex-col border-r border-gray-200 bg-white lg:flex">
+          <div className="flex h-16 shrink-0 items-center gap-3 border-b border-gray-200 px-6">
+            <div className="skeleton h-9 w-9 rounded-lg" />
+            <div className="skeleton h-4 w-24" />
+          </div>
+          <nav className="space-y-6 p-4">
+            {Array.from({ length: 3 }).map((_, s) => (
+              <div key={s} className="space-y-1">
+                <div className="skeleton mx-3 mb-2 h-3 w-16" />
+                {Array.from({ length: s === 0 ? 3 : 2 }).map((_, i) => (
+                  <div key={i} className="skeleton mb-1 h-8 rounded-lg" />
+                ))}
+              </div>
+            ))}
+          </nav>
+        </aside>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6">
+            <div className="skeleton h-11 w-11 rounded-xl lg:hidden" />
+            <div className="skeleton h-4 w-32 lg:hidden" />
+            <div className="ml-auto flex items-center gap-3">
+              <div className="hidden items-center gap-2 sm:flex">
+                <div className="skeleton h-8 w-8 rounded-full" />
+                <div className="space-y-1">
+                  <div className="skeleton h-3 w-24" />
+                  <div className="skeleton h-2.5 w-16" />
+                </div>
+              </div>
+              <div className="skeleton h-9 w-20 rounded-xl" />
+            </div>
+          </header>
+
+          <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <div className="skeleton h-7 w-40" />
+                <div className="skeleton h-4 w-64 max-w-full" />
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="rounded-xl border border-gray-200/80 bg-white p-4 shadow-xs sm:p-5">
+                    <div className="mb-3 flex items-center justify-between">
+                      <div className="skeleton h-3 w-20" />
+                      <div className="skeleton h-8 w-8 rounded-lg" />
+                    </div>
+                    <div className="skeleton h-8 w-14" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || !isAdminRole(member?.role)) {
+    return null;
+  }
+
+  return (
+    <div className="flex min-h-[100dvh] bg-gray-50 lg:h-screen">
+      {mobileMenuOpen && (
+        <button
+          type="button"
+          aria-label="Tutup menu navigasi"
+          className="fixed inset-0 z-30 bg-gray-900/40 backdrop-blur-[1px] lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      <aside
+        aria-label="Navigasi admin"
+        className={`fixed inset-y-0 left-0 z-40 flex w-[min(84vw,18rem)] shrink-0 flex-col border-r border-gray-200 bg-white shadow-xl transition-transform duration-300 lg:static lg:block lg:z-auto lg:w-64 lg:translate-x-0 lg:shadow-none lg:transition-none ${
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-gray-200 px-5 sm:px-6 lg:justify-start lg:gap-3 lg:px-6">
+          <div className="flex min-w-0 items-center gap-3">
+            <Image src="/assets/logo/logo-fkhk-hijau.webp" alt="FKHK" width={36} height={36} className="h-9 w-9 shrink-0 object-contain" />
+            <span className="truncate font-bold text-gray-900">FKHK Admin</span>
+          </div>
+          <button
+            type="button"
+            aria-label="Tutup menu navigasi"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 active:scale-90 lg:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="h-5 w-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <nav className="min-h-0 flex-1 space-y-6 overflow-y-auto p-4 lg:block lg:h-[calc(100vh-4rem)] lg:flex-none">
+          {navSections.map((section) => {
+            const visibleItems = section.items.filter(
+              (item) => !item.allowedRoles || (member?.role && item.allowedRoles.includes(member.role))
+            );
+            if (visibleItems.length === 0) return null;
+
+            return (
+              <div key={section.section}>
+                <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-400 lg:text-xs lg:tracking-wider">
+                  {section.section}
+                </p>
+                {visibleItems.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      aria-current={isActive ? "page" : undefined}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`mb-1 flex min-h-11 items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium no-underline transition-colors duration-100 lg:min-h-0 lg:rounded-lg lg:py-2.5 lg:shadow-none ${
+                        isActive ? "bg-primary text-white shadow-sm" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      }`}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 shrink-0">
+                        <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
+                      </svg>
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </nav>
+      </aside>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white/95 px-4 backdrop-blur sm:px-6 lg:static lg:z-auto lg:justify-end lg:bg-white lg:px-6 lg:backdrop-blur-none">
+          <div className="flex min-w-0 items-center gap-3">
+            <button
+              type="button"
+              aria-label="Buka menu navigasi"
+              aria-expanded={mobileMenuOpen}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 active:scale-90 lg:hidden"
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="h-6 w-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <div className="min-w-0 lg:hidden">
+              <p className="truncate text-sm font-semibold text-gray-900">FKHK Admin</p>
+              <p className="truncate text-[11px] text-gray-500">Panel administrasi</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="hidden items-center gap-2 text-sm text-gray-600 sm:flex">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+                {member?.name?.charAt(0) || "A"}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900">{member?.name}</p>
+                <p className="text-xs capitalize text-gray-500">{member?.role}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={logout}
+              className="flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-red-600 transition-colors duration-100 hover:bg-red-50 lg:min-h-0 lg:gap-0 lg:rounded-lg lg:py-1.5 lg:font-normal"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.7} stroke="currentColor" className="h-5 w-5 sm:hidden">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l3 3m0 0l-3 3m3-3H3" />
+              </svg>
+              <span>Keluar</span>
+            </button>
+          </div>
+        </header>
+
+        <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto p-4 lg:p-6">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}

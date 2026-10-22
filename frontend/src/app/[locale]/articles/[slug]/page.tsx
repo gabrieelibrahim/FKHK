@@ -1,0 +1,344 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { fetchArticleBySlug, fetchRelatedArticles } from "@/lib/articles";
+import { getSiteUrl, mediaUrl } from "@/lib/site";
+import { readingTime } from "@/lib/readingTime";
+import CommentSection from "@/components/CommentSection";
+
+type Props = { params: { locale: string; slug: string } };
+
+// Baris pendek tanpa tanda baca akhir (mis. "Pendahuluan", "A. Latar Belakang") = subjudul
+function isSubheading(p: string) {
+  return !p.includes("\n") && p.length <= 80 && !/[.,;:!?"”)]$/.test(p) && /^[A-Z0-9]/.test(p);
+}
+
+// Paragraf yang mayoritas huruf Arab (ayat/hadis) ditulis kanan-ke-kiri
+function isArabicParagraph(p: string) {
+  const arabic = (p.match(/[\u0600-\u06FF]/g) || []).length;
+  const latin = (p.match(/[A-Za-z]/g) || []).length;
+  return arabic > 0 && arabic > latin * 2;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const article = await fetchArticleBySlug(params.slug);
+  if (!article || article.status !== "published") {
+    return { title: "Artikel tidak ditemukan", robots: { index: false, follow: false } };
+  }
+
+  const title = article.title;
+  const description = article.excerpt || article.content.slice(0, 160);
+  const siteUrl = getSiteUrl();
+  const url = `${siteUrl}/articles/${article.slug}`;
+  const image = mediaUrl(article.imageUrl) || `${siteUrl}/og-image.jpg`;
+
+  return {
+    title,
+    description,
+    keywords: [article.topic, ...(article.tags || []), "FKHK", "Hukum Keluarga Islam", "Artikel Hukum"],
+    alternates: { canonical: url },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
+    },
+    openGraph: {
+      type: "article",
+      title,
+      description,
+      url,
+      locale: params.locale === "en" ? "en_US" : params.locale === "ar" ? "ar_AR" : "id_ID",
+      publishedTime: article.publishedAt || undefined,
+      authors: article.author?.name ? [article.author.name] : undefined,
+      images: [{ url: image, alt: title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+    },
+  };
+}
+
+export default async function ArticleDetailPage({ params }: Props) {
+  const article = await fetchArticleBySlug(params.slug);
+  if (!article) notFound();
+
+  const locale = params.locale;
+  const dateLocale = locale === "en" ? "en-US" : locale === "ar" ? "ar-SA" : "id-ID";
+
+  const siteUrl = getSiteUrl();
+  const image = mediaUrl(article.imageUrl);
+  const minutes = readingTime(article.content || "");
+  const related = await fetchRelatedArticles(article.slug, article.topic);
+
+  const jsonLd =
+    article.status === "published"
+      ? {
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                {
+                  "@type": "ListItem",
+                  position: 1,
+                  name: locale === "en" ? "Home" : locale === "ar" ? "الرئيسية" : "Beranda",
+                  item: siteUrl,
+                },
+                {
+                  "@type": "ListItem",
+                  position: 2,
+                  name: locale === "en" ? "Articles" : locale === "ar" ? "المقالات" : "Artikel",
+                  item: `${siteUrl}/articles`,
+                },
+                {
+                  "@type": "ListItem",
+                  position: 3,
+                  name: article.title,
+                  item: `${siteUrl}/articles/${article.slug}`,
+                },
+              ],
+            },
+            {
+              "@type": "Article",
+              "@id": `${siteUrl}/articles/${article.slug}#article`,
+              isPartOf: {
+                "@type": "WebPage",
+                "@id": `${siteUrl}/articles/${article.slug}`,
+              },
+              headline: article.title,
+              description: article.excerpt || article.content.slice(0, 160),
+              image: image ? [image] : [`${siteUrl}/og-image.jpg`],
+              datePublished: article.publishedAt || undefined,
+              dateModified: article.publishedAt || article.createdAt || undefined,
+              author: {
+                "@type": "Person",
+                name: article.author?.name || "FKHK",
+              },
+              publisher: {
+                "@type": "Organization",
+                name: "Forum Kajian Hukum Keluarga",
+                url: siteUrl,
+                logo: {
+                  "@type": "ImageObject",
+                  url: `${siteUrl}/og-image.jpg`,
+                },
+              },
+              mainEntityOfPage: `${siteUrl}/articles/${article.slug}`,
+            },
+          ],
+        }
+      : null;
+
+  return (
+    <main className="min-h-screen bg-gray-50 pt-[90px] pb-12">
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+
+      <div className="container mx-auto px-4 max-w-[1100px]">
+        <div className="relative mx-auto max-w-3xl">
+          {/* Back button */}
+          <Link
+            href="/articles"
+            className="absolute -left-14 top-0 flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-200 text-gray-500 hover:text-[#2C5857] hover:border-[#2C5857]/30 hover:bg-[#2C5857]/5 transition-all shadow-sm no-underline"
+            aria-label="Kembali ke artikel"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.8}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+              />
+            </svg>
+          </Link>
+
+          <div className="flex-1">
+            {article.status !== "published" && (
+              <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                Preview — belum dipublish. Tidak di-index Google.
+              </div>
+            )}
+
+            <article className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xs font-semibold text-[#2C5857] uppercase tracking-wider">
+                  {article.topic}
+                </span>
+                <span className="text-xs text-gray-400">
+                  {article.publishedAt
+                    ? new Date(article.publishedAt).toLocaleDateString(dateLocale, {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : ""}
+                </span>
+                <span className="text-xs text-gray-400">•</span>
+                <span className="text-xs text-gray-400">
+                  {minutes}{" "}
+                  {locale === "en" ? "min read" : locale === "ar" ? "دقائق قراءة" : "menit baca"}
+                </span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 font-serif">{article.title}</h1>
+
+              <div className="flex items-center gap-3 mb-8 pb-8 border-b border-gray-100">
+                <div className="w-10 h-10 rounded-full bg-[#2C5857]/10 flex items-center justify-center text-[#2C5857] font-bold text-sm">
+                  {article.author.name.charAt(0)}
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">{article.author.name}</p>
+                  {article.author.affiliation && (
+                    <p className="text-sm text-gray-500">{article.author.affiliation}</p>
+                  )}
+                </div>
+              </div>
+
+              {image && (
+                <div className="mb-8 rounded-2xl overflow-hidden shadow-sm bg-gray-100">
+                  <img
+                    src={image}
+                    alt={article.title}
+                    className="w-full max-h-[400px] object-cover"
+                  />
+                </div>
+              )}
+
+              <div className="max-w-none text-sm sm:text-base leading-relaxed text-zinc-800">
+                {article.content
+                  .split(/\n{2,}/)
+                  .map((p) => p.trim())
+                  .filter(Boolean)
+                  .map((p, i) =>
+                    isArabicParagraph(p) ? (
+                      <p
+                        key={i}
+                        dir="rtl"
+                        lang="ar"
+                        className="mb-4 text-right text-xl sm:text-2xl leading-loose text-gray-900 break-words last:mb-0"
+                        style={{ fontFamily: "'Amiri', 'Scheherazade New', 'Noto Naskh Arabic', 'Traditional Arabic', 'Times New Roman', serif" }}
+                      >
+                        {p}
+                      </p>
+                    ) : isSubheading(p) ? (
+                      <h2 key={i} className="mt-8 mb-3 text-lg sm:text-xl font-bold text-gray-900 font-serif first:mt-0">
+                        {p}
+                      </h2>
+                    ) : (
+                      <p key={i} className="mb-4 whitespace-pre-line break-words last:mb-0">
+                        {p}
+                      </p>
+                    )
+                  )}
+              </div>
+
+              {article.references && article.references.trim() && (
+                <section className="mt-10 pt-6 border-t border-gray-200">
+                  <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3 font-serif">
+                    {locale === "en" ? "References" : locale === "ar" ? "المراجع" : "Daftar Pustaka"}
+                  </h2>
+                  <ul className="space-y-2 text-xs sm:text-sm text-zinc-600 leading-relaxed">
+                    {article.references
+                      .split("\n")
+                      .map((r) => r.trim())
+                      .filter(Boolean)
+                      .map((r, i) => (
+                        <li key={i} className="pl-6 -indent-6 break-words">
+                          {r}
+                        </li>
+                      ))}
+                  </ul>
+                </section>
+              )}
+
+              {article.tags && article.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-8 pt-8 border-t border-gray-200">
+                  {article.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-3 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="text-sm text-gray-400 mt-4">
+                {article.viewCount} {locale === "en" ? "views" : locale === "ar" ? "مشاهدة" : "dilihat"}
+              </div>
+            </article>
+
+            {/* Komentar + Share */}
+            <CommentSection
+              articleId={article.id}
+              shareUrl={`${siteUrl}/articles/${article.slug}`}
+              articleTitle={article.title}
+            />
+
+            {/* Artikel Terkait */}
+            {related.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-lg font-bold text-gray-900 mb-4 font-serif">
+                  {locale === "en" ? "Related Articles" : locale === "ar" ? "مقالات ذات صلة" : "Baca Juga"}
+                </h2>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  {related.map((ra) => {
+                    const rImg = mediaUrl(ra.imageUrl);
+                    return (
+                      <Link
+                        key={ra.id}
+                        href={`/articles/${ra.slug}`}
+                        className="flex flex-col overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition hover:shadow-md group no-underline text-inherit"
+                      >
+                        {rImg && (
+                          <div className="h-28 overflow-hidden">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={rImg}
+                              alt={ra.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                            />
+                          </div>
+                        )}
+                        <div className="flex flex-1 flex-col p-4">
+                          <span className="text-[10px] font-semibold text-[#2C5857] uppercase tracking-wider mb-1">
+                            {ra.topic}
+                          </span>
+                          <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">
+                            {ra.title}
+                          </h3>
+                          <span className="text-xs text-gray-400 mt-auto pt-2">
+                            {ra.author?.name}
+                          </span>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}

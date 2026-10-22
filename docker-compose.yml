@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: fkhkdb
       POSTGRES_USER: fkhk
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-fkhk_secret_2026}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD wajib di-set di .env}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
@@ -28,11 +28,12 @@ services:
         condition: service_healthy
     environment:
       PORT: 5000
-      DATABASE_URL: "postgresql://fkhk:${DB_PASSWORD:-fkhk_secret_2026}@db:5432/fkhkdb?schema=public"
-      JWT_SECRET: "${JWT_SECRET:-fkhk_jwt_super_secret_2026}"
+      DATABASE_URL: "postgresql://fkhk:${DB_PASSWORD:?DB_PASSWORD wajib di-set di .env}@db:5432/fkhkdb?schema=public"
+      JWT_SECRET: "${JWT_SECRET:?JWT_SECRET wajib di-set di .env}"
+      JWT_EXPIRATION: "${JWT_EXPIRATION:-12h}"
       BCRYPT_SALT_ROUNDS: 10
       NODE_ENV: production
-      CORS_ORIGINS: "https://fkhk-uinsuka.web.id,https://www.fkhk-uinsuka.web.id,http://43.159.34.55"
+      CORS_ORIGINS: "https://fkhk-uinsuka.web.id,https://www.fkhk-uinsuka.web.id,https://presensi.fkhk-uinsuka.web.id"
     volumes:
       - uploads:/app/uploads
     ports:
@@ -47,7 +48,7 @@ services:
       - backend
     environment:
       API_URL: "http://backend:5000"
-      JWT_SECRET: "${JWT_SECRET:-fkhk_jwt_super_secret_2026}"
+      JWT_SECRET: "${JWT_SECRET:?JWT_SECRET wajib di-set di .env}"
       NEXT_PUBLIC_API_URL: ""
       NEXT_PUBLIC_SITE_URL: "https://fkhk-uinsuka.web.id"
     ports:

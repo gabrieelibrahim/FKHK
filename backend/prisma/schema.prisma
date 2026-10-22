@@ -13,14 +13,16 @@ model Member {
   passwordHash  String
   name          String
   phone         String?
+  nim           String?   @unique
   affiliation   String?
   bio           String?
   avatarUrl     String?
   interests     String[]  @default([])
   role          String    @default("member") // "member", "moderator", "admin"
   isActive      Boolean   @default(true)
-  resetToken    String?   @unique
+  resetToken    String?  @unique
   resetTokenExpiry DateTime?
+  mustChangePassword Boolean @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -28,6 +30,7 @@ model Member {
   eventsCreated Event[]   @relation("EventCreator")
   registrations Registration[]
   comments      Comment[]
+  officialLetters OfficialLetter[] @relation("LetterCreator")
 
   @@map("members")
 }
@@ -37,6 +40,7 @@ model Article {
   title         String
   slug          String    @unique
   content       String
+  references    String?   // daftar pustaka, satu entri per baris
   excerpt       String?
   imageUrl      String?
   authorId      Int
@@ -68,6 +72,8 @@ model Event {
   createdBy     Member    @relation("EventCreator", fields: [createdById], references: [id])
   status        String    @default("upcoming") // "upcoming", "completed", "cancelled"
   imageUrl      String?
+  category      String    @default("umum") // "umum", "internal"
+  presensiCode  String? // kode presensi per kegiatan (anti titip absen); null = tanpa kode
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -80,12 +86,17 @@ model Registration {
   id            Int       @id @default(autoincrement())
   eventId       Int
   event         Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  memberId      Int
-  member        Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId      Int?
+  member        Member?   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  name          String?
+  email         String?
+  phone         String?
+  institution   String?
+  nim           String?
   registeredAt  DateTime  @default(now())
   attended      Boolean   @default(false)
+  presensiIp    String? // IP pengirim saat check-in (jejak audit anti-manipulasi)
 
-  @@unique([eventId, memberId])
   @@map("registrations")
 }
 
@@ -121,6 +132,8 @@ model Achievement {
   name      String
   title     String
   year      String
+  event     String?
+  category  String    @default("konferensi") // "kompetisi", "jurnal", "konferensi"
   initials  String
   photo     String?
   createdAt DateTime  @default(now())
@@ -142,4 +155,50 @@ model Officer {
   updatedAt DateTime  @updatedAt
 
   @@map("officers")
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+model OfficialLetter {
+  id              String         @id @default(uuid())
+  letterNumber    String         @unique
+  sequenceNumber  Int
+  subjectCode     String         // Kode perihal: 01 s.d. 11
+  scope           String         // PUSAT, DIVISI, KEPANITIAAN
+  divisionCode    String?        // KR, AD, PD, PR
+  committeeCode   String?        // PTA-UPGR, etc.
+  subject         String         // Perihal surat
+  recipientName   String         // Nama Penerima
+  recipientOrg    String?        // Instansi / Lembaga
+  eventDate       DateTime?
+  contentData     Json?          // payload dinamis (daftar mahasiswa, detail agenda)
+  withSignature   Boolean        @default(true)
+  withStamp       Boolean        @default(true)
+  status          String         @default("ISSUED") // DRAFT, ISSUED, VOID
+  filePdfUrl      String?
+  issuedAt        DateTime       @default(now())
+  createdById     Int
+  createdBy       Member         @relation("LetterCreator", fields: [createdById], references: [id])
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([letterNumber])
+  @@index([subjectCode])
+  @@index([issuedAt])
+  @@map("official_letters")
+}
+
+model LetterSequence {
+  year      Int
+  scopeKey  String         @default("GLOBAL") // Identifier scope counter
+  lastSeq   Int            @default(0)
+
+  @@id([year, scopeKey])
+  @@map("letter_sequences")
 }
